@@ -57,10 +57,9 @@ public class RemoteDeployer implements Deployer {
 				cm.patchStandaloneBeforeFabric();
 				if (SystemProperty.isFabric()) {
 					cm.setupFabric();
-					// TODO(ecervena): rework this when we will have the container parser
 				}
 			}
-			
+
 		} catch (FaframException ex) {
 			nm.stopAndClean(true);
 			throw new FaframException(ex);

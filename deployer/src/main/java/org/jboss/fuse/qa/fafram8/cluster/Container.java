@@ -1,7 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
-import org.jboss.fuse.qa.fafram8.manager.ContainerType;
-import org.jboss.fuse.qa.fafram8.manager.Node;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ContainerType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -27,13 +26,29 @@ public class Container {
 
 	@Getter
 	@Setter
-	private Node host;
+	private Node hostNode;
 
 	@Getter
 	@Setter
 	private ContainerType containerType;
 
-	public void containerCreate(){
-		containerType.createContainer(this);
+	@Getter
+	@Setter
+	private Container parentContainer;
+
+	@Getter
+	@Setter
+	private String resolver;
+
+	@Setter
+	@Getter
+	private String envProperties;
+
+	@Getter
+	@Setter
+	String path;
+
+	public void containerCreate() {
+		containerType.createContainer();
 	}
 }

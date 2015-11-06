@@ -1,6 +1,9 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ContainerType;
+import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
+
+import java.util.ArrayList;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +13,6 @@ import lombok.Setter;
  * Created by ecervena on 9/8/15.
  */
 public class Container {
-
 	/**
 	 * Constructor.
 	 *
@@ -20,6 +22,29 @@ public class Container {
 		this.name = name;
 	}
 
+	/**
+	 * Constructor.
+	 */
+	public Container() {
+		this.profiles = new ArrayList<>();
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container container according which will be new container cloned
+	 */
+	public Container(Container container) {
+		this.name = container.getName();
+		this.hostNode = new Node(container.getHostNode());
+		this.containerType = container.getContainerType();
+		this.parentContainer = container.getParentContainer();
+		this.resolver = container.getResolver();
+		this.envProperties = container.getEnvProperties();
+		this.profiles = new ArrayList<>(container.getProfiles());
+		this.path = container.getPath();
+	}
+
 	@Getter
 	@Setter
 	private String name;
@@ -27,6 +52,10 @@ public class Container {
 	@Getter
 	@Setter
 	private Node hostNode;
+
+	@Getter
+	@Setter
+	private boolean live = false;
 
 	@Getter
 	@Setter
@@ -44,11 +73,31 @@ public class Container {
 	@Getter
 	private String envProperties;
 
+	@Setter
+	@Getter
+	private ArrayList<String> profiles;
+
 	@Getter
 	@Setter
-	String path;
+	private String path;
 
-	public void containerCreate() {
-		containerType.createContainer();
+	/**
+	 * Method for container creation according container type.
+	 */
+	public void create() {
+
+		try {
+			containerType.createContainer();
+			live = true;
+		} catch (SSHClientException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Stops the container.
+	 */
+	public void stop() {
+		containerType.stopContainer();
 	}
 }

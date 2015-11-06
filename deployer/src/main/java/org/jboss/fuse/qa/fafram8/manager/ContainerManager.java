@@ -3,7 +3,6 @@ package org.jboss.fuse.qa.fafram8.manager;
 import org.apache.commons.lang3.StringUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
@@ -42,6 +41,22 @@ public class ContainerManager {
 		} catch (FaframException ex) {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");
+		}
+	}
+
+	/**
+	 * Sets up fabric on specific container.
+	 *
+	 * @param c container on which fabric will be set.
+	 */
+	public void setupFabric(Container c) {
+		final Executor rootExecutor = c.getContainerType().getExecutor();
+		rootExecutor.executeCommand("fabric:create " + SystemProperty.getFabric());
+		try {
+			rootExecutor.waitForProvisioning("root");
+		} catch (RuntimeException ex) {
+			// Container is not provisioned in time
+			throw new RuntimeException("Container did not provision in time");
 		}
 	}
 
@@ -144,4 +159,5 @@ public class ContainerManager {
 //			}
 //		}
 //	}
+}
 

@@ -352,6 +352,14 @@ public class SystemProperty {
 
 	/**
 	 * Getter.
+	 * @return config path
+	 */
+	public static String getConfigPath() {
+		return System.getProperty(FaframConstant.CONFIG_PATH, "none");
+	}
+
+	/**
+	 * Getter.
 	 *
 	 * @return broker start wait time
 	 */

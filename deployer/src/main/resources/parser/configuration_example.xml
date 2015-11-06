@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fafram xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="configuration.scheme.xsd">
+
+	<!-- Framework settings settings -->
+	<framework>
+		<fabric>testfabric</fabric>
+
+	</framework>
+
+	<cluster>
+		<!-- root default -->
+		<global type="ROOT">
+			<ssh host="openstack" username="fuse" password="fuse"/>
+		</global>
+		<containers containerCount="1"/>
+
+		<global name="client" autoName="true"/>
+		<containers containerCount="10"/>
+
+		<!-- Brokers definition -->
+		<global name="mesh-broker-" type="SSH">
+			<broker group="mesh" kind="StandAlone" autoName="true">
+				<networks>
+					<network group="mesh" username="admin" password="admin"/>
+				</networks>
+			</broker>
+		</global>
+		<containers containerCount="10">
+		</containers>
+
+	</cluster>
+</fafram>

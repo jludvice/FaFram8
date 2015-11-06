@@ -168,7 +168,6 @@ public class Fafram extends ExternalResource {
 		}
 
 		ModifierExecutor.addModifiers(changeRandomSource());
-
 		ModifierExecutor.addPostModifiers(saveCommandHistory());
 		ModifierExecutor.addPostModifiers(registerArchiver());
 	}

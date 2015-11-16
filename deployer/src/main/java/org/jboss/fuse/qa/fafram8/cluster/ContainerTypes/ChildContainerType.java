@@ -7,19 +7,14 @@ import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
  */
 public class ChildContainerType extends ContainerType {
 
-	private void initExexutor() {
+	@Override
+	protected void initExexutor() {
 		executor = container.getParentContainer().getContainerType().getExecutor();
 	}
 
 	@Override
 	public String createContainer() throws SSHClientException {
-		if (executor == null) {
-			initExexutor();
-		}
-		executor.executeCommand(getCreateCommand());
-		executor.waitForProvisioning(container.getName());
-
-		return getCreateCommand();
+		return standardCreate();
 	}
 
 	@Override

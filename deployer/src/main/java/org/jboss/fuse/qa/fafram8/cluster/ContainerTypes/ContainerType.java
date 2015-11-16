@@ -28,7 +28,28 @@ public abstract class ContainerType {
 	}
 
 	/**
+	 * Container create used in child and ssh containers.
+	 *
+	 * @return command for container create
+	 */
+	protected String standardCreate() {
+		if (executor == null) {
+			initExexutor();
+		}
+		executor.executeCommand(getCreateCommand());
+		executor.waitForProvisioning(container.getName());
+
+		return getCreateCommand();
+	}
+
+	/**
+	 * Inits the executor.
+	 */
+	protected abstract void initExexutor();
+
+	/**
 	 * Constructor.
+	 *
 	 * @param container Reference to container
 	 */
 	public ContainerType(Container container) {
@@ -38,6 +59,7 @@ public abstract class ContainerType {
 
 	/**
 	 * Constructor.
+	 *
 	 * @param container reference to container
 	 * @param executor executor
 	 */
@@ -49,6 +71,7 @@ public abstract class ContainerType {
 
 	/**
 	 * create new container in cluster.
+	 *
 	 * @return string status
 	 * @throws SSHClientException exception
 	 */
@@ -72,7 +95,7 @@ public abstract class ContainerType {
 	/**
 	 * creates and returns Create command for container type.
 	 *
-	 * @return  command for creating the container
+	 * @return command for creating the container
 	 */
 	public abstract String getCreateCommand();
 }

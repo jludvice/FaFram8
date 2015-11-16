@@ -1,4 +1,4 @@
-package org.jboss.fuse.qa.fafram8.test.configuration;
+package org.jboss.fuse.qa.fafram8.test.builder;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
@@ -14,7 +14,7 @@ import org.junit.Test;
 /**
  * Created by mmelko on 03/11/15.
  */
-public class ContainerBuilderTest {
+public class ContainerBuilderChildsTest {
 
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
 
@@ -23,12 +23,12 @@ public class ContainerBuilderTest {
 
 	@Test
 	public void buildSmokeTest() {
-		Container c = containerBuilder.createChild()
+		Container c = containerBuilder.child()
 				.name("test-container")
 				.addProfile("default")
 				.addProfile("second-profile")
 				.nodeSsh("test", "fuse", "fuse")
-				.parentContainer(new Container("root"))
+				.parent(new Container("root"))
 				.build();
 
 		Assert.assertNotNull(c);
@@ -39,48 +39,46 @@ public class ContainerBuilderTest {
 	}
 
 	@Test
-	public void buildSeveralChildContainers(){
+	public void buildSeveralChildContainers() {
 
-	Container c1,c2,c3;
+		Container c1, c2, c3;
 
-		c1	=	containerBuilder.createChild().name("child1").
+		c1 = containerBuilder.child().name("child1").
 				//setRootParent().
-			parentContainer(new Container("root")).
+						parent(new Container("root")).
 				build();
 
-		c2 = containerBuilder.createChild().name("child2").
+		c2 = containerBuilder.child().name("child2").
 				//setRootParent().
-				 parentContainer(new Container("root")).
+						parent(new Container("root")).
 
 				addProfile("default")
 				.build();
 
-		c3 = containerBuilder.createChild().name("child3").
+		c3 = containerBuilder.child().name("child3").
 				//.setRootParent()
-		parentContainer(new Container("root")).
+						parent(new Container("root")).
+				build();
 
-		build();
-
-		Assert.assertEquals(c1.getName(),"child1");
-		Assert.assertEquals(c2.getName(),"child2");
-		Assert.assertEquals(c3.getName(),"child3");
+		Assert.assertEquals(c1.getName(), "child1");
+		Assert.assertEquals(c2.getName(), "child2");
+		Assert.assertEquals(c3.getName(), "child3");
 	}
-
-
 
 	@Test
 	public void childContainersTest() {
 		ContainerBuilder builder = fafram.getBuilder();
 
-		builder.createChild().name("child1")
+		builder.child().name("child1")
 				.addToFafram()
-				.createChild().name("child2")
+				.child().name("child2")
 				.addProfile("default")
 				.addToFafram()
-				.createChild().name("child3")
+				.child().name("child3")
 				.addToFafram()
-		.buildAll();
+				.buildAll();
 
+		System.out.println(fafram.executeCommand("container-list"));
 		Assert.assertTrue(fafram.executeCommand("container-list | grep child2").contains("success"));
 	}
 }

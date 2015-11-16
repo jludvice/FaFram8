@@ -1,6 +1,7 @@
 package org.jboss.fuse.qa.fafram8.configuration;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import org.w3c.dom.Document;
@@ -32,6 +33,12 @@ public class ConfigurationParser {
 
 	private static final String CLUSTER_ELEMENT = "cluster";
 	private static final String FRAMEWORK_ELEMENT = "framework";
+
+	@Setter
+	private ContainerBuilder containerBuilder;
+
+	private boolean autoName = false;
+	private int containerCount = -1;
 
 	@Setter
 	private String path;
@@ -112,16 +119,41 @@ public class ConfigurationParser {
 	 * @param clusterNodeList clusterNodeList element
 	 */
 	private void parseCluster(NodeList clusterNodeList) {
+		for (int i = 0; i < clusterNodeList.getLength(); i++) {
+			final Node n = clusterNodeList.item(i);
+
+			if (n.getNodeType() == Node.ELEMENT_NODE) {
+				final Element element = (Element) n;
+				if (element.getNodeName().equals("global")) {
+					parseContainer(element,true);
+				} else if (element.getNodeName().equals("containers")) {
+					parseContainers(element);
+				}
+			}
+		}
 	}
 
 	/**
-	 * Parse container elements.
+	 * Parse containers element.
+	 *
+	 * @param containers element which contains containers and some metadata about containers
 	 */
-	private void parseContainers() {
+	private void parseContainers(Element containers) {
 	}
 
-	private Map<String, String> parseSimpleElement(Node n) {
+	/**
+	 * Parse
+	 *
+	 * @param container container xml element
+	 * @param isGlobal if true, container configuration is global and it isn't set to builder
+	 */
+	private void parseContainer(Element container, boolean isGlobal) {
 
+	}
+
+	;
+
+	private Map<String, String> parseSimpleElement(Node n) {
 		return null;
 	}
 }

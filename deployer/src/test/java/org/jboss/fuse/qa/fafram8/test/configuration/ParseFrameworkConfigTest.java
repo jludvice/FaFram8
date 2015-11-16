@@ -20,7 +20,6 @@ import java.io.IOException;
  */
 public class ParseFrameworkConfigTest {
 
-	private static ConfigurationParser parser;
 	private static Fafram fafram;
 
 	@BeforeClass
@@ -32,8 +31,7 @@ public class ParseFrameworkConfigTest {
 	@Ignore
 	@Test
 	public void parseFuseGroup() throws IOException, SAXException, ParserConfigurationException {
-		Assert.assertEquals("testgroup", SystemProperty.getInstance().getFuseGroup());
-	}
+		Assert.assertEquals("testgroup", SystemProperty.getInstance().getFuseGroup());}
 
 	@Ignore
 	@Test
@@ -88,9 +86,7 @@ public class ParseFrameworkConfigTest {
 	}
 
 	@Test
-	public void workingDirectory() {
-		Assert.assertEquals("testdirectory", SystemProperty.getInstance().getWorkingDirectory());
-	}
+	public void workingDirectory() {Assert.assertEquals("testdirectory", SystemProperty.getInstance().getWorkingDirectory());}
 
 	@Test
 	public void faframPatchDir() {

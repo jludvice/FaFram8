@@ -8,7 +8,6 @@ import lombok.Setter;
  * Created by mmelko on 09/10/15.
  */
 public class Node implements Cloneable {
-
 	@Getter
 	@Setter
 	private String nodeId;
@@ -61,5 +60,10 @@ public class Node implements Cloneable {
 	 */
 	public Node() {
 		super();
+	}
+
+	@Override
+	public String toString(){
+		return nodeId+" | "+host+" | "+username+":"+password;
 	}
 }

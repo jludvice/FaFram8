@@ -35,6 +35,11 @@ public class RootContainerType extends ContainerType {
 	@Setter
 	private int port;
 
+	@Override
+	protected void initExexutor() {
+		this.executor = deployer.getContainerManager().getExecutor();
+	}
+
 	/**
 	 * Constructor.
 	 *
@@ -55,8 +60,7 @@ public class RootContainerType extends ContainerType {
 			} catch (SSHClientException e) {
 				e.printStackTrace();
 			}
-			log.info("Setting up remote deployment on host " + SystemProperty.getHost() + ":" + SystemProperty
-					.getHostPort());
+			log.info("Setting up remote deployment on host " + node.getHost() + ":" + node.getPort());
 		} else {
 			this.deployer = new LocalDeployer(fuseSsh);
 		}
@@ -65,7 +69,7 @@ public class RootContainerType extends ContainerType {
 	@Override
 	public String createContainer() {
 		prepare();
-		this.executor = deployer.getContainerManager().getExecutor();
+		initExexutor();
 		this.deployer.setup();
 		return "root container is created";
 	}

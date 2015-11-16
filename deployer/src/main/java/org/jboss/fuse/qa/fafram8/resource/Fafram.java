@@ -20,9 +20,7 @@ import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
-import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
+
 import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
@@ -100,11 +98,6 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram setup() {
-		//TODO(all): consider entry point of configuration parser
-		//		ConfigurationParser.parseConfigurationFile("just/fake/path");
-		//uncoment for remote deployment
-		//ConfigurationParser.setDeployer();
-
 		initConfiguration();
 		if (SystemProperty.getHost() == null) {
 			log.info("Setting up local deployment");
@@ -115,8 +108,9 @@ public class Fafram extends ExternalResource {
 			Validator.validate();
 		}
 
+		printLogo();
 		setDefaultModifiers();
-		this.rootContainer = builder.rootContainerTypeWithMappedProperties().name("root").build();
+		this.rootContainer = builder.rootWithMappedProperties().name("root").build();
 
 		// Start deployer
 		addContainer(rootContainer);
@@ -130,6 +124,7 @@ public class Fafram extends ExternalResource {
 	public void initConfiguration() {
 		if (!SystemProperty.getConfigPath().contains("none")) {
 			this.parser = new ConfigurationParser(SystemProperty.getConfigPath());
+			this.parser.setContainerBuilder(this.builder);
 
 			try {
 				parser.parseConfigurationFile();
@@ -141,6 +136,15 @@ public class Fafram extends ExternalResource {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public void printLogo(){
+		log.info("\n  ___       ___                  _____  \n" +
+				" / __)     / __)                / ___ \\ \n" +
+				"| |__ ____| |__ ____ ____ ____ ( (   ) )\n" +
+				"|  __) _  |  __) ___) _  |    \\ > > < < \n" +
+				"| | ( ( | | | | |  ( ( | | | | ( (___) )\n" +
+				"|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
 	}
 
 	/**
@@ -416,10 +420,22 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram host(String host) {
-		if (SystemProperty.getHost() == null) {
-			System.setProperty(FaframConstant.HOST, host);
-		}
+		SystemProperty.set(FaframConstant.HOST, host);
+		return this;
+	}
 
+	public Fafram hostUser(String username){
+		SystemProperty.set(FaframConstant.HOST_USER, username);
+		return this;
+	}
+
+	public Fafram hostPassword (String password){
+		SystemProperty.set(FaframConstant.HOST_PASSWORD,password);
+		return this;
+	}
+
+	public Fafram fuseZip (String zip){
+		SystemProperty.set(FaframConstant.FUSE_ZIP,zip);
 		return this;
 	}
 
@@ -442,7 +458,6 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram setConfigPath(String configPath) {
 		SystemProperty.set(FaframConstant.CONFIG_PATH, configPath);
-
 		return this;
 	}
 
@@ -455,7 +470,7 @@ public class Fafram extends ExternalResource {
 			if (!c.isLive()) {
 				c.create();
 			} else {
-				log.info("Container " + c.getName() + " is already running");
+				log.debug("Container " + c.getName() + " is already running");
 			}
 		}
 	}

@@ -35,7 +35,7 @@ public class ContainerBuilderSshTest {
 		c2 = containerBuilder.ssh().name("ssh2").
 				//setRootParent().
 						parent(new Container("root")).
-				addProfile("default")
+						addProfile("default")
 				.nodeSsh("host2")
 				.path("/hudson/static")
 				.build();
@@ -57,16 +57,14 @@ public class ContainerBuilderSshTest {
 		Assert.assertEquals(c3.getName(), "ssh3");
 	}
 
-
 	@Test
-	public void sshFaframTest(){
+	public void sshFaframTest() {
 		fafram.getBuilder().ssh().name("ssh1")
-				.nodeSsh("10.8.49.255","fuse","fuse")
+				.nodeSsh("10.8.49.255", "fuse", "fuse")
 				.addToFafram()
 				.ssh().name("ssh2").nodeSsh("10.8.52.14").addToFafram()
 				.buildAll();
 
 		Assert.assertTrue(fafram.executeCommand("container-list | grep ssh2").contains("success"));
-
 	}
 }

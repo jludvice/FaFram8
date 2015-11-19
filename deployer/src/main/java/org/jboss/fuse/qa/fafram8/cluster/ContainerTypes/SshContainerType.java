@@ -41,11 +41,11 @@ public class SshContainerType extends ContainerType {
 			profiles += " --profile " + p;
 		}
 
-		if (container.getPath() != null && !container.getPath().equals("")) {
+		if (container.getPath() != null && !"".equals(container.getPath())) {
 			command += " --path " + container.getPath();
 		}
 
-		if (container.getEnvProperties() != null && !container.getEnvProperties().equals("")) {
+		if (container.getEnvProperties() != null && !"".equals(container.getEnvProperties())) {
 			command += " --env " + container.getEnvProperties();
 		}
 

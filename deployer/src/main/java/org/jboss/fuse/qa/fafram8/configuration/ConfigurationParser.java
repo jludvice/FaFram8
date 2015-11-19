@@ -124,9 +124,9 @@ public class ConfigurationParser {
 
 			if (n.getNodeType() == Node.ELEMENT_NODE) {
 				final Element element = (Element) n;
-				if (element.getNodeName().equals("global")) {
-					parseContainer(element,true);
-				} else if (element.getNodeName().equals("containers")) {
+				if ("global".equals(element.getNodeName())) {
+					parseContainer(element, true);
+				} else if (("containers").equals(element.getNodeName())) {
 					parseContainers(element);
 				}
 			}
@@ -139,19 +139,18 @@ public class ConfigurationParser {
 	 * @param containers element which contains containers and some metadata about containers
 	 */
 	private void parseContainers(Element containers) {
+		//TODO(mmelko): finish this
 	}
 
 	/**
-	 * Parse
+	 * Parse.
 	 *
 	 * @param container container xml element
 	 * @param isGlobal if true, container configuration is global and it isn't set to builder
 	 */
 	private void parseContainer(Element container, boolean isGlobal) {
-
+		//TODO(mmelko): finish
 	}
-
-	;
 
 	private Map<String, String> parseSimpleElement(Node n) {
 		return null;

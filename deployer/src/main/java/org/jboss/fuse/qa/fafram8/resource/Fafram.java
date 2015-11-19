@@ -138,13 +138,16 @@ public class Fafram extends ExternalResource {
 		}
 	}
 
-	public void printLogo(){
-		log.info("\n  ___       ___                  _____  \n" +
-				" / __)     / __)                / ___ \\ \n" +
-				"| |__ ____| |__ ____ ____ ____ ( (   ) )\n" +
-				"|  __) _  |  __) ___) _  |    \\ > > < < \n" +
-				"| | ( ( | | | | |  ( ( | | | | ( (___) )\n" +
-				"|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
+	/**
+	 * Prints the logo. Feel free to change.
+	 */
+	public void printLogo() {
+		log.info("\n  ___       ___                  _____  \n"
+			+	" / __)     / __)                / ___ \\ \n"
+			+	"| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
+			+	"|  __) _  |  __) ___) _  |    \\ > > < < \n"
+			+	"| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
+			+	"|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
 	}
 
 	/**
@@ -424,18 +427,33 @@ public class Fafram extends ExternalResource {
 		return this;
 	}
 
-	public Fafram hostUser(String username){
+	/**
+	 * Defines host username.
+	 * @param username username for remote host machine
+	 * @return this
+	 */
+	public Fafram hostUser(String username) {
 		SystemProperty.set(FaframConstant.HOST_USER, username);
 		return this;
 	}
 
-	public Fafram hostPassword (String password){
-		SystemProperty.set(FaframConstant.HOST_PASSWORD,password);
+	/**
+	 * Defines host password.
+	 * @param password password for remote machine
+	 * @return this
+	 */
+	public Fafram hostPassword(String password) {
+		SystemProperty.set(FaframConstant.HOST_PASSWORD, password);
 		return this;
 	}
 
-	public Fafram fuseZip (String zip){
-		SystemProperty.set(FaframConstant.FUSE_ZIP,zip);
+	/**
+	 * URL to zip with fuse.
+	 * @param zip url
+	 * @return this
+	 */
+	public Fafram fuseZip(String zip) {
+		SystemProperty.set(FaframConstant.FUSE_ZIP, zip);
 		return this;
 	}
 

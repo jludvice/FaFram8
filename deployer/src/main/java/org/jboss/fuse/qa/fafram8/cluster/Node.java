@@ -63,7 +63,7 @@ public class Node implements Cloneable {
 	}
 
 	@Override
-	public String toString(){
-		return nodeId+" | "+host+" | "+username+":"+password;
+	public String toString() {
+		return nodeId + " | " + host + " | " + username + ":" + password;
 	}
 }

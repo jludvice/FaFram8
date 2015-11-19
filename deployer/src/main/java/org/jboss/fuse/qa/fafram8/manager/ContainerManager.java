@@ -9,7 +9,6 @@ import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

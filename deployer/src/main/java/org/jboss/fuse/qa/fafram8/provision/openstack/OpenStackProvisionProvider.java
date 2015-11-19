@@ -1,9 +1,9 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
+import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
-import org.jboss.fuse.qa.fafram8.manager.Container;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * OpenStackProvisionProvider class used for calling all OpenStack node operations. Using authenticated OpenStackClient singleton.
- * <p/>
+ * <p>
  * Created by ecervena on 24.9.15.
  * TODO(ecervena): this should be probably singleton
  */
@@ -150,12 +150,12 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}
 		for (Container container : containerList) {
 			final Server server = getServerByName("fafram8-" + container.getName());
-			container.setOpenStackServerId(server.getId());
+			container.getHostNode().setNodeId(server.getId());
 
 			if (container.isRoot()) {
 				final String ip = assignFloatingAddress(server.getId());
 				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
-				container.setHostIP(ip);
+				container.getHostNode().setHost(ip);
 				System.setProperty(FaframConstant.HOST, ip);
 				removeServerFromPool(server);
 			} else {
@@ -165,6 +165,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				removeServerFromPool(server);
 			}
 		}
+
+		//TODO(ecervena): add ip assigment control
 	}
 
 	/**
@@ -209,7 +211,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	private void setLocalIPToContainer(Container container, Server server) {
 		try {
-			container.setHostIP(server.getAddresses().getAddresses("fuseqe-lab-1").get(0).getAddr());
+			container.getHostNode().setHost(server.getAddresses().getAddresses("fuseqe-lab-1").get(0).getAddr());
 		} catch (NullPointerException npe) {
 			throw new NoIPAddressException("OpenStack server local IP address not found. Maybe server is not active yet.");
 		}

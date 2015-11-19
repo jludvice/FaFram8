@@ -43,6 +43,7 @@ public class ContainerBuilder {
 		final Container c = new Container(tempContainer);
 		c.setContainerType(tempType);
 		tempType.setContainer(c);
+		tempContainer.setEnssemble(false);
 
 		return c;
 	}
@@ -142,6 +143,16 @@ public class ContainerBuilder {
 	}
 
 	/**
+	 * Specifies ensemble container.
+	 *
+	 * @return this - container builder instance.
+	 */
+	public ContainerBuilder enssemble() {
+		this.tempContainer.setEnssemble(true);
+		return this;
+	}
+
+	/**
 	 * Specify env properties for ssh container.
 	 *
 	 * @param env properties
@@ -191,6 +202,7 @@ public class ContainerBuilder {
 
 	/**
 	 * Set the temp container as a root.
+	 *
 	 * @param fuseUser new user for fuse
 	 * @param fusePassword new password for new user
 	 * @return this - container builder instance

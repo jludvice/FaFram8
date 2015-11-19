@@ -1,7 +1,7 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
+import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.exception.InvokerPoolInterruptedException;
-import org.jboss.fuse.qa.fafram8.manager.Container;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

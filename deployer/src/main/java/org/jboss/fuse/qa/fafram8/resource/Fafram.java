@@ -99,21 +99,20 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram setup() {
 		initConfiguration();
+
 		if (SystemProperty.getHost() == null) {
 			log.info("Setting up local deployment");
 			Validator.validate();
 			SystemProperty.set(FaframConstant.HOST, "localhost");
-		} else {
-			prepareNodes(provisionProvider);
-			Validator.validate();
 		}
-
+		Validator.validate();
 		printLogo();
 		setDefaultModifiers();
+		//prepare container list
 		this.rootContainer = builder.rootWithMappedProperties().name("root").build();
+		containerList.add(0, rootContainer);
 
-		// Start deployer
-		addContainer(rootContainer);
+		//init containers
 		initContainers();
 		return this;
 	}
@@ -143,11 +142,11 @@ public class Fafram extends ExternalResource {
 	 */
 	public void printLogo() {
 		log.info("\n  ___       ___                  _____  \n"
-			+	" / __)     / __)                / ___ \\ \n"
-			+	"| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
-			+	"|  __) _  |  __) ___) _  |    \\ > > < < \n"
-			+	"| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
-			+	"|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
+				+ " / __)     / __)                / ___ \\ \n"
+				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
+				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
+				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
+				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
 	}
 
 	/**
@@ -401,8 +400,8 @@ public class Fafram extends ExternalResource {
 	 * @param provider provider type name
 	 */
 	public void prepareNodes(ProvisionProvider provider) {
-		//provider.createServerPool(Fafram.containerList);
-		//provider.assignAddresses(Fafram.containerList);
+		provider.createServerPool(containerList);
+		provider.assignAddresses(containerList);
 	}
 
 	/**
@@ -429,6 +428,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Defines host username.
+	 *
 	 * @param username username for remote host machine
 	 * @return this
 	 */
@@ -439,6 +439,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Defines host password.
+	 *
 	 * @param password password for remote machine
 	 * @return this
 	 */
@@ -449,6 +450,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * URL to zip with fuse.
+	 *
 	 * @param zip url
 	 * @return this
 	 */
@@ -484,12 +486,37 @@ public class Fafram extends ExternalResource {
 	 */
 	//TODO(ecervena): implement parallel container spawn
 	public void initContainers() {
+
+		prepareNodes(provisionProvider);
+		try {
+			//TODO(ecervena): implement waiting for
+			final int timeout = 5000;
+			Thread.sleep(timeout);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		for (Container c : containerList) {
+			if (!(c.getContainerType() instanceof RootContainerType) && c.getParentContainer() == null) {
+				c.setParentContainer(this.rootContainer);
+			}
+		}
+
+		String ensembleServers = "";
+
 		for (Container c : containerList) {
 			if (!c.isLive()) {
 				c.create();
+				if (c.isEnssemble()) {
+					ensembleServers += " " + c.getName();
+				}
 			} else {
 				log.debug("Container " + c.getName() + " is already running");
 			}
 		}
+
+		executeCommand("ensemble-add --force " + ensembleServers);
+
+		this.rootContainer.waitForProvision();
 	}
 }

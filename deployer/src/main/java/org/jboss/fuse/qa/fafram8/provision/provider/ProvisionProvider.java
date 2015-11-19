@@ -1,6 +1,6 @@
 package org.jboss.fuse.qa.fafram8.provision.provider;
 
-import org.jboss.fuse.qa.fafram8.manager.Container;
+import org.jboss.fuse.qa.fafram8.cluster.Container;
 
 import java.util.List;
 

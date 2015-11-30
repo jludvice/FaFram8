@@ -9,7 +9,11 @@ import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,8 +22,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ContainerManager {
+
 	@Getter
 	private Executor executor;
+
+	@Setter
+	@Getter
+	private List<String> commands = new ArrayList<String>();
 
 	/**
 	 * Constructor.
@@ -41,6 +50,18 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");
 		}
+		executeStartupCommands();
+	}
+
+	/**
+	 * Executes defined commands right after fabric-create.
+	 */
+	public void executeStartupCommands() {
+		if (commands != null && !commands.isEmpty()) {
+			for (String command : commands) {
+				executor.executeCommand(command);
+			}
+		}
 	}
 
 	/**
@@ -57,6 +78,7 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new RuntimeException("Container did not provision in time");
 		}
+		executeStartupCommands();
 	}
 
 	/**

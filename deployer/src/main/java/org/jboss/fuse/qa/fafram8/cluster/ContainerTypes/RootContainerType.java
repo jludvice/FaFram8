@@ -10,6 +10,9 @@ import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,10 @@ public class RootContainerType extends ContainerType {
 	@Setter
 	private int port;
 
+	@Setter
+	@Getter
+	private List<String> commands = new ArrayList<>();
+
 	@Override
 	protected void initExexutor() {
 		this.executor = deployer.getContainerManager().getExecutor();
@@ -42,7 +49,7 @@ public class RootContainerType extends ContainerType {
 	/**
 	 * Constructor.
 	 *
-	 * @param c container reference
+	 * @param c container reference.
 	 */
 	public RootContainerType(Container c) {
 		super(c);
@@ -69,6 +76,7 @@ public class RootContainerType extends ContainerType {
 	public String createContainer() {
 		prepare();
 		initExexutor();
+		deployer.getContainerManager().setCommands(commands);
 		this.deployer.setup();
 		return "root container is created";
 	}
@@ -93,5 +101,14 @@ public class RootContainerType extends ContainerType {
 	@Override
 	public String getCreateCommand() {
 		return null;
+	}
+
+	/**
+	 * add command into list of commands.
+	 *
+	 * @param command command which will be added into list.
+	 */
+	public void addCommand(String command) {
+		this.commands.add(command);
 	}
 }

@@ -70,6 +70,17 @@ public class ContainerBuilder {
 	}
 
 	/**
+	 * Define ssh container.
+	 *
+	 * @param name of the ssh container
+	 * @return this - container builder
+	 */
+	public ContainerBuilder ssh(String name) {
+		this.tempType = new SshContainerType();
+		return name(name);
+	}
+
+	/**
 	 * Set the host node for the container.
 	 *
 	 * @param node host node
@@ -91,9 +102,19 @@ public class ContainerBuilder {
 	}
 
 	/**
+	 * Defineses child container with specified name.
+	 * @param name name of the child container
+	 * @return this - container builder
+	 */
+	public ContainerBuilder child(String name) {
+		child();
+		return name(name);
+	}
+
+	/**
 	 * Adds profile into profile list for container.
 	 *
-	 * @param profile ad
+	 * @param profile added profile
 	 * @return this - container builder instance
 	 */
 	public ContainerBuilder addProfile(String profile) {
@@ -239,5 +260,17 @@ public class ContainerBuilder {
 		} else {
 			throw new FaframException("No fafram instance found.");
 		}
+	}
+
+	/**
+	 * Adds  command  which will be executed before  others containers are initialized.
+	 *
+	 * @param command to be executed.
+	 * @return  this
+	 */
+	public ContainerBuilder addCommand(String command) {
+		final RootContainerType rootType = ((RootContainerType) this.tempType);
+		rootType.addCommand(command);
+		return this;
 	}
 }

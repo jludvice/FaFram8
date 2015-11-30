@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -49,6 +50,9 @@ public class Fafram extends ExternalResource {
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
 
+	@Setter
+	private List<String> commands = new LinkedList<>();
+
 	private ConfigurationParser parser;
 
 	@Getter
@@ -56,6 +60,8 @@ public class Fafram extends ExternalResource {
 
 	@Getter
 	private Container rootContainer;
+
+	private String containerName = "root";
 
 	/**
 	 * Constructor.
@@ -105,16 +111,22 @@ public class Fafram extends ExternalResource {
 			Validator.validate();
 			SystemProperty.set(FaframConstant.HOST, "localhost");
 		}
-		Validator.validate();
 		printLogo();
 		setDefaultModifiers();
 		//prepare container list
-		this.rootContainer = builder.rootWithMappedProperties().name("root").build();
-		containerList.add(0, rootContainer);
 
-		//init containers
+		initRootContainer();
+		prepareNodes(provisionProvider);
 		initContainers();
 		return this;
+	}
+
+	private void initRootContainer() {
+		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
+		if (commands != null && !commands.isEmpty()) {
+			((RootContainerType) rootContainer.getContainerType()).setCommands(commands);
+		}
+		containerList.add(0, rootContainer);
 	}
 
 	/**
@@ -486,11 +498,9 @@ public class Fafram extends ExternalResource {
 	 */
 	//TODO(ecervena): implement parallel container spawn
 	public void initContainers() {
-
-		prepareNodes(provisionProvider);
 		try {
 			//TODO(ecervena): implement waiting for
-			final int timeout = 5000;
+			final int timeout = 15000;
 			Thread.sleep(timeout);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -515,8 +525,35 @@ public class Fafram extends ExternalResource {
 			}
 		}
 
-		executeCommand("ensemble-add --force " + ensembleServers);
+		if (!"".equals(ensembleServers)) {
+			executeCommand("ensemble-add --force " + ensembleServers);
+		}
 
 		this.rootContainer.waitForProvision();
+	}
+
+	/**
+	 * Specifies name of the root container.
+	 *
+	 * @param name root containers name.
+	 * @return this
+	 */
+	public Fafram name(String name) {
+		this.containerName = name;
+		//TODO(avano): set real name to root container.
+		return this;
+	}
+
+	/**
+	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
+	 *
+	 * @param commands list of commands
+	 * @return this
+	 */
+	public Fafram command(String... commands) {
+		for (String s : commands) {
+			this.commands.add(s);
+		}
+		return this;
 	}
 }

@@ -42,7 +42,7 @@ public class Container {
 		this.parentContainer = container.getParentContainer();
 		this.resolver = container.getResolver();
 		this.envProperties = container.getEnvProperties();
-		this.profiles = new ArrayList<>();
+		this.profiles = new ArrayList<>(container.getProfiles());
 		this.path = container.getPath();
 		this.enssemble = container.isEnssemble();
 	}

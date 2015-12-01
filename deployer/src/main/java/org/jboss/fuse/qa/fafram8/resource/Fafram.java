@@ -381,7 +381,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		deployer.getContainerManager().getExecutor().waitForProvisioning(containerName);
+		this.rootContainer.waitForProvision();
 	}
 
 	/**
@@ -391,7 +391,7 @@ public class Fafram extends ExternalResource {
 	 * @param status patch status (true/false)
 	 */
 	public void waitForPatch(String patchName, boolean status) {
-		deployer.getContainerManager().getExecutor().waitForPatchStatus(patchName, status);
+		((RootContainerType) this.rootContainer.getContainerType()).getDeployer().getContainerManager().getExecutor().waitForPatchStatus(patchName, status);
 	}
 
 	/**

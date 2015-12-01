@@ -527,9 +527,10 @@ public class Fafram extends ExternalResource {
 
 		if (!"".equals(ensembleServers)) {
 			executeCommand("ensemble-add --force " + ensembleServers);
+			this.rootContainer.waitForProvision();
 		}
 
-		this.rootContainer.waitForProvision();
+
 	}
 
 	/**

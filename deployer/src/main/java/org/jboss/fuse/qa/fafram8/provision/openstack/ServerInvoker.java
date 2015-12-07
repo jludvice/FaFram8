@@ -1,5 +1,8 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
@@ -35,16 +38,17 @@ public class ServerInvoker implements Runnable {
 	 */
 	//@Override
 	public void run() {
+		// TODO(ecervena): why is this duplicated in OpenStackProvisionProvider.spawnNewServer()?
 		log.info("Creating server inside thread for container: " + nodeName);
 		final OSClient os = OSFactory.clientFromAccess(OpenStackClient.getInstance().getAccess());
 		final ServerCreate serverCreate = os
 				.compute()
 				.servers()
 				.serverBuilder()
-				.image("a61880d9-3cc3-40df-b172-d3282104adb4")
-				.name("fafram8-" + nodeName)
-				.flavor("3")
-				.keypairName("ecervena")
+				.image(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_IMAGE))
+				.name(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) + "-" + nodeName)
+				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
+				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
 				.build();
 		//TODO(ecervena): do something smarter with server boot timeout
 		final Server server = os.compute().servers().bootAndWaitActive(serverCreate, BOOT_TIMEOUT);

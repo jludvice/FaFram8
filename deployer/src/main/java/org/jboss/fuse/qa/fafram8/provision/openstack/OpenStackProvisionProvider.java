@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * OpenStackProvisionProvider class used for calling all OpenStack node operations. Using authenticated OpenStackClient singleton.
- * <p>
+ * <p/>
  * Created by ecervena on 24.9.15.
  * TODO(ecervena): this should be probably singleton
  */
@@ -87,10 +87,10 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				.compute()
 				.servers()
 				.serverBuilder()
-				.image("a61880d9-3cc3-40df-b172-d3282104adb4")
-				.name("fafram8-" + serverName)
-				.flavor("3")
-				.keypairName("ecervena")
+				.image(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_IMAGE))
+				.name(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) + "-" + serverName)
+				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
+				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
 				.build();
 		serverRegister.add(os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT));
 	}
@@ -149,7 +149,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			throw new EmptyContainerListException("Container list is empty!");
 		}
 		for (Container container : containerList) {
-			final Server server = getServerByName("fafram8-" + container.getName());
+			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
+					+ "-" + container.getName());
 			container.getHostNode().setNodeId(server.getId());
 
 			if (container.isRoot()) {
@@ -161,7 +162,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			} else {
 				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
 				setLocalIPToContainer(container, server);
-				log.debug("Assigning local IP: " + server.getAddresses().getAddresses("fuseqe-lab-1").get(0).getAddr() + " for container: " + container.getName());
+				log.debug("Assigning local IP: " + server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant
+						.OPENSTACK_ADDRESS_TYPE)).get(0).getAddr() + " for container: " + container.getName());
 				removeServerFromPool(server);
 			}
 		}
@@ -211,7 +213,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	private void setLocalIPToContainer(Container container, Server server) {
 		try {
-			container.getHostNode().setHost(server.getAddresses().getAddresses("fuseqe-lab-1").get(0).getAddr());
+			container.getHostNode().setHost(server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_ADDRESS_TYPE))
+					.get(0).getAddr());
 		} catch (NullPointerException npe) {
 			throw new NoIPAddressException("OpenStack server local IP address not found. Maybe server is not active yet.");
 		}

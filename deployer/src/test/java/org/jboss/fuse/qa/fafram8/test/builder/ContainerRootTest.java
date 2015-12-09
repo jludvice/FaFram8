@@ -23,8 +23,8 @@ public class ContainerRootTest {
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
 	public static final String ROOT_NAME = "Fafram-Test-root";
 	public static final String ROOT2_NAME = "fafram-Test-secondroot";
-	public static String ipRoot="";
-	public static String ipSsh="";
+	public static String ipRoot = "";
+	public static String ipSsh = "";
 
 	// associated floating IP address in Openstack
 	//public static String ipAddress;
@@ -40,29 +40,28 @@ public class ContainerRootTest {
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(ROOT2_NAME).getId());
 		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
 		System.setProperty(FaframConstant.FUSE_ZIP, "http://download.eng.bos.redhat.com/brewroot/repos/jb-fuse-6.2-build/latest/maven/org/jboss/fuse/jboss-fuse-full/6.2.0.redhat-133/jboss-fuse-full-6.2.0.redhat-133.zip");
-		System.setProperty(FaframConstant.HOST,ipRoot);
+		System.setProperty(FaframConstant.HOST, ipRoot);
 		Thread.sleep(30000);
 	}
 
-	//@ClassRule
 	public static Fafram fafram = new Fafram()
 			.withFabric().host(ipRoot)
 			.hostUser("fuse").hostPassword("fuse");
-		//	.fuseZip("http://repository.jboss.org/nexus/content/repositories/ea/org/jboss/fuse/jboss-fuse-full/6.2.1.redhat-071/jboss-fuse-full-6.2.1.redhat-071.zip");
+	//	.fuseZip("http://repository.jboss.org/nexus/content/repositories/ea/org/jboss/fuse/jboss-fuse-full/6.2.1.redhat-071/jboss-fuse-full-6.2.1.redhat-071.zip");
 
 	@Test
-	public void sshFaframTest(){
+	public void sshFaframTest() {
 		fafram.setup();
-		fafram.getBuilder().root("admin","admin").name("root2")
-				.nodeSsh(ipSsh,"fuse","fuse")
+		fafram.getBuilder().root("admin", "admin").name("root2")
+				.nodeSsh(ipSsh, "fuse", "fuse")
 				.addToFafram()
 				.buildAll();
 
 		Container root2 = null;
-		for(Container c:fafram.getContainerList()){
+		for (Container c : fafram.getContainerList()) {
 			System.out.println(c.getHostNode());
-			if("root2".equals(c.getName()))
-				root2 =c;
+			if ("root2".equals(c.getName()))
+				root2 = c;
 		}
 
 		Assert.assertTrue(fafram.executeCommand("container-list | grep root").contains("success"));
@@ -75,5 +74,4 @@ public class ContainerRootTest {
 		System.clearProperty(FaframConstant.HOST);
 		System.clearProperty(FaframConstant.FUSE_ZIP);
 	}
-
 }

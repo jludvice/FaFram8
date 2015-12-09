@@ -54,6 +54,28 @@ public class Broker {
 	private Map<String, String> pids = new HashMap<>();
 
 	/**
+	 * Constructor.
+	 */
+	public Broker() {
+		super();
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param broker broker which should be cloned.
+	 */
+	public Broker(Broker broker) {
+		this.name = broker.getName();
+		this.ssl = broker.isSsl();
+		this.kind = broker.getKind();
+		this.group = broker.getGroup();
+		this.data = broker.getData();
+		this.networks = new HashMap<String, Pair<String, String>>(broker.getNetworks());
+		this.parentProfile = broker.getParentProfile();
+		this.pids = new HashMap<>(broker.getPids());
+	}
+
+	/**
 	 * List of commands needed for creation of the broker.
 	 *
 	 * @return list of commands.

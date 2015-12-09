@@ -42,6 +42,11 @@ public class RootContainerType extends ContainerType {
 	private List<String> commands = new ArrayList<>();
 
 	@Override
+	public String executeCommand(String command) {
+		return executor.executeCommand(command);
+	}
+
+	@Override
 	protected void initExexutor() {
 		this.executor = deployer.getContainerManager().getExecutor();
 	}

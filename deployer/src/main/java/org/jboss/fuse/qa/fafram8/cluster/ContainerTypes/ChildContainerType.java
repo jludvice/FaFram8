@@ -8,6 +8,11 @@ import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 public class ChildContainerType extends ContainerType {
 
 	@Override
+	public String executeCommand(String command) {
+		return executor.executeCommand("container-connect " + this.container.getName() + " " + command);
+	}
+
+	@Override
 	protected void initExexutor() {
 		executor = container.getParentContainer().getContainerType().getExecutor();
 	}

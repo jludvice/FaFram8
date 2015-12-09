@@ -125,4 +125,14 @@ public class Container {
 	public void waitForProvision() {
 		containerType.getExecutor().waitForProvisioning(name);
 	}
+
+	/**
+	 * Executes command on container.
+	 *
+	 * @param command to execute
+	 * @return output of eecuted command
+	 */
+	public String executeCommand(String command) {
+		return this.containerType.executeCommand(command);
+	}
 }

@@ -43,6 +43,13 @@ public abstract class ContainerType {
 	}
 
 	/**
+	 * Executing command abstract method.
+	 * @param command to execute
+	 * @return output of the executed command
+	 */
+	public abstract String executeCommand(String command);
+
+	/**
 	 * Inits the executor.
 	 */
 	protected abstract void initExexutor();

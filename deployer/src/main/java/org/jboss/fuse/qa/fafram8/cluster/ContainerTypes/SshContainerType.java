@@ -62,6 +62,11 @@ public class SshContainerType extends ContainerType {
 	}
 
 	@Override
+	public String executeCommand(String command) {
+		return executor.executeCommand("container-connect " + this.container.getName() + " " + command);
+	}
+
+	@Override
 	protected void initExexutor() {
 		executor = container.getParentContainer().getContainerType().getExecutor();
 	}

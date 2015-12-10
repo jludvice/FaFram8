@@ -70,6 +70,7 @@ public class ContainerRootTest {
 
 	@AfterClass
 	public static void after() {
+		fafram.tearDown();
 		osm.releaseResources();
 		System.clearProperty(FaframConstant.HOST);
 		System.clearProperty(FaframConstant.FUSE_ZIP);

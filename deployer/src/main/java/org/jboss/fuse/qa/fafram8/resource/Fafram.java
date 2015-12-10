@@ -110,8 +110,7 @@ public class Fafram extends ExternalResource {
 			log.info("Setting up local deployment");
 			Validator.validate();
 			SystemProperty.set(FaframConstant.HOST, "localhost");
-		}
-		else {
+		} else {
 			Validator.validate();
 		}
 		printLogo();
@@ -170,8 +169,9 @@ public class Fafram extends ExternalResource {
 	public void tearDown() {
 		// Do nothing if deployer is null - when the validation fails.
 		//TODO(mmelko): cleanup the containers node .. here is the right place
-		if(rootContainer !=null)
+		if (rootContainer != null) {
 			rootContainer.stop();
+		}
 	}
 
 	/**

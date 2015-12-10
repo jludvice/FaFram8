@@ -4,6 +4,7 @@ import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -18,6 +19,7 @@ import java.io.IOException;
 /**
  * Created by mmelko on 14/10/15.
  */
+
 public class ParseFrameworkConfigTest {
 
 	private static Fafram fafram;
@@ -91,5 +93,10 @@ public class ParseFrameworkConfigTest {
 	@Test
 	public void faframPatchDir() {
 		Assert.assertEquals("testdir", SystemProperty.getInstance().getPatchDir());
+	}
+
+	@AfterClass
+	public static void cleanProperties(){
+		SystemProperty.clearAllProperties();
 	}
 }

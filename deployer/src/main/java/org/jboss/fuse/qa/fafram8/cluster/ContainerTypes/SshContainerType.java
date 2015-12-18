@@ -3,6 +3,7 @@ package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 
 /**
+ * Class represents ssh container type.
  * Created by mmelko on 27/10/15.
  */
 public class SshContainerType extends ContainerType {

@@ -111,4 +111,7 @@ public final class FaframConstant {
 
 	// Jira URL
 	public static final String JIRA_URL = "jira.url";
+
+	// Fafram configuration path
+	public static final String CONFIG_PATH = "fafram.config.path";
 }

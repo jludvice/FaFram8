@@ -8,7 +8,6 @@ import lombok.Setter;
  * Created by ecervena on 9/8/15.
  */
 public class Container {
-
 	@Getter
 	@Setter
 	private String name;

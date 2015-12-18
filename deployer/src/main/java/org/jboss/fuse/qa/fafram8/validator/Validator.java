@@ -90,7 +90,7 @@ public final class Validator {
 			throw new ValidatorException(FaframConstant.HOST + " property is empty!");
 		}
 
-		if (host != null) {
+		if (host != null && !"openstack".equals(host)) {
 			try {
 				final InetAddress inet = InetAddress.getByName(host);
 				if (!inet.isReachable(timeout)) {

@@ -107,7 +107,7 @@ public class RemoteNodeManager implements NodeManager {
 	 */
 	public void clean() {
 		// todo(rjakubco): create better cleaning mechanism for Fabric on Windows machines
-		log.info("Killing Fuse on  " + SystemProperty.getHost());
+		log.info("Killing Fuse ");
 		executor.executeCommand("pkill -9 -f karaf");
 
 		log.info("Deleting Fafram folder on  " + SystemProperty.getHost());

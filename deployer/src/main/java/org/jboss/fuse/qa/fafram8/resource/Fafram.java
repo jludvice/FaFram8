@@ -9,28 +9,29 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendPro
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RandomModifier.changeRandomSource;
 
-import org.jboss.fuse.qa.fafram8.deployer.Deployer;
-import org.jboss.fuse.qa.fafram8.deployer.LocalDeployer;
-import org.jboss.fuse.qa.fafram8.deployer.RemoteDeployer;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
-import org.jboss.fuse.qa.fafram8.manager.Container;
+import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
+import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
+
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
-import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
+
 import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -41,17 +42,29 @@ import lombok.extern.slf4j.Slf4j;
 public class Fafram extends ExternalResource {
 	//List of containers used in test
 	@Getter
-	private static final List<Container> containerList = new LinkedList<>();
+	private final List<Container> containerList = new LinkedList<>();
 	//Provision provider instance in case of remote deployment
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
-	// Deployer instance
-	private Deployer deployer;
+
+	@Setter
+	private List<String> commands = new LinkedList<>();
+
+	private ConfigurationParser parser;
+
+	@Getter
+	private ContainerBuilder builder = new ContainerBuilder();
+
+	@Getter
+	private Container rootContainer;
+
+	private String containerName = "root";
 
 	/**
 	 * Constructor.
 	 */
 	public Fafram() {
+		builder.setFafram(this);
 	}
 
 	/**
@@ -68,7 +81,7 @@ public class Fafram extends ExternalResource {
 	 *
 	 * @param container container specification picked up from configuration file
 	 */
-	public static void addContainer(Container container) {
+	public void addContainer(Container container) {
 		containerList.add(container);
 	}
 
@@ -88,32 +101,62 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram setup() {
-		//TODO(all): consider entry point of configuration parser
-		//		ConfigurationParser.parseConfigurationFile("just/fake/path");
-		//uncoment for remote deployment
-		//ConfigurationParser.setDeployer();
+		initConfiguration();
 
 		if (SystemProperty.getHost() == null) {
 			log.info("Setting up local deployment");
 			Validator.validate();
-			setupLocalDeployment();
+			SystemProperty.set(FaframConstant.HOST, "localhost");
 		} else {
-			prepareNodes(provisionProvider);
 			Validator.validate();
-			log.info("Setting up remote deployment on host " + SystemProperty.getHost() + ":" + SystemProperty
-					.getHostPort());
+		}
+		printLogo();
+		setDefaultModifiers();
+		//prepare container list
+
+		initRootContainer();
+		prepareNodes(provisionProvider);
+		initContainers();
+		return this;
+	}
+
+	/**
+	 * Init of the root container.
+	 */
+	private void initRootContainer() {
+		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
+		if (commands != null && !commands.isEmpty()) {
+			((RootContainerType) rootContainer.getContainerType()).setCommands(commands);
+		}
+		containerList.add(0, rootContainer);
+	}
+
+	/**
+	 * Configuration init.
+	 */
+	public void initConfiguration() {
+		if (!SystemProperty.getConfigPath().contains("none")) {
+			this.parser = new ConfigurationParser(SystemProperty.getConfigPath());
+			this.parser.setContainerBuilder(this.builder);
+
 			try {
-				setupRemoteDeployment();
-			} catch (SSHClientException e) {
-				e.printStackTrace();
+				parser.parseConfigurationFile();
+			} catch (Exception e) {
+				throw new FaframException("Problem with configuration file.");
 			}
 		}
+	}
 
-		setDefaultModifiers();
-
-		// Start deployer
-		deployer.setup();
-		return this;
+	/**
+	 * Prints the logo. Feel free to change.
+	 */
+	public void printLogo() {
+		log.info("\n  ___       ___                  _____  \n"
+				+ " / __)     / __)                / ___ \\ \n"
+				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
+				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
+				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
+				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
 	}
 
 	/**
@@ -121,8 +164,9 @@ public class Fafram extends ExternalResource {
 	 */
 	public void tearDown() {
 		// Do nothing if deployer is null - when the validation fails.
-		if (deployer != null) {
-			deployer.tearDown();
+		//TODO(mmelko): cleanup the containers node .. here is the right place
+		if (rootContainer != null) {
+			rootContainer.stop();
 		}
 	}
 
@@ -142,34 +186,8 @@ public class Fafram extends ExternalResource {
 		}
 
 		ModifierExecutor.addModifiers(changeRandomSource());
-
 		ModifierExecutor.addPostModifiers(saveCommandHistory());
 		ModifierExecutor.addPostModifiers(registerArchiver());
-	}
-
-	/**
-	 * Sets up the local deployment.
-	 */
-	private void setupLocalDeployment() {
-		final int defaultPort = 8101;
-
-		// Create a local deployer with local SSH Client and assign to deployer variable
-		deployer = new LocalDeployer(new FuseSSHClient().hostname("localhost").port(defaultPort).username(SystemProperty.getFuseUser())
-				.password(SystemProperty.getFusePassword()));
-	}
-
-	/**
-	 * Sets up the remote deployment.
-	 */
-	private void setupRemoteDeployment() throws SSHClientException {
-		final SSHClient node = new NodeSSHClient().hostname(SystemProperty.getHost()).port(SystemProperty
-				.getHostPort())
-				.username(SystemProperty.getHostUser()).password(SystemProperty.getHostPassword());
-
-		final SSHClient fuse = new FuseSSHClient().hostname(SystemProperty.getHost()).fuseSSHPort().username(
-				SystemProperty.getFuseUser()).password(SystemProperty.getFusePassword());
-
-		deployer = new RemoteDeployer(node, fuse);
 	}
 
 	/**
@@ -179,7 +197,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeNodeCommand(String command) {
-		return deployer.getNodeManager().getExecutor().executeCommand(command);
+		return ((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager().getExecutor().executeCommand(command);
 	}
 
 	/**
@@ -189,7 +207,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeCommand(String command) {
-		return deployer.getContainerManager().getExecutor().executeCommand(command);
+		return rootContainer.getContainerType().getExecutor().executeCommand(command);
 	}
 
 	/**
@@ -337,7 +355,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		deployer.getContainerManager().getExecutor().waitForProvisioning(containerName);
+		this.rootContainer.waitForProvision();
 	}
 
 	/**
@@ -347,7 +365,7 @@ public class Fafram extends ExternalResource {
 	 * @param status patch status (true/false)
 	 */
 	public void waitForPatch(String patchName, boolean status) {
-		deployer.getContainerManager().getExecutor().waitForPatchStatus(patchName, status);
+		((RootContainerType) this.rootContainer.getContainerType()).getDeployer().getContainerManager().getExecutor().waitForPatchStatus(patchName, status);
 	}
 
 	/**
@@ -355,7 +373,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public void restart() {
 		// TODO(avano): probably won't be needed on remote
-		((LocalNodeManager) deployer.getNodeManager()).restart();
+		((LocalNodeManager) ((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager()).restart();
 	}
 
 	/**
@@ -368,8 +386,8 @@ public class Fafram extends ExternalResource {
 	 * @param provider provider type name
 	 */
 	public void prepareNodes(ProvisionProvider provider) {
-		provider.createServerPool(Fafram.containerList);
-		provider.assignAddresses(Fafram.containerList);
+		provider.createServerPool(containerList);
+		provider.assignAddresses(containerList);
 	}
 
 	/**
@@ -390,10 +408,40 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram host(String host) {
-		if (SystemProperty.getHost() == null) {
-			System.setProperty(FaframConstant.HOST, host);
-		}
+		SystemProperty.set(FaframConstant.HOST, host);
+		return this;
+	}
 
+	/**
+	 * Defines host username.
+	 *
+	 * @param username username for remote host machine
+	 * @return this
+	 */
+	public Fafram hostUser(String username) {
+		SystemProperty.set(FaframConstant.HOST_USER, username);
+		return this;
+	}
+
+	/**
+	 * Defines host password.
+	 *
+	 * @param password password for remote machine
+	 * @return this
+	 */
+	public Fafram hostPassword(String password) {
+		SystemProperty.set(FaframConstant.HOST_PASSWORD, password);
+		return this;
+	}
+
+	/**
+	 * URL to zip with fuse.
+	 *
+	 * @param zip url
+	 * @return this
+	 */
+	public Fafram fuseZip(String zip) {
+		SystemProperty.set(FaframConstant.FUSE_ZIP, zip);
 		return this;
 	}
 
@@ -405,6 +453,78 @@ public class Fafram extends ExternalResource {
 	public Fafram onlyConnect() {
 		SystemProperty.set(FaframConstant.CLEAN, "false");
 
+		return this;
+	}
+
+	/**
+	 * Defines path to configuration file.
+	 *
+	 * @param configPath patch to configuration file
+	 * @return this
+	 */
+	public Fafram setConfigPath(String configPath) {
+		SystemProperty.set(FaframConstant.CONFIG_PATH, configPath);
+		return this;
+	}
+
+	/**
+	 * Container initialization. If container is already live just skip it.
+	 */
+	//TODO(ecervena): implement parallel container spawn
+	public void initContainers() {
+		try {
+			//TODO(ecervena): implement waiting for
+			final int timeout = 15000;
+			Thread.sleep(timeout);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		for (Container c : containerList) {
+			if (!(c.getContainerType() instanceof RootContainerType) && c.getParentContainer() == null) {
+				c.setParentContainer(this.rootContainer);
+			}
+		}
+
+		String ensembleServers = "";
+
+		for (Container c : containerList) {
+			if (!c.isLive()) {
+				c.create();
+				if (c.isEnsemble()) {
+					ensembleServers += " " + c.getName();
+				}
+			} else {
+				log.debug("Container " + c.getName() + " is already running");
+			}
+		}
+
+		if (!"".equals(ensembleServers)) {
+			executeCommand("ensemble-add --force " + ensembleServers);
+			this.rootContainer.waitForProvision();
+		}
+	}
+
+	/**
+	 * Specifies name of the root container.
+	 *
+	 * @param name root containers name.
+	 * @return this
+	 */
+	public Fafram name(String name) {
+		this.containerName = name;
+		//TODO(avano): set real name to root container.
+		return this;
+	}
+
+	/**
+	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
+	 *
+	 * @param commands list of commands
+	 * @return this
+	 */
+	public Fafram command(String... commands) {
+		this.commands.addAll(Arrays.asList(commands));
 		return this;
 	}
 }

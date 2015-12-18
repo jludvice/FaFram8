@@ -2,16 +2,18 @@ package org.jboss.fuse.qa.fafram8.manager;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
+import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,8 +22,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ContainerManager {
+
 	@Getter
 	private Executor executor;
+
+	@Setter
+	@Getter
+	private List<String> commands = new ArrayList<String>();
 
 	/**
 	 * Constructor.
@@ -43,6 +50,35 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");
 		}
+		executeStartupCommands();
+	}
+
+	/**
+	 * Executes defined commands right after fabric-create.
+	 */
+	public void executeStartupCommands() {
+		if (commands != null && !commands.isEmpty()) {
+			for (String command : commands) {
+				executor.executeCommand(command);
+			}
+		}
+	}
+
+	/**
+	 * Sets up fabric on specific container.
+	 *
+	 * @param c container on which fabric will be set.
+	 */
+	public void setupFabric(Container c) {
+		final Executor rootExecutor = c.getContainerType().getExecutor();
+		rootExecutor.executeCommand("fabric:create " + SystemProperty.getFabric());
+		try {
+			rootExecutor.waitForProvisioning("root");
+		} catch (FaframException ex) {
+			// Container is not provisioned in time
+			throw new FaframException("Container did not provision in time");
+		}
+		executeStartupCommands();
 	}
 
 	/**
@@ -112,36 +148,5 @@ public class ContainerManager {
 		log.debug("Patch name is " + patchName);
 		return patchName;
 	}
-
-	/**
-	 * Execute container-create-ssh command on root container.
-	 *
-	 * @param hostIP IP address of host node
-	 * @param containerName Name of container
-	 */
-	//TODO(ecervena): throw authentization fail exception, implement parallel container spawn
-	private void createSSHContainer(String hostIP, String containerName) {
-		final String command = String.format("container-create-ssh --host %s --user %s --password %s --resolver %s %s",
-				hostIP, SystemProperty.getHostUser(), SystemProperty.getHostPassword(), "localip", containerName);
-		executor.executeCommand(command);
-		executor.waitForProvisioning(containerName);
-	}
-
-	/**
-	 * Execute container-create-ssh command for all containers on the list.
-	 *
-	 * @param containerList container list
-	 * @throws EmptyContainerListException when the container list is empty
-	 */
-	public void createSSHContainer(List<Container> containerList) throws EmptyContainerListException {
-		if (containerList.isEmpty()) {
-			throw new EmptyContainerListException(
-					"List of containers is empty. Root container should be provided in configuration file at least.");
-		}
-		for (Container container : containerList) {
-			if (!container.isRoot()) {
-				createSSHContainer(container.getHostIP(), container.getName());
-			}
-		}
-	}
 }
+

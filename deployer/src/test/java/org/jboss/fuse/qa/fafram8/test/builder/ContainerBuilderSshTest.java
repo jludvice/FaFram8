@@ -16,6 +16,7 @@ import org.junit.Test;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Tests ability of builder/fafram to create ssh containers.
  * Created by mmelko on 06/11/15.
  */
 @Slf4j
@@ -23,11 +24,8 @@ public class ContainerBuilderSshTest {
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
 	public static final String SERVER_NAME = "FaframBuilderNode";
 	public static final String SSH_NAME = "FaframBuilderSSH";
-	public static String ipRoot="";
-	public static String ipSsh="";
-
-	// associated floating IP address in Openstack
-	//public static String ipAddress;
+	public static String ipRoot = "";
+	public static String ipSsh = "";
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
@@ -40,15 +38,13 @@ public class ContainerBuilderSshTest {
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(SSH_NAME).getId());
 		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
 		System.setProperty(FaframConstant.FUSE_ZIP, "http://download.eng.bos.redhat.com/brewroot/repos/jb-fuse-6.2-build/latest/maven/org/jboss/fuse/jboss-fuse-full/6.2.0.redhat-133/jboss-fuse-full-6.2.0.redhat-133.zip");
-		System.setProperty(FaframConstant.HOST,ipRoot);
+		System.setProperty(FaframConstant.HOST, ipRoot);
 		Thread.sleep(30000);
 	}
 
-	//@ClassRule
 	public static Fafram fafram = new Fafram()
 			.withFabric().host(ipRoot)
 			.hostUser("fuse").hostPassword("fuse");
-		//	.fuseZip("http://repository.jboss.org/nexus/content/repositories/ea/org/jboss/fuse/jboss-fuse-full/6.2.1.redhat-071/jboss-fuse-full-6.2.1.redhat-071.zip");
 
 	@Test
 	public void buildSshContainers() {
@@ -63,16 +59,14 @@ public class ContainerBuilderSshTest {
 				build();
 
 		c2 = containerBuilder.ssh().name("ssh2").
-				//setRootParent().
-						parent(new Container("root")).
-						addProfile("default")
+				parent(new Container("root")).
+				addProfile("default")
 				.nodeSsh("host2")
 				.path("/hudson/static")
 				.build();
 
 		c3 = containerBuilder.ssh().name("ssh3").
-				//.setRootParent()
-						parent(new Container("root"))
+				parent(new Container("root"))
 				.nodeSsh("host3").
 						path(null).
 						env(null).

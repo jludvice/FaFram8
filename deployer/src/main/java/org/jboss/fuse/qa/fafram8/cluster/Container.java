@@ -2,7 +2,6 @@ package org.jboss.fuse.qa.fafram8.cluster;
 
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 
 import java.util.ArrayList;
 
@@ -44,7 +43,7 @@ public class Container {
 		this.envProperties = container.getEnvProperties();
 		this.profiles = new ArrayList<>(container.getProfiles());
 		this.path = container.getPath();
-		this.enssemble = container.isEnssemble();
+		this.ensemble = container.isEnsemble();
 	}
 
 	@Getter
@@ -53,7 +52,7 @@ public class Container {
 
 	@Getter
 	@Setter
-	private boolean enssemble = false;
+	private boolean ensemble = false;
 
 	@Getter
 	@Setter
@@ -91,13 +90,8 @@ public class Container {
 	 * Method for container creation according container type.
 	 */
 	public void create() {
-
-		try {
-			containerType.createContainer();
-			live = true;
-		} catch (SSHClientException e) {
-			e.printStackTrace();
-		}
+		containerType.createContainer();
+		live = true;
 	}
 
 	/**
@@ -113,10 +107,7 @@ public class Container {
 	 * @return true if container is root
 	 */
 	public boolean isRoot() {
-		if (containerType instanceof RootContainerType) {
-			return true;
-		}
-		return false;
+		return containerType instanceof RootContainerType;
 	}
 
 	/**

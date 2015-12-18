@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-/**
+/** Tests execution of commands right after Fuse start.
  * Created by mmelko on 30/11/15.
  */
 public class CommandsTest {

@@ -16,6 +16,7 @@ import org.junit.Test;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Tests ability of builder/fafram to create root containers.
  * Created by mmelko on 10/11/15.
  */
 @Slf4j
@@ -25,9 +26,6 @@ public class ContainerRootTest {
 	public static final String ROOT2_NAME = "fafram-Test-secondroot";
 	public static String ipRoot = "";
 	public static String ipSsh = "";
-
-	// associated floating IP address in Openstack
-	//public static String ipAddress;
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
@@ -47,7 +45,6 @@ public class ContainerRootTest {
 	public static Fafram fafram = new Fafram()
 			.withFabric().host(ipRoot)
 			.hostUser("fuse").hostPassword("fuse");
-	//	.fuseZip("http://repository.jboss.org/nexus/content/repositories/ea/org/jboss/fuse/jboss-fuse-full/6.2.1.redhat-071/jboss-fuse-full-6.2.1.redhat-071.zip");
 
 	@Test
 	public void sshFaframTest() {

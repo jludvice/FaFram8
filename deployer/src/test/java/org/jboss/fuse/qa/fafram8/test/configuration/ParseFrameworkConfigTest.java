@@ -16,7 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 
-/**
+/** Tests for framework configuration
  * Created by mmelko on 14/10/15.
  */
 

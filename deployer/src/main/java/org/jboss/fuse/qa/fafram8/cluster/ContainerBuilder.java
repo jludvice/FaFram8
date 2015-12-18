@@ -13,7 +13,7 @@ import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
+/** Container builder class. Is used internally by Fafram and can be also used externally by users.
  * Created by mmelko on 27/10/15.
  */
 public class ContainerBuilder {
@@ -43,13 +43,13 @@ public class ContainerBuilder {
 		final Container c = new Container(tempContainer);
 		c.setContainerType(tempType);
 		tempType.setContainer(c);
-		tempContainer.setEnssemble(false);
+		tempContainer.setEnsemble(false);
 
 		return c;
 	}
 
 	/**
-	 * names the container.
+	 * Names the container.
 	 *
 	 * @param containerName name of the container
 	 * @return containerBuilder instance
@@ -123,7 +123,7 @@ public class ContainerBuilder {
 	}
 
 	/**
-	 * specify node instance for the container.
+	 * Specify node instance for the container.
 	 *
 	 * @param host host of the node
 	 * @param username username to node
@@ -138,8 +138,7 @@ public class ContainerBuilder {
 	}
 
 	/**
-	 * /**
-	 * specify node instance for the container.
+	 * Specify node instance for the container.
 	 *
 	 * @param host host of the node
 	 * @param username username to node
@@ -168,8 +167,8 @@ public class ContainerBuilder {
 	 *
 	 * @return this - container builder instance.
 	 */
-	public ContainerBuilder enssemble() {
-		this.tempContainer.setEnssemble(true);
+	public ContainerBuilder ensemble() {
+		this.tempContainer.setEnsemble(true);
 		return this;
 	}
 
@@ -185,7 +184,7 @@ public class ContainerBuilder {
 	}
 
 	/**
-	 * specify path of ssh container.
+	 * Specify path of ssh container.
 	 *
 	 * @param path of ssh container
 	 * @return this - instance of container builder
@@ -196,7 +195,7 @@ public class ContainerBuilder {
 	}
 
 	/**
-	 * Sets the parent container for the contanier.
+	 * Sets the parent container for the container.
 	 *
 	 * @param c parent container
 	 * @return this - container builder instance
@@ -209,7 +208,7 @@ public class ContainerBuilder {
 	/**
 	 * Creates rootContainerType with properties mapped from SystemProperties.
 	 *
-	 * @return this - container buil
+	 * @return this - container builder instance
 	 */
 	public ContainerBuilder rootWithMappedProperties() {
 		this.nodeSsh(SystemProperty.getHost(), SystemProperty.getHostUser(), SystemProperty.getHostPassword(), SystemProperty.getHostPort());
@@ -263,7 +262,7 @@ public class ContainerBuilder {
 	}
 
 	/**
-	 * Adds  command  which will be executed before  others containers are initialized.
+	 * Adds command which will be executed before  others containers are initialized.
 	 *
 	 * @param command to be executed.
 	 * @return  this

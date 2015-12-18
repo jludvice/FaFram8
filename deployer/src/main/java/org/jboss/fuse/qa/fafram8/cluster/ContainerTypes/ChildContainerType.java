@@ -1,8 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
-
 /**
+ * Child container type class defines a way how child containers are created,deleted and stopped.
  * Created by mmelko on 27/10/15.
  */
 public class ChildContainerType extends ContainerType {
@@ -13,13 +12,13 @@ public class ChildContainerType extends ContainerType {
 	}
 
 	@Override
-	protected void initExexutor() {
+	protected void initExecutor() {
 		executor = container.getParentContainer().getContainerType().getExecutor();
 	}
 
 	@Override
-	public String createContainer() throws SSHClientException {
-		return standardCreate();
+	public void createContainer() {
+		standardCreate();
 	}
 
 	@Override

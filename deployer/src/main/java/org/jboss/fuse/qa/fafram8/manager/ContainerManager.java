@@ -74,9 +74,9 @@ public class ContainerManager {
 		rootExecutor.executeCommand("fabric:create " + SystemProperty.getFabric());
 		try {
 			rootExecutor.waitForProvisioning("root");
-		} catch (RuntimeException ex) {
+		} catch (FaframException ex) {
 			// Container is not provisioned in time
-			throw new RuntimeException("Container did not provision in time");
+			throw new FaframException("Container did not provision in time");
 		}
 		executeStartupCommands();
 	}
@@ -148,37 +148,5 @@ public class ContainerManager {
 		log.debug("Patch name is " + patchName);
 		return patchName;
 	}
-
-//	/**
-//	 * Execute container-create-ssh command on root container.
-//	 *
-//	 * @param hostIP IP address of host node
-//	 * @param containerName Name of container
-//	 */container
-	//TODO(ecervena): throw authentization fail exception, implement parallel container spawn
-//	private void createSSHContainer(String hostIP, String containerName) {
-//		final String command = String.format("container-create-ssh --host %s --user %s --password %s --resolver %s %s",
-//				hostIP, SystemProperty.getHostUser(), SystemProperty.getHostPassword(), "localip", containerName);
-//		executor.executeCommand(command);
-//		executor.waitForProvisioning(containerName);
-//	}
-//
-//	/**
-//	 * Execute container-create-ssh command for all containers on the list.
-//	 *
-//	 * @param containerList container list
-//	 * @throws EmptyContainerListException when the container list is empty
-//	 */
-//	public void createSSHContainer(List<Container> containerList) throws EmptyContainerListException {
-//		if (containerList.isEmpty()) {
-//			throw new EmptyContainerListException(
-//					"List of containers is empty. Root container should be provided in configuration file at least.");
-//		}
-//		for (Container container : containerList) {
-//			if (!container.isRoot()) {
-//				createSSHContainer(container.getHostIP(), container.getName());
-//			}
-//		}
-//	}
 }
 

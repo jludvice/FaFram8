@@ -26,6 +26,7 @@ public class StaticProvider implements ProvisionProvider {
 		if (SystemProperty.getClean()) {
 			log.info("Cleaning resources");
 			for (Container c : containerList) {
+				//TODO(mmelko): Finish containers cleaning.
 			}
 		}
 	}

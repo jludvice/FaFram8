@@ -2,11 +2,13 @@ package org.jboss.fuse.qa.fafram8.cluster;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
- * Class representing node
+ * Class representing node.
  * Created by mmelko on 09/10/15.
  */
+@ToString
 public class Node implements Cloneable {
 	@Getter
 	@Setter
@@ -60,10 +62,5 @@ public class Node implements Cloneable {
 	 */
 	public Node() {
 		super();
-	}
-
-	@Override
-	public String toString() {
-		return nodeId + " | " + host + " | " + username + ":" + password;
 	}
 }

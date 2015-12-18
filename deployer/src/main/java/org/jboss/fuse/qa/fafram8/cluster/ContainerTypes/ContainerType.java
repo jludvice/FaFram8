@@ -1,7 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
 import lombok.Getter;
@@ -34,7 +33,7 @@ public abstract class ContainerType {
 	 */
 	protected String standardCreate() {
 		if (executor == null) {
-			initExexutor();
+			initExecutor();
 		}
 		executor.executeCommand(getCreateCommand());
 		executor.waitForProvisioning(container.getName());
@@ -44,6 +43,7 @@ public abstract class ContainerType {
 
 	/**
 	 * Executing command abstract method.
+	 *
 	 * @param command to execute
 	 * @return output of the executed command
 	 */
@@ -52,7 +52,7 @@ public abstract class ContainerType {
 	/**
 	 * Inits the executor.
 	 */
-	protected abstract void initExexutor();
+	protected abstract void initExecutor();
 
 	/**
 	 * Constructor.
@@ -77,12 +77,9 @@ public abstract class ContainerType {
 	}
 
 	/**
-	 * create new container in cluster.
-	 *
-	 * @return string status
-	 * @throws SSHClientException exception
+	 * Create new container in cluster.
 	 */
-	public abstract String createContainer() throws SSHClientException;
+	public abstract void createContainer();
 
 	/**
 	 * Delete container from the cluster.
@@ -90,17 +87,17 @@ public abstract class ContainerType {
 	public abstract void deleteContainer();
 
 	/**
-	 * stop container in the cluster.
+	 * Stop container in the cluster.
 	 */
 	public abstract void stopContainer();
 
 	/**
-	 * start container in the cluster if it's not running.
+	 * Start container in the cluster if it's not running.
 	 */
 	public abstract void startContainer();
 
 	/**
-	 * creates and returns Create command for container type.
+	 * Creates and returns Create command for container type.
 	 *
 	 * @return command for creating the container
 	 */

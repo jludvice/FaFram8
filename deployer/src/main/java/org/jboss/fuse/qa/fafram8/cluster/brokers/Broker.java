@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Class represents broker object.
  * Created by mmelko on 09/10/15.
  */
 public class Broker {

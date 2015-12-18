@@ -25,7 +25,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * <p>
+ * XML Configuration parsing class.
  * Created by mmelko on 9/8/15.
  */
 @Slf4j

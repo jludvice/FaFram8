@@ -14,6 +14,7 @@ import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
@@ -25,11 +26,7 @@ import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -123,6 +120,9 @@ public class Fafram extends ExternalResource {
 		return this;
 	}
 
+	/**
+	 * Init of the root container.
+	 */
 	private void initRootContainer() {
 		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
 		if (commands != null && !commands.isEmpty()) {
@@ -141,12 +141,8 @@ public class Fafram extends ExternalResource {
 
 			try {
 				parser.parseConfigurationFile();
-			} catch (ParserConfigurationException e) {
-				e.printStackTrace();
-			} catch (SAXException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				throw new FaframException("Problem with configuration file.");
 			}
 		}
 	}
@@ -193,32 +189,6 @@ public class Fafram extends ExternalResource {
 		ModifierExecutor.addPostModifiers(saveCommandHistory());
 		ModifierExecutor.addPostModifiers(registerArchiver());
 	}
-//
-//	/**
-//	 * Sets up the local deployment.
-	//	 */
-//	private void setupLocalDeployment() {
-//		final int defaultPort = 8101;
-//
-//		// Create a local deployer with local SSH Client and assign to deployer variable
-//		deployer = new LocalDeployer(new FuseSSHClient().hostname("localhost").port(defaultPort).username(SystemProperty
-//				.getFuseUser()).password(SystemProperty.getFusePassword()));
-//	}
-//
-//	/**
-//	 * Sets up the remote deployment.
-//	 */
-//	private void setupRemoteDeployment() throws SSHClientException {
-//		final SSHClient node = new NodeSSHClient().hostname(SystemProperty.getHost()).port(SystemProperty.getHostPort())
-//				.username(SystemProperty.getHostUser()).password(SystemProperty.getHostPassword());
-//
-//		final SSHClient fuse = new FuseSSHClient().hostname(SystemProperty.getHost()).fuseSSHPort().username(
-//				SystemProperty.getFuseUser()).password(SystemProperty.getFusePassword());
-//
-//		deployer = new RemoteDeployer(node, fuse);
-//
-//
-//	}
 
 	/**
 	 * Executes a command in node shell.
@@ -521,7 +491,7 @@ public class Fafram extends ExternalResource {
 		for (Container c : containerList) {
 			if (!c.isLive()) {
 				c.create();
-				if (c.isEnssemble()) {
+				if (c.isEnsemble()) {
 					ensembleServers += " " + c.getName();
 				}
 			} else {
@@ -554,9 +524,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram command(String... commands) {
-		for (String s : commands) {
-			this.commands.add(s);
-		}
+		this.commands.addAll(Arrays.asList(commands));
 		return this;
 	}
 }

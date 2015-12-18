@@ -47,7 +47,7 @@ public class RootContainerType extends ContainerType {
 	}
 
 	@Override
-	protected void initExexutor() {
+	protected void initExecutor() {
 		this.executor = deployer.getContainerManager().getExecutor();
 	}
 
@@ -60,6 +60,9 @@ public class RootContainerType extends ContainerType {
 		super(c);
 	}
 
+	/**
+	 * Deployers are initialized.
+	 */
 	private void prepare() {
 		final Node node = container.getHostNode();
 		final SSHClient fuseSsh = new FuseSSHClient().hostname(node.getHost()).fuseSSHPort().username(username).password(password);
@@ -78,12 +81,11 @@ public class RootContainerType extends ContainerType {
 	}
 
 	@Override
-	public String createContainer() {
+	public void createContainer() {
 		prepare();
-		initExexutor();
+		initExecutor();
 		deployer.getContainerManager().setCommands(commands);
 		this.deployer.setup();
-		return "root container is created";
 	}
 
 	@Override
@@ -109,7 +111,7 @@ public class RootContainerType extends ContainerType {
 	}
 
 	/**
-	 * add command into list of commands.
+	 * Add command into list of commands.
 	 *
 	 * @param command command which will be added into list.
 	 */

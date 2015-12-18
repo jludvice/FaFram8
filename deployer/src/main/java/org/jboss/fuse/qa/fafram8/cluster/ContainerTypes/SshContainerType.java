@@ -1,21 +1,18 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
 import org.jboss.fuse.qa.fafram8.cluster.Node;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 
 /**
  * Created by mmelko on 27/10/15.
  */
 public class SshContainerType extends ContainerType {
 	@Override
-	public String createContainer() throws SSHClientException {
+	public void createContainer() {
 		if (executor == null) {
-			initExexutor();
+			initExecutor();
 		}
 		executor.executeCommand(getCreateCommand());
 		executor.waitForProvisioning(container.getName());
-
-		return getCreateCommand();
 	}
 
 	@Override
@@ -33,7 +30,7 @@ public class SshContainerType extends ContainerType {
 	@Override
 	public String getCreateCommand() {
 		String command;
-		//TODO(mmelko): ostatne veci
+		//TODO(mmelko): add other parameters.
 		command = "container-create-ssh " + getNodeSsh() + " ";
 
 		String profiles = "";
@@ -55,7 +52,7 @@ public class SshContainerType extends ContainerType {
 	private String getNodeSsh() {
 		String nodeSSH;
 		final Node host = container.getHostNode();
-		//todo(hockto): ssh privateKey, passhprase
+		//todo(Anybody): ssh privateKey, passhprase
 
 		nodeSSH = "--user " + host.getUsername() + " --host " + host.getHost() + " --password " + host.getPassword();
 		return nodeSSH;
@@ -67,7 +64,7 @@ public class SshContainerType extends ContainerType {
 	}
 
 	@Override
-	protected void initExexutor() {
+	protected void initExecutor() {
 		executor = container.getParentContainer().getContainerType().getExecutor();
 	}
 }

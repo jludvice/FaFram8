@@ -102,11 +102,9 @@
 	<xs:element name="fafram">
 		<xs:complexType>
 			<xs:all>
-				<xs:element name="framework" type="frameworkType" maxOccurs="1" />
+				<xs:element name="framework" type="frameworkType" maxOccurs="1"/>
 				<xs:element name="cluster" type="clusterType" maxOccurs="1"/>
 			</xs:all>
 		</xs:complexType>
 	</xs:element>
-
-
 </xs:schema>

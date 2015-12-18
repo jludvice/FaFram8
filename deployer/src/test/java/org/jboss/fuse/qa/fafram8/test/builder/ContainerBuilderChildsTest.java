@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
+ * Tests ability of builder/fafram to create child containers.
  * Created by mmelko on 03/11/15.
  */
 public class ContainerBuilderChildsTest {
@@ -30,12 +31,10 @@ public class ContainerBuilderChildsTest {
 				.nodeSsh("test", "fuse", "fuse")
 				.parent(new Container("root"))
 				.build();
-
 		Assert.assertNotNull(c);
 		Assert.assertNotNull(c.getHostNode());
 		Assert.assertNotNull(c.getContainerType());
 		System.out.println(c.getContainerType().getCreateCommand());
-		//System.out.println();
 	}
 
 	@Test

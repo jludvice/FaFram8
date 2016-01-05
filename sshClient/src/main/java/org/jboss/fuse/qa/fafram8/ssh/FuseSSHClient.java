@@ -9,6 +9,7 @@ import com.jcraft.jsch.JSchException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 @Slf4j
+@ToString
 public class FuseSSHClient extends SSHClient {
 	@Override
 	public String executeCommand(String command, boolean suppressLog) throws KarafSessionDownException,

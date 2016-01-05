@@ -114,4 +114,37 @@ public final class FaframConstant {
 
 	// Fafram configuration path
 	public static final String CONFIG_PATH = "fafram.config.path";
+
+	// Jira user
+	public static final String JIRA_USER = "jira.user";
+
+	// Jira password
+	public static final String JIRA_PASSWORD = "jira.password";
+
+	// Openstack url
+	public static final String OPENSTACK_URL = "openstack.url";
+
+	// Openstack tenant
+	public static final String OPENSTACK_TENANT = "openstack.tenant";
+
+	// Openstack user
+	public static final String OPENSTACK_USER = "openstack.user";
+
+	// Openstack password
+	public static final String OPENSTACK_PASSWORD = "openstack.password";
+
+	// Openstack image UUID
+	public static final String OPENSTACK_IMAGE = "openstack.image";
+
+	// Openstack instance name prefix
+	public static final String OPENSTACK_NAME_PREFIX = "openstack.namePrefix";
+
+	// Openstack flavor
+	public static final String OPENSTACK_FLAVOR = "openstack.flavor";
+
+	// Openstack keypair
+	public static final String OPENSTACK_KEYPAIR = "openstack.keypair";
+
+	// Openstack address type
+	public static final String OPENSTACK_ADDRESS_TYPE = "openstack.addressType";
 }

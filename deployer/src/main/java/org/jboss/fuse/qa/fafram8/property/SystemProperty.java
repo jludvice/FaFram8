@@ -1,6 +1,12 @@
 package org.jboss.fuse.qa.fafram8.property;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 import lombok.Getter;
@@ -15,7 +21,11 @@ public class SystemProperty {
 	private static SystemProperty instance = null;
 
 	@Getter
-	private static Set<String> properties = null;
+	// Set of defined system properties - used to clear all the properties during shutdown
+	private static Set<String> systemProperties = null;
+
+	// External properties from our and user's fafram.properties file
+	private static Properties externalProperties = null;
 
 	/**
 	 * Constructor.
@@ -31,7 +41,8 @@ public class SystemProperty {
 	public static SystemProperty getInstance() {
 		if (instance == null) {
 			instance = new SystemProperty();
-			properties = new HashSet<>();
+			systemProperties = new HashSet<>();
+			externalProperties = new Properties();
 		}
 
 		return instance;
@@ -51,7 +62,7 @@ public class SystemProperty {
 		if (System.getProperty(property) == null) {
 			log.debug(String.format("Setting system property %s to value '%s'", property, value));
 			System.setProperty(property, value);
-			getProperties().add(property);
+			getSystemProperties().add(property);
 		}
 	}
 
@@ -62,13 +73,14 @@ public class SystemProperty {
 		// Force the initialization - for example when the unzip fails
 		SystemProperty.getInstance();
 
-		for (String prop : getProperties()) {
+		for (String prop : getSystemProperties()) {
 			System.clearProperty(prop);
 			log.debug("System property " + prop + " cleared.");
 		}
 
 		// Clear all the properties at the end so that they will not stay here when executing multiple tests
-		properties.clear();
+		systemProperties.clear();
+		externalProperties.clear();
 	}
 
 	/**
@@ -368,11 +380,47 @@ public class SystemProperty {
 	}
 
 	/**
-	 * Getter.
-	 *
-	 * @return jira url
+	 * Gets the external property from the property file.
+	 * @param property property key
+	 * @return property value
 	 */
-	public static String getJiraURL() {
-		return System.getProperty(FaframConstant.JIRA_URL, "https://issues.jboss.org");
+	public static String getExternalProperty(String property) {
+		// Force the initialization
+		SystemProperty.getInstance();
+
+		if (externalProperties.isEmpty()) {
+			externalProperties = initProperties();
+		}
+
+		return externalProperties.getProperty(property);
+	}
+
+	/**
+	 * Inits the fafram properties - loads the properties from fafram.properties and merge user changes.
+	 * @return properties instance
+	 */
+	public static Properties initProperties() {
+		final Properties p = new Properties();
+
+		try {
+			// Get the property files URLs
+			final List<URL> urls = Collections.list(ClassLoader.getSystemResources("fafram.properties"));
+
+			// Merge user-defined properties with default properties
+			// User-defined changes should be the first file and the fafram properties should be the second file
+			// So we first add all our properties and then overwrite the properties defined by the user
+			for (int i = urls.size() - 1; i >= 0; i--) {
+				final URL u = urls.get(i);
+				try (InputStream is = u.openStream()) {
+					// Load the properties
+					p.load(is);
+				}
+			}
+
+		} catch (IOException e) {
+			log.error("IOException while loading properties" + e);
+		}
+
+		return p;
 	}
 }

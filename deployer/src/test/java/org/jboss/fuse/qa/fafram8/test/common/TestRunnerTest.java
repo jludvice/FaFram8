@@ -31,4 +31,10 @@ public class TestRunnerTest {
 	public void shouldRunResolvedTest() {
 
 	}
+
+	@Test
+	@Jira("ENTESB-128") // Resolved security issue
+	public void shouldRunSecurityIssue() {
+
+	}
 }

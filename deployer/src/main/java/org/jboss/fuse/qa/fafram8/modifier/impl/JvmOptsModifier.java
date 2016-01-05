@@ -94,11 +94,12 @@ public final class JvmOptsModifier implements Modifier {
 		final List<String> lines = Arrays.asList("JAVA_MIN_MEM=" + xms + "\n", "JAVA_MAX_MEM=" + xmx + "\n",
 				"JAVA_PERM_MEM=" + permMem + "\n", "JAVA_MAX_PERM_MEM=" + maxPermMem);
 		try {
-			FileUtils.forceDelete(setenv);
-			FileUtils.forceDelete(setenvBat);
-			setenv.createNewFile();
-			setenvBat.createNewFile();
-
+			if (!setenv.exists()) {
+				setenv.createNewFile();
+			}
+			if (!setenvBat.exists()) {
+				setenvBat.createNewFile();
+			}
 			for (String line : lines) {
 				FileUtils.writeStringToFile(setenv, "export " + line, true);
 				FileUtils.writeStringToFile(setenvBat, "SET " + line, true);

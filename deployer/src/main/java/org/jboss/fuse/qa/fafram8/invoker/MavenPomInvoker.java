@@ -41,6 +41,8 @@ public class MavenPomInvoker {
 	private String uploadUrl = null;
 
 	/**
+	 * Constructor.
+	 *
 	 * @param projectPath absolute or relative (to root project pom) path of target project
 	 * @param uploadUrl full url of maven proxy upload service. Use credentials if needed.
 	 * e.g. http://admin:admin@host:port/maven/upload
@@ -60,18 +62,21 @@ public class MavenPomInvoker {
 	 * &lt;turl&gt;${mvn.proxy.upload.url}&lt;/url&gt;<br>
 	 * &lt;/repository&gt;<br>
 	 * &lt;/distributionManagement&gt;
+	 *
+	 * @throws URISyntaxException exception
+	 * @throws MavenInvocationException exception
 	 */
 	public void installFile() throws URISyntaxException, MavenInvocationException {
-		InvocationRequest request = new DefaultInvocationRequest();
+		final InvocationRequest request = new DefaultInvocationRequest();
 		request.setPomFile(new File(projectPath));
 
-		Properties props = new Properties();
+		final Properties props = new Properties();
 		props.setProperty("mvn.proxy.upload.url", uploadUrl);
 
 		request.setProperties(props);
 		request.setGoals(Arrays.asList("clean", "package", "deploy"));
 
-		Invoker invoker = new DefaultInvoker();
+		final Invoker invoker = new DefaultInvoker();
 		log.info("Invoking maven target " + projectPath);
 		invoker.execute(request);
 	}
@@ -90,18 +95,20 @@ public class MavenPomInvoker {
 	 * @param projectPath absolute or relative (to root project pom) path of target project
 	 * @param uploadUrl full url of maven proxy upload service. Use credentials if needed.
 	 * e.g. http://admin:admin@host:port/maven/upload
+	 * @throws URISyntaxException exception
+	 * @throws MavenInvocationException exception
 	 */
 	public void installFile(String projectPath, String uploadUrl) throws URISyntaxException, MavenInvocationException {
-		InvocationRequest request = new DefaultInvocationRequest();
+		final InvocationRequest request = new DefaultInvocationRequest();
 		request.setPomFile(new File(projectPath));
 
-		Properties props = new Properties();
+		final Properties props = new Properties();
 		props.setProperty("mvn.proxy.upload.url", uploadUrl);
 
 		request.setProperties(props);
 		request.setGoals(Arrays.asList("clean", "package", "deploy"));
 
-		Invoker invoker = new DefaultInvoker();
+		final Invoker invoker = new DefaultInvoker();
 		log.info("Invoking maven target " + projectPath);
 		invoker.execute(request);
 	}

@@ -42,7 +42,7 @@ public class LocalDeployer implements Deployer {
 				if (SystemProperty.isFabric()) {
 					cm.setupFabric();
 				}
-				cm.patchFuse();
+				cm.patchFuse(nm);
 			}
 		} catch (FaframException ex) {
 			nm.stopAndClean(true);

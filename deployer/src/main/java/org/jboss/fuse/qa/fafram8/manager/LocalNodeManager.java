@@ -263,9 +263,7 @@ public class LocalNodeManager implements NodeManager {
 		}
 	}
 
-	/**
-	 * Restarts the container.
-	 */
+	@Override
 	public void restart() {
 		restart = true;
 		stop(false);

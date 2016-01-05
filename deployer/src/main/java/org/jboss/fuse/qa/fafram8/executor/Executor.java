@@ -7,6 +7,7 @@ import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
+import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
@@ -202,8 +203,9 @@ public class Executor {
 	 * Waits for container provisioning.
 	 *
 	 * @param containerName container name
+	 * @param nm NodeManager instance if restart is necessary
 	 */
-	public void waitForProvisioning(String containerName) {
+	public void waitForProvisioning(String containerName, NodeManager nm) {
 		final int step = 3;
 		final long timeout = step * 1000L;
 		final long startTimeout = 10000L;
@@ -215,6 +217,7 @@ public class Executor {
 		String container;
 		String provisionStatus = "";
 		boolean isSuccessful = false;
+		boolean restarted = false;
 
 		while (!isSuccessful) {
 			if (retries > SystemProperty.getProvisionWaitTime()) {
@@ -227,12 +230,10 @@ public class Executor {
 			try {
 				container = client.executeCommand("container-list | grep " + containerName, true);
 				isSuccessful = container != null && container.contains("success");
-				if (container != null) {
-					container = container.replaceAll(" +", " ").trim();
-					final String[] content = container.split(" ", maxLength);
-					if (content.length == maxLength) {
-						provisionStatus = content[maxLength - 1];
-					}
+				container = container.replaceAll(" +", " ").trim();
+				final String[] content = container.split(" ", maxLength);
+				if (content.length == maxLength) {
+					provisionStatus = content[maxLength - 1];
 				}
 			} catch (Exception e) {
 				// Get the reason
@@ -245,18 +246,37 @@ public class Executor {
 				}
 			}
 
+			if ("requires full restart".equals(provisionStatus)) {
+				restarted = true;
+				log.info("Container requires full restart! Restarting ...");
+				break;
+			}
+
 			if (!isSuccessful) {
 				log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - retries) + " seconds. " + (""
 						.equals(reason) ? "" : "(" + reason + ")") + ("".equals(provisionStatus) ? "" : "("
 						+ provisionStatus + ")"));
 				retries += step;
 				provisionStatus = "";
-				try {
-					Thread.sleep(timeout);
-				} catch (Exception ignored) {
-				}
+				sleep(timeout);
 			}
 		}
+
+		// If the container was restarted during the provisioning, trigger the provisioning again
+		if (restarted) {
+			nm.restart();
+			waitForBoot();
+			waitForProvisioning(containerName);
+		}
+	}
+
+	/**
+	 * Waits for container provisioning.
+	 *
+	 * @param containerName container name
+	 */
+	public void waitForProvisioning(String containerName) {
+		waitForProvisioning(containerName, null);
 	}
 
 	/**
@@ -289,6 +309,8 @@ public class Executor {
 		log.info("Waiting for patch to be installed");
 
 		while (!isSuccessful) {
+			sleep(timeout);
+			retries += step;
 			boolean shouldReconnect = false;
 			if (retries > SystemProperty.getPatchWaitTime()) {
 				log.error("Container failed to install patch after " + SystemProperty.getPatchWaitTime() + " seconds.");
@@ -297,7 +319,7 @@ public class Executor {
 				log.error("Standalone container failed to " + action + " patch after "
 						+ SystemProperty.getPatchWaitTime() + " seconds.");
 				throw new FaframException(
-						"Container failed to " + action + " patch after " + SystemProperty.getPatchWaitTime() + "seconds.");
+						"Container failed to " + action + " patch after " + SystemProperty.getPatchWaitTime() + " seconds.");
 			}
 
 			String reason = "";
@@ -313,7 +335,6 @@ public class Executor {
 			if (!isSuccessful) {
 				log.debug("Remaining time: " + (SystemProperty.getPatchWaitTime() - retries) + " seconds. " + (""
 						.equals(reason) ? "" : "(" + reason + ")"));
-				retries += step;
 			}
 
 			if (shouldReconnect) {
@@ -322,8 +343,6 @@ public class Executor {
 				} catch (Exception ignored) {
 				}
 			}
-
-			sleep(timeout);
 		}
 	}
 

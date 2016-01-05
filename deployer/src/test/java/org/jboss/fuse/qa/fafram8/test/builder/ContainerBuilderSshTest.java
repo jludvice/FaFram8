@@ -6,6 +6,7 @@ import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -37,7 +38,7 @@ public class ContainerBuilderSshTest {
 		ipRoot = osm.assignFloatingAddress(osm.getServerByName(SERVER_NAME).getId());
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(SSH_NAME).getId());
 		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
-		System.setProperty(FaframConstant.FUSE_ZIP, "http://download.eng.bos.redhat.com/brewroot/repos/jb-fuse-6.2-build/latest/maven/org/jboss/fuse/jboss-fuse-full/6.2.0.redhat-133/jboss-fuse-full-6.2.0.redhat-133.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
 		System.setProperty(FaframConstant.HOST, ipRoot);
 		Thread.sleep(30000);
 	}

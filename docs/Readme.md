@@ -70,7 +70,27 @@ run) and the whole workflow looks like this:
 	
 ### Remote deployment
 
-Remote deployment todo rjakubco 
+Remote deployment todo rjakubco
+
+#### Uploading bundles to remote Fabric
+Fafram8 supports uploading bundles from local machine to remote deployment of Fuse. This functionality is provided by _MavenPomInvoker_ class which invokes Maven project and uploads built bundle to fabric maven proxy on remote root container.
+
+The project for uploading must have specific configuration in its _pom.xml_:
+
+	<distributionManagement>
+            <repository>
+                <id>fuse-maven-proxy</id>
+                <name>fuse-maven-proxy</name>
+                <url>${mvn.proxy.upload.url}</url>
+            </repository>
+    </distributionManagement>
+
+When the project is configured correctly then you need to add path to _pom.xml_ using the _bundle(String... commands)_ method on _Fafram_ class. Also it is possible to specify multiple paths to different projects.
+
+	@Rule
+    	public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml", "test/project/pom.xml");
+
+Bundles are uploaded to fabric maven proxy before execution of commands specified by _command(String... commands)_ method. This can be leverage for example when editing profiles and adding your custom bundles.
 
 ### System properties
 The workflow or properties can be modified using system properties. Full list of system properties is

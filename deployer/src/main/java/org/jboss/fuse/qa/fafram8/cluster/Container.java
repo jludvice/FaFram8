@@ -133,4 +133,8 @@ public class Container {
 	public String executeCommand(String command) {
 		return this.containerType.executeCommand(command);
 	}
+
+	public void killContainer(){
+		this.containerType.killContainer();
+	}
 }

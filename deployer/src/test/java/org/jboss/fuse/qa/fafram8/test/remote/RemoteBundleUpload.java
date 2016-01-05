@@ -8,6 +8,7 @@ import org.junit.Test;
 
 /**
  * Test for uploading bundle to fabric maven proxy.
+ *
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 public class RemoteBundleUpload {

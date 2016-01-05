@@ -129,7 +129,7 @@ public class RootContainerType extends ContainerType {
 
 	@Override
 	public void killContainer() {
-		executor.executeCommand("exec pkill -9 -f  \"karaf.base=" +
-				StringUtils.substringBeforeLast(SystemProperty.getFusePath(), "/") + "\"");
+		executor.executeCommand("exec pkill -9 -f  \"karaf.base="
+				+ StringUtils.substringBeforeLast(SystemProperty.getFusePath(), "/") + "\"");
 	}
 }

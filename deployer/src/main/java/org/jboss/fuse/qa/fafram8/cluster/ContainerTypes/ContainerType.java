@@ -106,10 +106,10 @@ public abstract class ContainerType {
 	public abstract String getCreateCommand();
 
 	/**
-	 *
+	 * Kills container in the cluster.
 	 */
-	public void killContainer(){
-		log.error(executor.toString());
+	public void killContainer() {
+		log.debug(executor.toString());
 		container.executeCommand("exec pkill -9 -f " + container.getName());
 	}
 }

@@ -16,6 +16,8 @@ import org.junit.Test;
 import lombok.extern.slf4j.Slf4j;
 
 /**
+ * Tests killing of child, ssh and root container by fafram.killContainer() method.
+ *
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 @Slf4j
@@ -36,9 +38,8 @@ public class RemoteKillingContainers {
 		Thread.sleep(30000);
 	}
 
-
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().getBuilder().child(childName).addToFafram().ssh(sshName).nodeSsh(ipSsh, "fuse" , "fuse").addToFafram().getFafram();
+	public Fafram fafram = new Fafram().withFabric().getBuilder().child(childName).addToFafram().ssh(sshName).nodeSsh(ipSsh, "fuse", "fuse").addToFafram().getFafram();
 
 	@Test
 	public void testName() throws Exception {
@@ -56,7 +57,6 @@ public class RemoteKillingContainers {
 		fafram.killContainer("root");
 
 		assertNull(fafram.executeCommand("list"));
-
 	}
 
 	@AfterClass

@@ -77,11 +77,16 @@ public class ContainerManager {
 		}
 	}
 
-	public void uploadBundles(){
-		if(bundles != null && !bundles.isEmpty()){
-			for(String bundle : bundles){
-				MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + SystemProperty.getFuseUser() +
-						":" + SystemProperty.getFusePassword() +"@" + SystemProperty.getHost() + ":8181/maven/upload");
+	/**
+	 * Uploads bundles to fabric maven proxy on root container (remote).
+	 *
+	 * @throws BundleUploadException exception if there was problem with upload
+	 */
+	public void uploadBundles() throws BundleUploadException {
+		if (bundles != null && !bundles.isEmpty()) {
+			for (String bundle : bundles) {
+				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + SystemProperty.getFuseUser()
+						+ ":" + SystemProperty.getFusePassword() + "@" + SystemProperty.getHost() + ":8181/maven/upload");
 				try {
 					bundleInstaller.installFile();
 				} catch (URISyntaxException | MavenInvocationException e) {

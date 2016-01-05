@@ -134,7 +134,10 @@ public class Container {
 		return this.containerType.executeCommand(command);
 	}
 
-	public void killContainer(){
+	/**
+	 * Kills the container.
+	 */
+	public void killContainer() {
 		this.containerType.killContainer();
 	}
 }

@@ -48,6 +48,9 @@ public class Fafram extends ExternalResource {
 	@Setter
 	private List<String> commands = new LinkedList<>();
 
+	@Setter
+	private List<String> bundles = new LinkedList<>();
+
 	@SuppressWarnings("FieldCanBeLocal")
 	private ConfigurationParser parser;
 
@@ -124,6 +127,10 @@ public class Fafram extends ExternalResource {
 	 */
 	private void initRootContainer() {
 		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
+		if (bundles != null && !bundles.isEmpty()) {
+			((RootContainerType) rootContainer.getContainerType()).setBundles(bundles);
+		}
+
 		if (commands != null && !commands.isEmpty()) {
 			((RootContainerType) rootContainer.getContainerType()).setCommands(commands);
 		}
@@ -183,10 +190,9 @@ public class Fafram extends ExternalResource {
 	 */
 	private void setDefaultModifiers() {
 		if (!SystemProperty.skipDefaultUser()) {
-			// Add default user
+			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
 			ModifierExecutor.addModifiers(putProperty("etc/users.properties", SystemProperty.getFuseUser(),
-					SystemProperty.getFusePassword() + ",admin,manager,viewer,Monitor, Operator, Maintainer, "
-							+ "Deployer, Auditor, Administrator, SuperUser"));
+					SystemProperty.getFusePassword() + ",Administrator"));
 		}
 
 		if (!SystemProperty.skipDefaultJvmOpts()) {
@@ -550,5 +556,29 @@ public class Fafram extends ExternalResource {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Add bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
+	 *
+	 * @param bundles list of bundles
+	 * @return this
+	 */
+	public Fafram bundle(String... bundles) {
+		this.bundles.addAll(Arrays.asList(bundles));
+		return this;
+	}
+
+	/**
+	 * Kills container by given name.
+	 *
+	 * @param containerName name of the container to be killed
+	 */
+	public void killContainer(String containerName) {
+		if ("root".equals(containerName)) {
+			this.rootContainer.killContainer();
+		} else {
+			getContainer(containerName).killContainer();
+		}
 	}
 }

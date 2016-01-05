@@ -1,15 +1,19 @@
 package org.jboss.fuse.qa.fafram8.manager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.exception.BundleUploadException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
-import java.util.ArrayList;
+import java.net.URISyntaxException;
+import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
@@ -30,7 +34,11 @@ public class ContainerManager {
 
 	@Setter
 	@Getter
-	private List<String> commands = new ArrayList<String>();
+	private List<String> commands = new LinkedList<>();
+
+	@Setter
+	@Getter
+	private List<String> bundles = new LinkedList<>();
 
 	/**
 	 * Constructor.
@@ -54,6 +62,7 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");
 		}
+		uploadBundles();
 		executeStartupCommands();
 	}
 
@@ -68,7 +77,22 @@ public class ContainerManager {
 		}
 	}
 
+	public void uploadBundles(){
+		if(bundles != null && !bundles.isEmpty()){
+			for(String bundle : bundles){
+				MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + SystemProperty.getFuseUser() +
+						":" + SystemProperty.getFusePassword() +"@" + SystemProperty.getHost() + ":8181/maven/upload");
+				try {
+					bundleInstaller.installFile();
+				} catch (URISyntaxException | MavenInvocationException e) {
+					throw new BundleUploadException(e);
+				}
+			}
+		}
+	}
+
 	/**
+	 * TODO(mmelko): just idea -> check if needed
 	 * Sets up fabric on specific container.
 	 *
 	 * @param c container on which fabric will be set.
@@ -82,6 +106,7 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");
 		}
+		uploadBundles();
 		executeStartupCommands();
 	}
 

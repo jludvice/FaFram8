@@ -137,9 +137,15 @@ This default behavior can be overriden with setting the **fuse.zip** property in
 
 You can annotate your JUnit test class with `@RunWith(FaframTestRunner.class)` to be able to use the `@Jira("xxx")` annotation for your test. 
 This annotation will check the jira status and can be used to skip the test if the issue is not fixed. The test will be run if the jira is in 
-"Resolved" or "Closed" state, otherwise the test will be skipped.
-	
-For further info about contributing see _Readme.md_ in the root directory of the project.
+"Resolved" or "Closed" state, otherwise the test will be skipped. The test runner also prints the name of the current test method before the
+actual test execution.
+
+### External configuration
+
+OpenStack and JIRA configuration is done via the _fafram.properties_ file. Sample configuration file can be found in
+_deployer/src/main/resources/fafram.properties_ where all supported values are defined. If you will want to change these values in your tests,
+you can place your own fafram.properties file in your test resources (you don't necessary need to overwrite all the properties). This file is
+then merged with our properties file (with your changes on top of the default values) and the final configuration is created and used.
 
 ### Tests
 
@@ -231,3 +237,5 @@ There is no need to use this approach, because you can still use some other (pre
 We are using checkstyle! If you want to control your code, use the **checkstyle** system property.
 
 	mvn clean install -Dcheckstyle
+
+For further info about contributing see _Readme.md_ in the root directory of the project.

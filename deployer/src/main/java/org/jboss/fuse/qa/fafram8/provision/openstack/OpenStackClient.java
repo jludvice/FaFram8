@@ -1,5 +1,8 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+
 import org.openstack4j.api.OSClient;
 import org.openstack4j.openstack.OSFactory;
 
@@ -21,9 +24,10 @@ public final class OpenStackClient {
 	 */
 	private OpenStackClient() {
 		os = OSFactory.builder()
-				.endpoint("http://qeos.lab.eng.rdu2.redhat.com:5000/v2.0")
-				.credentials("ecervena", "tajneheslo42")
-				.tenantName("fuseqe-lab")
+				.endpoint(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_URL))
+				.credentials(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_USER), SystemProperty.getExternalProperty(FaframConstant
+						.OPENSTACK_PASSWORD))
+				.tenantName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_TENANT))
 				.authenticate();
 	}
 

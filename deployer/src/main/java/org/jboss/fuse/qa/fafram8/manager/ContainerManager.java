@@ -83,11 +83,13 @@ public class ContainerManager {
 
 	/**
 	 * Patch fuse.
+	 *
+	 * @param nm NodeManager instance - in case when the restart is necessary
 	 */
-	public void patchFuse() {
+	public void patchFuse(NodeManager nm) {
 		if (SystemProperty.getPatch() != null) {
 			if (SystemProperty.isFabric()) {
-				patchFabric();
+				patchFabric(nm);
 			} else {
 				patchStandalone();
 			}
@@ -116,18 +118,30 @@ public class ContainerManager {
 
 	/**
 	 * Patch fabric.
+	 *
+	 * @param nm NodeManager instance
 	 */
-	private void patchFabric() {
+	private void patchFabric(NodeManager nm) {
 		// Create a new version
 		final String version = executor.executeCommand("version-create").split(" ")[2];
 
-		for (String s : Patcher.getPatches()) {
-			executor.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
-					.getFusePassword() + " --version " + version + " " + s);
+		// We need to check if the are using old or new patching mechanism
+		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
+			for (String s : Patcher.getPatches()) {
+				executor.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+						.getFusePassword() + " --version " + version + " " + s);
+			}
+		} else {
+			// 6.2.1 onwards
+			for (String s : Patcher.getPatches()) {
+				final String patchName = getPatchName(executor.executeCommand("patch:add " + s));
+				executor.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+						.getFusePassword() + " --upload --version " + version + " " + patchName);
+			}
 		}
 
 		executor.executeCommand("container-upgrade " + version + " root");
-		executor.waitForProvisioning("root");
+		executor.waitForProvisioning("root", nm);
 		executor.executeCommand("version-set-default " + version);
 	}
 

@@ -40,4 +40,9 @@ public interface NodeManager {
 	 * @param ignoreExceptions ignore exceptions true/false
 	 */
 	void stopAndClean(boolean ignoreExceptions);
+
+	/**
+	 * Restarts the container.
+	 */
+	void restart();
 }

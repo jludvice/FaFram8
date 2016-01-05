@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
+ * Remote SSH Container test.
  * Created by ecervena on 9/8/15.
  */
 public class RemoteSSHContainerTest {
@@ -33,6 +34,6 @@ public class RemoteSSHContainerTest {
 	static {
 		// TODO(ecervena): machine is dead
 		System.setProperty(FaframConstant.HOST, "10.8.49.151");
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:///home/fuse/storage/jboss-fuse-full-6.2.0.redhat-133.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, "file:///home/fuse/storage/jboss-fuse-full-6.2.1.redhat-084.zip");
 	}
 }

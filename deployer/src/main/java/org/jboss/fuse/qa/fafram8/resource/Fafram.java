@@ -165,6 +165,14 @@ public class Fafram extends ExternalResource {
 	public void tearDown() {
 		// Do nothing if deployer is null - when the validation fails.
 		//TODO(mmelko): cleanup the containers node .. here is the right place
+
+		for (Container c : containerList) {
+			if (!(c.getContainerType() instanceof RootContainerType)) {
+				log.debug("Deleting " + c.getName());
+				c.delete();
+			}
+		}
+		log.debug("Deleting " + rootContainer.getName());
 		if (rootContainer != null) {
 			rootContainer.stop();
 		}
@@ -526,5 +534,20 @@ public class Fafram extends ExternalResource {
 	public Fafram command(String... commands) {
 		this.commands.addAll(Arrays.asList(commands));
 		return this;
+	}
+
+	/**
+	 * Return container according specified container name.
+	 *
+	 * @param containerName name of container
+	 * @return Container object
+	 */
+	public Container getContainer(String containerName) {
+		for (Container c : containerList) {
+			if (c.getName().equals(containerName)) {
+				return c;
+			}
+		}
+		return null;
 	}
 }

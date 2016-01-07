@@ -17,7 +17,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Container manager class.
+ * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
+ * patching, etc.
+ *
  * Created by avano on 2.9.15.
  */
 @Slf4j
@@ -82,7 +84,7 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch fuse.
+	 * Patches fuse based on its mode (standalone / fabric).
 	 *
 	 * @param nm NodeManager instance - in case when the restart is necessary
 	 */
@@ -106,7 +108,7 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch standalone container.
+	 * Patches the standalone container.
 	 */
 	private void patchStandalone() {
 		for (String s : Patcher.getPatches()) {
@@ -117,9 +119,9 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch fabric.
+	 * Patches fabric root and sets the default version to the patched version.
 	 *
-	 * @param nm NodeManager instance
+	 * @param nm NodeManager instance in case if the restart is necessary
 	 */
 	private void patchFabric(NodeManager nm) {
 		// Create a new version

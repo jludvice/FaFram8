@@ -2,7 +2,7 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackProvisionProvider;
-import org.jboss.fuse.qa.fafram8.test.FaframTestBase;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

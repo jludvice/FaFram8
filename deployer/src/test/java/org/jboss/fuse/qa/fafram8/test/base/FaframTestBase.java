@@ -1,7 +1,7 @@
-package org.jboss.fuse.qa.fafram8.test;
+package org.jboss.fuse.qa.fafram8.test.base;
 
 /**
- * Fafram test base class.
+ * Fafram test base class. This class has common constants/methods useful for all the tests.
  * Created by avano on 5.1.16.
  */
 public class FaframTestBase {

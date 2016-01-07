@@ -25,7 +25,8 @@ import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Downloader class.
+ * Downloader class. This class provides the container URL for the unzipper. If the URL is not a local URL, it
+ * downloads the container and returns the local URL.
  * Created by avano on 19.8.15.
  */
 @Slf4j

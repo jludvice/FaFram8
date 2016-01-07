@@ -2,7 +2,7 @@ package org.jboss.fuse.qa.fafram8.test.local;
 
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
-import org.jboss.fuse.qa.fafram8.test.FaframTestBase;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
 import org.junit.Before;

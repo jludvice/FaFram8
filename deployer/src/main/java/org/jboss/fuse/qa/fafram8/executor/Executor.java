@@ -18,7 +18,8 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Executor class.
+ * Executor class. This class servers as a wrapper around ssh client and offers methods for waiting for karaf
+ * startup, waiting for successful provision, etc.
  * Created by avano on 19.8.15.
  */
 @AllArgsConstructor
@@ -200,7 +201,8 @@ public class Executor {
 	}
 
 	/**
-	 * Waits for container provisioning.
+	 * Waits for container provisioning. It may restart the container if the provision status is "requires full restart"
+	 * or if the provision status contains "NoNodeException"
 	 *
 	 * @param containerName container name
 	 * @param nm NodeManager instance if restart is necessary
@@ -229,7 +231,9 @@ public class Executor {
 
 			try {
 				container = client.executeCommand("container-list | grep " + containerName, true);
-				isSuccessful = container != null && container.contains("success");
+				isSuccessful = container.contains("success");
+
+				// Parse the provision status from the container-list output
 				container = container.replaceAll(" +", " ").trim();
 				final String[] content = container.split(" ", maxLength);
 				if (content.length == maxLength) {
@@ -246,9 +250,9 @@ public class Executor {
 				}
 			}
 
-			if ("requires full restart".equals(provisionStatus)) {
+			if ("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")) {
 				restarted = true;
-				log.info("Container requires full restart! Restarting ...");
+				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
 				break;
 			}
 
@@ -271,7 +275,7 @@ public class Executor {
 	}
 
 	/**
-	 * Waits for container provisioning.
+	 * Waits for the successful container provisioning.
 	 *
 	 * @param containerName container name
 	 */

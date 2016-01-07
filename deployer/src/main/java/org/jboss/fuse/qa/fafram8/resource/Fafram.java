@@ -13,15 +13,12 @@ import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
-
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
-
 import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
@@ -50,6 +47,7 @@ public class Fafram extends ExternalResource {
 	@Setter
 	private List<String> commands = new LinkedList<>();
 
+	@SuppressWarnings("FieldCanBeLocal")
 	private ConfigurationParser parser;
 
 	@Getter
@@ -172,8 +170,9 @@ public class Fafram extends ExternalResource {
 				c.delete();
 			}
 		}
-		log.debug("Deleting " + rootContainer.getName());
+
 		if (rootContainer != null) {
+			log.debug("Deleting " + rootContainer.getName());
 			rootContainer.stop();
 		}
 	}
@@ -380,8 +379,7 @@ public class Fafram extends ExternalResource {
 	 * Restarts the container.
 	 */
 	public void restart() {
-		// TODO(avano): probably won't be needed on remote
-		((LocalNodeManager) ((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager()).restart();
+		((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager().restart();
 	}
 
 	/**

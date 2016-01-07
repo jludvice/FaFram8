@@ -3,15 +3,13 @@ package org.jboss.fuse.qa.fafram8.test.builder;
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
-import org.jboss.fuse.qa.fafram8.test.FaframTestBase;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +35,11 @@ public class ContainerRootTest {
 		osm.spawnNewServer(ROOT2_NAME);
 		ipRoot = osm.assignFloatingAddress(osm.getServerByName(ROOT_NAME).getId());
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(ROOT2_NAME).getId());
-		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
+		System.out.println("Machine " + ROOT_NAME + " spawned on " + ipRoot);
+		System.out.println("Machine " + ROOT2_NAME + " spawned on " + ipSsh);
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
 		System.setProperty(FaframConstant.HOST, ipRoot);
-		Thread.sleep(30000);
+		Thread.sleep(60000);
 	}
 
 	public static Fafram fafram = new Fafram()

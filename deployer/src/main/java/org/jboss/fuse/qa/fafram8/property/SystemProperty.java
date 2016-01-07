@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * System property class.
+ * System property class. This class manages the system and external properties.
  * Created by avano on 20.8.15.
  */
 @Slf4j

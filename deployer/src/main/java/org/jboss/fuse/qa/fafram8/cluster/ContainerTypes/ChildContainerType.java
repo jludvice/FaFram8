@@ -43,6 +43,7 @@ public class ChildContainerType extends ContainerType {
 			profiles += " --profile " + p;
 		}
 
-		return "container-create-child" + profiles + " " + getContainer().getParentContainer().getName() + " " + getContainer().getName();
+		return "container-create-child" + profiles + " " + getContainer().getParentContainer()
+				.getName() + " " + getContainer().getName();
 	}
 }

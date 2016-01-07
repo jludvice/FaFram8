@@ -102,6 +102,13 @@ public class Container {
 	}
 
 	/**
+	 * Delete the container.
+	 */
+	public void delete() {
+		containerType.deleteContainer();
+	}
+
+	/**
 	 * Clarify if container is root.
 	 *
 	 * @return true if container is root

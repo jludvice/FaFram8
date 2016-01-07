@@ -23,14 +23,17 @@ public class ChildContainerType extends ContainerType {
 
 	@Override
 	public void deleteContainer() {
+		executor.executeCommand("container-delete " + container.getName());
 	}
 
 	@Override
 	public void stopContainer() {
+		executor.executeCommand("container-stop " + container.getName());
 	}
 
 	@Override
 	public void startContainer() {
+		executor.executeCommand("container-start " + container.getName());
 	}
 
 	@Override

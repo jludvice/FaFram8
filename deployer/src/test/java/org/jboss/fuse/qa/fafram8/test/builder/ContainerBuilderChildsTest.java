@@ -79,5 +79,12 @@ public class ContainerBuilderChildsTest {
 
 		System.out.println(fafram.executeCommand("container-list"));
 		Assert.assertTrue(fafram.executeCommand("container-list | grep child2").contains("success"));
+
+		Container child2 = fafram.getContainer("child2");
+		child2.delete();
+
+		Assert.assertFalse(fafram.executeCommand("container-list | grep child2").contains("success"));
+
+
 	}
 }

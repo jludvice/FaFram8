@@ -150,4 +150,11 @@ public final class FaframConstant {
 
 	// Fafram root names CSV
 	public static final String FAFRAM_ROOT_NAMES = "fafram.rootNames";
+
+	// If offline environment should be used (a.k.a turn off internet in cluster)
+	public static final String OFFLINE = "fafram.offline";
+
+	// Name of the iptables configuration file to be executed on nodes. Default path for lookup is home folder
+	// of specified user! It is possible to specify full path.
+	public static final String IPTABLES_CONF_FILE_PATH = "iptables.conf.file.path";
 }

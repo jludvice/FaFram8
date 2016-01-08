@@ -1,20 +1,27 @@
 package org.jboss.fuse.qa.fafram8.provision.provider;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
+import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
+import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
+import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackClient;
 import org.jboss.fuse.qa.fafram8.provision.openstack.ServerInvokerPool;
-import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
+import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
+import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.FloatingIP;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -51,6 +58,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	//Authenticated OpenStackClient instance
 	@Getter
 	private final OSClient os = OpenStackClient.getInstance();
+
+	private static final String OFFLINE_IPTABLES_FILE = "iptables-no-internet";
 
 	/**
 	 * Register server to OpenStackProvisionProvider's "register".
@@ -219,6 +228,157 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 					.get(0).getAddr());
 		} catch (NullPointerException npe) {
 			throw new NoIPAddressException("OpenStack server local IP address not found. Maybe server is not active yet.");
+		}
+	}
+
+	@Override
+	public void loadIPtables(List<Container> containerList) {
+		// This is special case when you want to use default offline configuration.
+		if (SystemProperty.getOffline()) {
+			offline(containerList);
+			return;
+		}
+		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
+		if (SystemProperty.getIptablesConfFilePath().isEmpty()) {
+			// There was no iptables configuration file set so the user doesn't want to change environment.
+			return;
+		}
+
+		log.info("Loading iptables configuration files.");
+		SSHClient sshClient;
+		Executor executor;
+
+		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
+		Node rootNode = containerList.get(0).getHostNode();
+
+		for (Container c : containerList) {
+			String preCommand = "";
+			if (!c.isRoot()) {
+				// This is needed for executing commands on nodes without publicip on openstack.
+				// For this purpose we create this string to simulate to connecting to node from root container to which
+				// we are connected via the SSHClient. If the container is root this string is empty and the commands are
+				// executed only on root.
+				// TODO(rjakubco): maybe do it in nicer way?
+				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+			}
+
+			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
+					.username(rootNode.getUsername()).password(rootNode.getPassword());
+			executor = new Executor(sshClient);
+
+			log.debug("Executing iptables configuration file on node: " + executor.toString());
+
+			try {
+				executor.connect();
+				String response = executor.executeCommand(preCommand + "sudo cat " + SystemProperty.getIptablesConfFilePath());
+
+				if (response.contains("No such file or directory"))
+					throw new OfflineEnvironmentException("Configuration file for iptables" +
+							" doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));
+
+				executor.executeCommand(preCommand + "sudo iptables-restore " + SystemProperty.getIptablesConfFilePath());
+
+				response = executor.executeCommand(preCommand + "wget www.google.com");
+				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."))
+					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
+							+ c.getHostNode().getHost() + ". Check " + SystemProperty.getIptablesConfFilePath()
+							+ " file on the node.");
+			} catch (SSHClientException e) {
+				throw new OfflineEnvironmentException("There was problem with turning internet  on node: "
+						+ c.getHostNode().getHost(), e);
+			}
+		}
+	}
+
+	/**
+	 * @param containerList
+	 */
+	@Override
+	public void mountStorageOnRootNode(List<Container> containerList) {
+		log.info("Mounting storage on all provisioned nodes.");
+		SSHClient sshClient;
+		Executor executor;
+
+		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
+		Node rootNode = containerList.get(0).getHostNode();
+
+		sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
+				.username(rootNode.getUsername()).password(rootNode.getPassword());
+		executor = new Executor(sshClient);
+
+		log.debug("Mounting storage on root node: " + sshClient.toString());
+
+		try {
+			executor.connect();
+			executor.executeCommand("sudo mount -a");
+
+			String response = executor.executeCommand("ls storage/");
+
+			if (!response.contains("fuse"))
+				throw new FaframException("Mounting storage on root node: "
+						+ rootNode.getHost() + " was unsuccessful.");
+		} catch (SSHClientException e) {
+			throw new FaframException("Mounting storage on root node: "
+					+ rootNode.getHost() + " was unsuccessful.", e);
+		}
+	}
+
+	/**
+	 * Turning off the internet using the default iptables configuration file that exists in ecervena snapshots on
+	 * all nodes specified in provided list. The configuration file used for turning off the internet
+	 * is named "iptables-no-internet".
+	 * <p/>
+	 * The methods also checks that internet is not available on all nodes meaning that that the environment is truly
+	 * offline. If there is problem with setting the environment to offline correctly then the runtime exception is thrown.
+	 *
+	 * @param containerList list of containers
+	 */
+	private void offline(List<Container> containerList) {
+		log.info("Turning off internet in the environment.");
+		SSHClient sshClient;
+		Executor executor;
+
+		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
+		Node rootNode = containerList.get(0).getHostNode();
+
+		for (Container c : containerList) {
+			String preCommand = "";
+			if (!c.isRoot()) {
+				// This is needed for executing commands on nodes without publicip on openstack.
+				// For this purpose we create this string to simulate to connecting to node from root container to which
+				// we are connected via the SSHClient. If the container is root this string is empty and the commands are
+				// executed only on root.
+				// TODO(rjakubco): maybe do it in nicer way?
+				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+			}
+
+			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
+					.username(rootNode.getUsername()).password(rootNode.getPassword());
+			executor = new Executor(sshClient);
+
+			log.debug("Turning off internet on node: " + executor.toString());
+
+			try {
+				executor.connect();
+				String response = executor.executeCommand(preCommand + "sudo cat " + OFFLINE_IPTABLES_FILE);
+
+				if (response.contains("No such file or directory"))
+					throw new OfflineEnvironmentException("Configuration file for iptables" +
+							" doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							new FileNotFoundException("File " + OFFLINE_IPTABLES_FILE + " doesn't exists."));
+
+				executor.executeCommand(preCommand + "sudo iptables-restore " + OFFLINE_IPTABLES_FILE);
+
+				response = executor.executeCommand(preCommand + "wget www.google.com");
+				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."))
+					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
+							+ c.getHostNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
+							+ " file on the node.");
+			} catch (SSHClientException e) {
+				throw new OfflineEnvironmentException("There was problem with turning internet off on node: "
+						+ c.getHostNode().getHost(), e);
+			}
 		}
 	}
 }

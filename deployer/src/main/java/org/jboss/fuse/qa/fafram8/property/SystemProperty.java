@@ -400,6 +400,24 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 *
+	 * @return path to iptables configuration file
+	 */
+	public static String getIptablesConfFilePath() {
+		return System.getProperty(FaframConstant.IPTABLES_CONF_FILE_PATH, "");
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return offline property
+	 */
+	public static Boolean getOffline() {
+		return Boolean.parseBoolean(System.getProperty(FaframConstant.OFFLINE, "false"));
+	}
+
+	/**
 	 * Gets the external property from the property file.
 	 * @param property property key
 	 * @return property value

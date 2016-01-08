@@ -41,6 +41,7 @@ public class Fafram extends ExternalResource {
 	//List of containers used in test
 	@Getter
 	private final List<Container> containerList = new LinkedList<>();
+
 	//Provision provider instance in case of remote deployment
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
@@ -403,6 +404,10 @@ public class Fafram extends ExternalResource {
 	public void prepareNodes(ProvisionProvider provider) {
 		provider.createServerPool(containerList);
 		provider.assignAddresses(containerList);
+
+		// TODO(rjakubco) For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper environment
+		provider.loadIPtables(containerList);
+		provider.mountStorageOnRootNode(containerList);
 	}
 
 	/**
@@ -540,6 +545,32 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram command(String... commands) {
 		this.commands.addAll(Arrays.asList(commands));
+		return this;
+	}
+
+	/**
+	 * Turns environment to offline mode. For this purpose if used the "iptables-no-internet" configuration file which
+	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
+	 * specified in Fafram.
+	 *
+	 * By default the snapshot used for spawning containers using the OpenStack provider contains this file.
+	 *
+	 * @return this
+	 */
+	public Fafram offline() {
+		SystemProperty.set(FaframConstant.OFFLINE, "true");
+		return this;
+	}
+
+	/**
+	 * Configures environment to specific iptables configuration file. This file will be used for setting iptables on all
+	 * nodes specified in Fafram.
+	 *
+	 * @param pathToIPtablesFile path to iptables configuration file
+	 * @return this
+	 */
+	public Fafram configureIPtables(String pathToIPtablesFile) {
+		SystemProperty.set(FaframConstant.IPTABLES_CONF_FILE_PATH, pathToIPtablesFile);
 		return this;
 	}
 

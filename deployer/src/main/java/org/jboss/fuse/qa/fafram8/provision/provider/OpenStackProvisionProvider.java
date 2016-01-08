@@ -1,4 +1,4 @@
-package org.jboss.fuse.qa.fafram8.provision.openstack;
+package org.jboss.fuse.qa.fafram8.provision.provider;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
@@ -6,6 +6,8 @@ import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackClient;
+import org.jboss.fuse.qa.fafram8.provision.openstack.ServerInvokerPool;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 
 import org.openstack4j.api.OSClient;

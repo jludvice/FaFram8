@@ -129,4 +129,11 @@ public class RemoteNodeManager implements NodeManager {
 		}
 		return folder;
 	}
+
+	@Override
+	public void restart() {
+		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
+		executor.waitForShutdown();
+		startFuse();
+	}
 }

@@ -3,9 +3,11 @@
 		xsi:noNamespaceSchemaLocation="parser/configuration.scheme.xsd">
 
 	<framework>
+		<!-- Do not set this as it is not unset because these properties come from the surefire-plugin
 		<fuse.group>testgroup</fuse.group>
 		<fuse.id>testid</fuse.id>
 		<fuse.version>testversion</fuse.version>
+		-->
 		<fuse.zip>testzip</fuse.zip>
 		<fuse.path>testpath</fuse.path>
 		<start.wait.time>999</start.wait.time>

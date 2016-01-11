@@ -11,7 +11,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Modifier Executor class.
+ * Modifier Executor class. This class manages the (post-)modifiers.
  * Created by avano on 5.10.15.
  */
 @Slf4j

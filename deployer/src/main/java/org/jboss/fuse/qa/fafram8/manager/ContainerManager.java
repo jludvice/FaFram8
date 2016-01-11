@@ -17,7 +17,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Container manager class.
+ * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
+ * patching, etc.
+ *
  * Created by avano on 2.9.15.
  */
 @Slf4j
@@ -82,12 +84,14 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch fuse.
+	 * Patches fuse based on its mode (standalone / fabric).
+	 *
+	 * @param nm NodeManager instance - in case when the restart is necessary
 	 */
-	public void patchFuse() {
+	public void patchFuse(NodeManager nm) {
 		if (SystemProperty.getPatch() != null) {
 			if (SystemProperty.isFabric()) {
-				patchFabric();
+				patchFabric(nm);
 			} else {
 				patchStandalone();
 			}
@@ -104,7 +108,7 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch standalone container.
+	 * Patches the standalone container.
 	 */
 	private void patchStandalone() {
 		for (String s : Patcher.getPatches()) {
@@ -115,19 +119,31 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Patch fabric.
+	 * Patches fabric root and sets the default version to the patched version.
+	 *
+	 * @param nm NodeManager instance in case if the restart is necessary
 	 */
-	private void patchFabric() {
+	private void patchFabric(NodeManager nm) {
 		// Create a new version
 		final String version = executor.executeCommand("version-create").split(" ")[2];
 
-		for (String s : Patcher.getPatches()) {
-			executor.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
-					.getFusePassword() + " --version " + version + " " + s);
+		// We need to check if the are using old or new patching mechanism
+		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
+			for (String s : Patcher.getPatches()) {
+				executor.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+						.getFusePassword() + " --version " + version + " " + s);
+			}
+		} else {
+			// 6.2.1 onwards
+			for (String s : Patcher.getPatches()) {
+				final String patchName = getPatchName(executor.executeCommand("patch:add " + s));
+				executor.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+						.getFusePassword() + " --upload --version " + version + " " + patchName);
+			}
 		}
 
 		executor.executeCommand("container-upgrade " + version + " root");
-		executor.waitForProvisioning("root");
+		executor.waitForProvisioning("root", nm);
 		executor.executeCommand("version-set-default " + version);
 	}
 

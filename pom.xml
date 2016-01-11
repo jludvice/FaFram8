@@ -16,8 +16,13 @@
 		<junit.version>4.12</junit.version>
 		<fuse.group>org.jboss.fuse</fuse.group>
 		<fuse.id>jboss-fuse-full</fuse.id>
-		<fuse.version>6.2.0.redhat-133</fuse.version>
+		<fuse.version>6.2.1.redhat-084</fuse.version>
 		<log4j.version>2.4.1</log4j.version>
+		<maven.surefire.version>2.18.1</maven.surefire.version>
+		<maven.compiler.version>3.3</maven.compiler.version>
+		<maven.checkstyle.version>2.16</maven.checkstyle.version>
+		<checkstyle.version>5.8</checkstyle.version>
+		<checkstyle.extension.version>1.0.0</checkstyle.extension.version>
 	</properties>
 
 	<groupId>org.jboss.fuse.qa</groupId>
@@ -96,7 +101,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.18.1</version>
+				<version>${maven.surefire.version}</version>
 				<configuration>
 					<skipTests>${skip.test.fafram}</skipTests>
 					<systemPropertyVariables>
@@ -108,7 +113,7 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.3</version>
+				<version>${maven.compiler.version}</version>
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
@@ -133,17 +138,17 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>2.16</version>
+						<version>${maven.checkstyle.version}</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>5.8</version>
+								<version>${checkstyle.version}</version>
 							</dependency>
 							<dependency>
 								<groupId>org.jboss.soa.qa</groupId>
 								<artifactId>checkstyle-extension</artifactId>
-								<version>1.0.0</version>
+								<version>${checkstyle.extension.version}</version>
 							</dependency>
 						</dependencies>
 						<executions>
@@ -190,7 +195,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>2.18.1</version>
+						<version>${maven.surefire.version}</version>
 						<configuration combine.self="override">
 							<skipTests>false</skipTests>
 							<systemPropertyVariables>

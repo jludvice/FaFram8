@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.lingala.zip4j.core.ZipFile;
 
 /**
- * Local node manager class.
+ * Local node manager class. This class gets, prepares and starts the container on local machine.
  * Created by avano on 19.8.15.
  */
 @Slf4j
@@ -263,9 +263,7 @@ public class LocalNodeManager implements NodeManager {
 		}
 	}
 
-	/**
-	 * Restarts the container.
-	 */
+	@Override
 	public void restart() {
 		restart = true;
 		stop(false);

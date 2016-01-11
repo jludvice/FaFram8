@@ -18,7 +18,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Patcher class.
+ * Patcher class. This class provides the container URL for the patching mechanism.
  * Created by avano on 1.9.15.
  */
 @Slf4j

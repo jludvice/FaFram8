@@ -13,7 +13,7 @@ import java.net.InetAddress;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Properties validator class.
+ * Properties validator class. Validates if specified property combinations are valid with given deployment mode.
  * Created by avano on 21.9.15.
  */
 @Slf4j

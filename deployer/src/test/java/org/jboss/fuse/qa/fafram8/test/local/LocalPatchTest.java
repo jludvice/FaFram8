@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
 import org.junit.Test;
@@ -35,13 +36,12 @@ public class LocalPatchTest {
 		fafram = new Fafram().withFabric();
 		fafram.setup();
 		String version = fafram.executeCommand("version-list | tail -n 1").split(" ")[0];
-		assertTrue(fafram.executeCommand("version-info " + version).contains(FaframConstant.PATCH));
 		assertTrue(fafram.executeCommand("container-list | grep root").contains(version));
 	}
 
 	@Test
 	public void karafFilePatchTest() {
-		System.setProperty(FaframConstant.PATCH, "file:///home/fuse/patches/latest/jboss-fuse-6.2.0.redhat-153-p2.zip");
+		System.setProperty(FaframConstant.PATCH, "file:///home/fuse/patches/latest/jboss-fuse-full-6.2.1.redhat-083.zip");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 		fafram = new Fafram();
 		fafram.setup();
@@ -50,19 +50,17 @@ public class LocalPatchTest {
 
 	@Test
 	public void fabricFilePatchTest() {
-		System.setProperty(FaframConstant.PATCH, "file:///home/fuse/patches/latest/jboss-fuse-6.2.0.redhat-153-p2.zip");
+		System.setProperty(FaframConstant.PATCH, "file:///home/fuse/patches/latest/jboss-fuse-full-6.2.1.redhat-083.zip");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 		fafram = new Fafram().withFabric();
 		fafram.setup();
 		String version = fafram.executeCommand("version-list | tail -n 1").split(" ")[0];
-		assertTrue(fafram.executeCommand("version-info " + version).contains(FaframConstant.PATCH));
 		assertTrue(fafram.executeCommand("container-list | grep root").contains(version));
 	}
 
 	@Test
 	public void karafHttpPatchTest() {
-		System.setProperty(FaframConstant.PATCH, "http://fuse-patches.gsslab.rdu2.redhat.com/patches/JBossFuse/6" +
-				".2/p2/rc1/jboss-fuse-6.2.0.redhat-153-p2.zip");
+		System.setProperty(FaframConstant.PATCH, FaframTestBase.getVersion("6.2.1.redhat-082"));
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 
 		fafram = new Fafram();
@@ -72,13 +70,11 @@ public class LocalPatchTest {
 
 	@Test
 	public void fabricHttpPatchTest() {
-		System.setProperty(FaframConstant.PATCH, "http://fuse-patches.gsslab.rdu2.redhat.com/patches/JBossFuse/6" +
-				".2/p2/rc1/jboss-fuse-6.2.0.redhat-153-p2.zip");
+		System.setProperty(FaframConstant.PATCH, FaframTestBase.getVersion("6.2.1.redhat-082"));
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 		fafram = new Fafram().withFabric();
 		fafram.setup();
 		String version = fafram.executeCommand("version-list | tail -n 1").split(" ")[0];
-		assertTrue(fafram.executeCommand("version-info " + version).contains(FaframConstant.PATCH));
 		assertTrue(fafram.executeCommand("container-list | grep root").contains(version));
 	}
 
@@ -94,7 +90,7 @@ public class LocalPatchTest {
 
 	@Test
 	public void karafStringPatchTest() {
-		System.setProperty(FaframConstant.PATCH, "p1");
+		System.setProperty(FaframConstant.PATCH, "081");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 
 		fafram = new Fafram();
@@ -104,18 +100,17 @@ public class LocalPatchTest {
 
 	@Test
 	public void fabricStringPatchTest() {
-		System.setProperty(FaframConstant.PATCH, "p1");
+		System.setProperty(FaframConstant.PATCH, "081");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 		fafram = new Fafram().withFabric();
 		fafram.setup();
 		String version = fafram.executeCommand("version-list | tail -n 1").split(" ")[0];
-		assertTrue(fafram.executeCommand("version-info " + version).contains(FaframConstant.PATCH));
 		assertTrue(fafram.executeCommand("container-list | grep root").contains(version));
 	}
 
 	@Test
 	public void karafMultiplePatchesTest() {
-		System.setProperty(FaframConstant.PATCH, "p1,p2");
+		System.setProperty(FaframConstant.PATCH, "081,083");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 
 		fafram = new Fafram();
@@ -125,12 +120,11 @@ public class LocalPatchTest {
 
 	@Test
 	public void fabricMultiplePatchesTest() {
-		System.setProperty(FaframConstant.PATCH, "p1,p2");
+		System.setProperty(FaframConstant.PATCH, "081,083");
 		log.info("System property is \'" + System.getProperty(FaframConstant.PATCH) + "\'");
 		fafram = new Fafram().withFabric();
 		fafram.setup();
 		String version = fafram.executeCommand("version-list | tail -n 1").split(" ")[0];
-		assertTrue(fafram.executeCommand("version-info " + version).contains(FaframConstant.PATCH));
 		assertTrue(fafram.executeCommand("container-list | grep root").contains(version));
 	}
 

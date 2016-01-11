@@ -8,7 +8,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 /**
- * Local deployer class.
+ * Local deployer class. This class works as a delegate for local container setup.
  * Created by avano on 19.8.15.
  */
 public class LocalDeployer implements Deployer {
@@ -42,7 +42,7 @@ public class LocalDeployer implements Deployer {
 				if (SystemProperty.isFabric()) {
 					cm.setupFabric();
 				}
-				cm.patchFuse();
+				cm.patchFuse(nm);
 			}
 		} catch (FaframException ex) {
 			nm.stopAndClean(true);

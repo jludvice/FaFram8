@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Command history singleton.
+ * Command history singleton. Holds the executed commands and responses and it is able to dump all the data into a file.
  * Created by avano on 24.11.15.
  */
 public class CommandHistory {

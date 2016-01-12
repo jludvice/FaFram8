@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteOnlyConnect.class,
 		RemoteProperties.class,
 		RemoteReplaceFile.class,
+		RemoteRootName.class,
 		Remote.class,
 		RemoteWget.class,
 		RemoteWorkingDirectory.class

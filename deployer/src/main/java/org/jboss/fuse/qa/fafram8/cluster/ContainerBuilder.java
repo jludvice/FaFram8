@@ -7,6 +7,7 @@ import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.SshContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.brokers.Broker;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
@@ -44,7 +45,9 @@ public class ContainerBuilder {
 		c.setContainerType(tempType);
 		tempType.setContainer(c);
 		tempContainer.setEnsemble(false);
-
+		if (tempType instanceof RootContainerType) {
+			setRootName();
+		}
 		return c;
 	}
 
@@ -271,5 +274,15 @@ public class ContainerBuilder {
 		final RootContainerType rootType = ((RootContainerType) this.tempType);
 		rootType.addCommand(command);
 		return this;
+	}
+
+	/**
+	 * Appends the root name and credentials to the system property that is later used to change the root name of all roots defined.
+	 */
+	private void setRootName() {
+		final String csv = String.format("%s,%s,%s,%s", tempNode.getHost(), tempNode.getUsername(), tempNode
+				.getPassword(), tempContainer.getName());
+		SystemProperty.forceSet(FaframConstant.FAFRAM_ROOT_NAMES, (System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES) == null ? "" : System
+				.getProperty(FaframConstant.FAFRAM_ROOT_NAMES) + ";") + csv);
 	}
 }

@@ -67,6 +67,17 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Force sets the system property even if the property exists already.
+	 * @param property property
+	 * @param value value
+	 */
+	public static void forceSet(String property, String value) {
+		// Clear the property first and then re-use the set method
+		System.clearProperty(property);
+		set(property, value);
+	}
+
+	/**
 	 * Clears all set properties.
 	 */
 	public static void clearAllProperties() {
@@ -377,6 +388,15 @@ public class SystemProperty {
 	 */
 	public static int getBrokerStartWaitTime() {
 		return Integer.parseInt(System.getProperty(FaframConstant.BROKER_START_WAIT_TIME, "60"));
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return root names as an array of CSV records, null if empty
+	 */
+	public static String[] getRootNames() {
+		return System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES) == null ? null : System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES).split(";");
 	}
 
 	/**

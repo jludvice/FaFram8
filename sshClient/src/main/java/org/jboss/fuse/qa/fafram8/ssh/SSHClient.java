@@ -80,11 +80,11 @@ public abstract class SSHClient {
 	/**
 	 * Method for creating connection and session, that is is used in executeCommand() method.
 	 *
-	 * @param supressLog supress exception logging
+	 * @param suppressLog supress exception logging
 	 * @throws VerifyFalseException throw this exception when JschClient drop connection
 	 * @throws SSHClientException common exception for sshclient when there is some problem in executing command
 	 */
-	public void connect(boolean supressLog) throws VerifyFalseException, SSHClientException {
+	public void connect(boolean suppressLog) throws VerifyFalseException, SSHClientException {
 		final int sessionTimeout = 20000;
 		try {
 			if (!"none".equals(privateKey)) {
@@ -102,10 +102,12 @@ public abstract class SSHClient {
 
 			session.connect(sessionTimeout);
 
-			log.info("Connection established.");
+			if (!suppressLog) {
+				log.info("Connection established.");
+			}
 		} catch (JSchException ex) {
 			if (ex.getMessage().contains("verify false")) {
-				if (!supressLog) {
+				if (!suppressLog) {
 					log.error("JschException caught - Verify false");
 				}
 				throw new VerifyFalseException(ex);
@@ -118,7 +120,7 @@ public abstract class SSHClient {
 						+ session.getPort() + " after " + sessionTimeout + " miliseconds");
 			}
 
-			if (!supressLog) {
+			if (!suppressLog) {
 				log.error(ex.getLocalizedMessage());
 			}
 			throw new SSHClientException(ex);

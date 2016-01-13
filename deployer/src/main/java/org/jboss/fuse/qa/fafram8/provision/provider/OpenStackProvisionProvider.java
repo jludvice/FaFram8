@@ -1,12 +1,16 @@
 package org.jboss.fuse.qa.fafram8.provision.provider;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
+import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
@@ -21,6 +25,7 @@ import org.openstack4j.model.compute.FloatingIP;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -248,79 +253,65 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		SSHClient sshClient;
 		Executor executor;
 
-		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
-		Node rootNode = containerList.get(0).getHostNode();
+		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
+		final Node rootNode = containerList.get(0).getHostNode();
 
 		for (Container c : containerList) {
-			String preCommand = "";
-			if (!c.isRoot()) {
-				// This is needed for executing commands on nodes without publicip on openstack.
-				// For this purpose we create this string to simulate to connecting to node from root container to which
-				// we are connected via the SSHClient. If the container is root this string is empty and the commands are
-				// executed only on root.
-				// TODO(rjakubco): maybe do it in nicer way?
-				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+			if (c.getContainerType() instanceof ChildContainerType) {
+				// If the child container is child then skip. The file will be copied and executed for all ssh containers
+				// and root. It doesn't make sense to do also for child containers.
+				return;
 			}
 
+			String preCommand = "";
 			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
 					.username(rootNode.getUsername()).password(rootNode.getPassword());
 			executor = new Executor(sshClient);
 
-			log.debug("Executing iptables configuration file on node: " + executor.toString());
-
 			try {
 				executor.connect();
-				String response = executor.executeCommand(preCommand + "sudo cat " + SystemProperty.getIptablesConfFilePath());
+				final String directory = ("".equals(SystemProperty.getWorkingDirectory()))
+						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
 
-				if (response.contains("No such file or directory"))
-					throw new OfflineEnvironmentException("Configuration file for iptables" +
-							" doesn't exists on node: " + c.getHostNode().getHost() + ".",
-							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));
+				// Path to copied iptables file on remote nodes
+				final String remoteFilePath = directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
 
-				executor.executeCommand(preCommand + "sudo iptables-restore " + SystemProperty.getIptablesConfFilePath());
+				log.debug("Copying iptables configuration file on node: " + sshClient.toString());
 
-				response = executor.executeCommand(preCommand + "wget www.google.com");
-				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."))
-					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
-							+ c.getHostNode().getHost() + ". Check " + SystemProperty.getIptablesConfFilePath()
-							+ " file on the node.");
+				if (c.isRoot()) {
+					try {
+						// Copy file from localhost to root node. The root node is always the fist entry in containerList.
+						// This means this copying will be executed before other nodes.
+						((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
+					} catch (CopyFileException e) {
+						throw new FaframException("Problem with copying iptables configuration file to node: " + c.getHostNode().getHost() + ".", e);
+					}
+				} else {
+					// This is needed for executing commands on nodes without publicip on openstack.
+					// For this purpose we create this string to simulate to connecting to node from root container to which
+					// we are connected via the SSHClient.
+					// If the container is root this string is empty and the commands are executed only on root.
+					// TODO(rjakubco): maybe do it in nicer way?
+					preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+
+					// Copy iptables file already on root node to other nodes via the scp command (hack for nodes without public ip)
+					executor.executeCommand("scp -o StrictHostKeyChecking=no " + remoteFilePath + " " + c.getHostNode().getHost() + ":" + remoteFilePath);
+				}
+
+				log.debug("Executing iptables configuration file on node: " + executor.toString());
+
+				final String response = executor.executeCommand(preCommand + "sudo cat " + remoteFilePath);
+
+				if (response.contains("No such file or directory")) {
+					throw new OfflineEnvironmentException("Configuration file for iptables"
+							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							new FileNotFoundException("File " + remoteFilePath + " doesn't exists."));
+				}
+				executor.executeCommand(preCommand + "sudo iptables-restore " + remoteFilePath);
 			} catch (SSHClientException e) {
-				throw new OfflineEnvironmentException("There was problem with turning internet  on node: "
+				throw new FaframException("There was problem setting iptables on node: "
 						+ c.getHostNode().getHost(), e);
 			}
-		}
-	}
-
-	/**
-	 * @param containerList
-	 */
-	@Override
-	public void mountStorageOnRootNode(List<Container> containerList) {
-		log.info("Mounting storage on all provisioned nodes.");
-		SSHClient sshClient;
-		Executor executor;
-
-		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
-		Node rootNode = containerList.get(0).getHostNode();
-
-		sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
-				.username(rootNode.getUsername()).password(rootNode.getPassword());
-		executor = new Executor(sshClient);
-
-		log.debug("Mounting storage on root node: " + sshClient.toString());
-
-		try {
-			executor.connect();
-			executor.executeCommand("sudo mount -a");
-
-			String response = executor.executeCommand("ls storage/");
-
-			if (!response.contains("fuse"))
-				throw new FaframException("Mounting storage on root node: "
-						+ rootNode.getHost() + " was unsuccessful.");
-		} catch (SSHClientException e) {
-			throw new FaframException("Mounting storage on root node: "
-					+ rootNode.getHost() + " was unsuccessful.", e);
 		}
 	}
 
@@ -339,10 +330,16 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		SSHClient sshClient;
 		Executor executor;
 
-		// TODO(rjakubco, avano, mmelko) this in case that root container is always first in the list -> it not very nice
-		Node rootNode = containerList.get(0).getHostNode();
+		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
+		final Node rootNode = containerList.get(0).getHostNode();
 
 		for (Container c : containerList) {
+			if (c.getContainerType() instanceof ChildContainerType) {
+				// If the child container is child then skip. The file will be copied and executed for all ssh containers
+				// and root. It doesn't make sense to do also for child containers.
+				return;
+			}
+
 			String preCommand = "";
 			if (!c.isRoot()) {
 				// This is needed for executing commands on nodes without publicip on openstack.
@@ -363,20 +360,22 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				executor.connect();
 				String response = executor.executeCommand(preCommand + "sudo cat " + OFFLINE_IPTABLES_FILE);
 
-				if (response.contains("No such file or directory"))
-					throw new OfflineEnvironmentException("Configuration file for iptables" +
-							" doesn't exists on node: " + c.getHostNode().getHost() + ".",
+				if (response.contains("No such file or directory")) {
+					throw new OfflineEnvironmentException("Configuration file for iptables"
+							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
 							new FileNotFoundException("File " + OFFLINE_IPTABLES_FILE + " doesn't exists."));
+				}
 
 				executor.executeCommand(preCommand + "sudo iptables-restore " + OFFLINE_IPTABLES_FILE);
 
 				response = executor.executeCommand(preCommand + "wget www.google.com");
-				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."))
+				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable.")) {
 					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
 							+ c.getHostNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
 							+ " file on the node.");
+				}
 			} catch (SSHClientException e) {
-				throw new OfflineEnvironmentException("There was problem with turning internet off on node: "
+				throw new OfflineEnvironmentException("There was problem with turning off the internet on node: "
 						+ c.getHostNode().getHost(), e);
 			}
 		}

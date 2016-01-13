@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class used for uploading bundles to fabric maven proxy.
- * Created by ecervena on 1/13/15.
  * <p/>
  * Object of this class can invoke maven execution with clean,package and deploy target. It is intended for building
  * specified project and uploading its package to maven proxy service. You have to specify relative project path, maven
@@ -29,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * &lt;/repository&gt;<br>
  * &lt;/distributionManagement&gt;
  * <p/>
- * Check jbossqe-fuse/fuse-tests/fabric-related-tests/fabric-maven-proxy-test for test example.
+ * Created by ecervena on 1/13/15.
  */
 @Slf4j
 public class MavenPomInvoker {

@@ -236,10 +236,11 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}
 	}
 
+	// TODO(rjakubco): refactor loadIptables and offline method
 	@Override
-	public void loadIPtables(List<Container> containerList) {
+	public void loadIPTables(List<Container> containerList) {
 		// This is special case when you want to use default offline configuration.
-		if (SystemProperty.getOffline()) {
+		if (SystemProperty.isOffline()) {
 			offline(containerList);
 			return;
 		}
@@ -260,7 +261,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			if (c.getContainerType() instanceof ChildContainerType) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
-				return;
+				continue;
 			}
 
 			String preCommand = "";
@@ -337,7 +338,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			if (c.getContainerType() instanceof ChildContainerType) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
-				return;
+				continue;
 			}
 
 			String preCommand = "";

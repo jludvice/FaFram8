@@ -67,7 +67,7 @@ public class StaticProvider implements ProvisionProvider {
 	 * @param containerList list of containers
 	 */
 	@Override
-	public void loadIPtables(List<Container> containerList) {
+	public void loadIPTables(List<Container> containerList) {
 		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
 		if (SystemProperty.getIptablesConfFilePath().isEmpty()) {
 			// There was no iptables configuration file set so the user doesn't want to change environment.
@@ -82,7 +82,7 @@ public class StaticProvider implements ProvisionProvider {
 			if (c.getContainerType() instanceof ChildContainerType) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
-				return;
+				continue;
 			}
 
 			sshClient = new NodeSSHClient().defaultSSHPort().hostname(c.getHostNode().getHost())

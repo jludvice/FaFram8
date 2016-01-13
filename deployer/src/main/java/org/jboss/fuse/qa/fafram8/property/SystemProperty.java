@@ -414,7 +414,7 @@ public class SystemProperty {
 	 *
 	 * @return offline property
 	 */
-	public static Boolean getOffline() {
+	public static Boolean isOffline() {
 		return Boolean.parseBoolean(System.getProperty(FaframConstant.OFFLINE, "false"));
 	}
 
@@ -424,7 +424,7 @@ public class SystemProperty {
 	 * @return provider property
 	 */
 	public static String getProvider() {
-		return System.getProperty(FaframConstant.PROVIDER);
+		return System.getProperty(FaframConstant.PROVIDER, "StaticProvider");
 	}
 
 	/**

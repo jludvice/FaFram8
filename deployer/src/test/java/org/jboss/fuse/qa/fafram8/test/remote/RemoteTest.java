@@ -27,7 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteRootName.class,
 		Remote.class,
 		RemoteWget.class,
-		RemoteWorkingDirectory.class
+		RemoteWorkingDirectory.class,
+		RemoteBundleUpload.class,
+		RemoteKillingContainers.class
 })
 @Slf4j
 public class RemoteTest {

@@ -147,4 +147,7 @@ public final class FaframConstant {
 
 	// Openstack address type
 	public static final String OPENSTACK_ADDRESS_TYPE = "openstack.addressType";
+
+	// Fafram root names CSV
+	public static final String FAFRAM_ROOT_NAMES = "fafram.rootNames";
 }

@@ -43,11 +43,13 @@ public class ContainerManager {
 
 	/**
 	 * Sets up fabric.
+	 *
+	 * @param nm nodemanager instance in case the restart is required
 	 */
-	public void setupFabric() {
+	public void setupFabric(NodeManager nm) {
 		executor.executeCommand("fabric:create " + SystemProperty.getFabric());
 		try {
-			executor.waitForProvisioning("root");
+			executor.waitForProvisioning("root", nm);
 		} catch (FaframException ex) {
 			// Container is not provisioned in time
 			throw new FaframException("Container did not provision in time");

@@ -1,16 +1,19 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.deployer.LocalDeployer;
 import org.jboss.fuse.qa.fafram8.deployer.RemoteDeployer;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
@@ -39,7 +42,11 @@ public class RootContainerType extends ContainerType {
 
 	@Setter
 	@Getter
-	private List<String> commands = new ArrayList<>();
+	private List<String> commands = new LinkedList<>();
+
+	@Setter
+	@Getter
+	private List<String> bundles = new LinkedList<>();
 
 	@Override
 	public String executeCommand(String command) {
@@ -85,6 +92,7 @@ public class RootContainerType extends ContainerType {
 		prepare();
 		initExecutor();
 		deployer.getContainerManager().setCommands(commands);
+		deployer.getContainerManager().setBundles(bundles);
 		this.deployer.setup();
 	}
 
@@ -117,5 +125,11 @@ public class RootContainerType extends ContainerType {
 	 */
 	public void addCommand(String command) {
 		this.commands.add(command);
+	}
+
+	@Override
+	public void killContainer() {
+		executor.executeCommand("exec pkill -9 -f  \"karaf.base="
+				+ StringUtils.substringBeforeLast(SystemProperty.getFusePath(), "/") + "\"");
 	}
 }

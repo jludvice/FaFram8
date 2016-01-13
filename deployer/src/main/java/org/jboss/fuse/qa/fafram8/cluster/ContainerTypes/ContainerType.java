@@ -5,11 +5,13 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Interface represents generic container type.
  * Created by mmelko on 09/10/15.
  */
+@Slf4j
 public abstract class ContainerType {
 
 	@Setter
@@ -102,4 +104,12 @@ public abstract class ContainerType {
 	 * @return command for creating the container
 	 */
 	public abstract String getCreateCommand();
+
+	/**
+	 * Kills container in the cluster.
+	 */
+	public void killContainer() {
+		log.debug(executor.toString());
+		container.executeCommand("exec pkill -9 -f " + container.getName());
+	}
 }

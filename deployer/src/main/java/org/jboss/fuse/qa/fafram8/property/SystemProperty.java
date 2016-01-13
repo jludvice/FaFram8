@@ -136,7 +136,7 @@ public class SystemProperty {
 	 * @return fuse user
 	 */
 	public static String getFuseUser() {
-		return System.getProperty(FaframConstant.FUSE_USER, "admin");
+		return System.getProperty(FaframConstant.FUSE_USER, "fafram");
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class SystemProperty {
 	 * @return fuse password
 	 */
 	public static String getFusePassword() {
-		return System.getProperty(FaframConstant.FUSE_PASSWORD, "admin");
+		return System.getProperty(FaframConstant.FUSE_PASSWORD, "fafram");
 	}
 
 	/**

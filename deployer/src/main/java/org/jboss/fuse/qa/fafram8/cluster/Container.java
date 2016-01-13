@@ -133,4 +133,11 @@ public class Container {
 	public String executeCommand(String command) {
 		return this.containerType.executeCommand(command);
 	}
+
+	/**
+	 * Kills the container.
+	 */
+	public void killContainer() {
+		this.containerType.killContainer();
+	}
 }

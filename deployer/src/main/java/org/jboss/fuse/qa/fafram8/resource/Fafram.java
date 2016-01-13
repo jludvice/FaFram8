@@ -407,7 +407,7 @@ public class Fafram extends ExternalResource {
 
 		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started -> problem with iptables
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper environment
-		provider.loadIPtables(containerList);
+		provider.loadIPTables(containerList);
 	}
 
 	/**

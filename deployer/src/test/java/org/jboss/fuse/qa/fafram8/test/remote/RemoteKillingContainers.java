@@ -3,7 +3,7 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
-import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackProvisionProvider;
+import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;

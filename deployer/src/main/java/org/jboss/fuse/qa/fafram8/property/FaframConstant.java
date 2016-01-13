@@ -151,7 +151,8 @@ public final class FaframConstant {
 	// If offline environment should be used (a.k.a turn off internet in cluster)
 	public static final String OFFLINE = "fafram.offline";
 
-	//
+	// Property used for specifying local path to custom iptables configuration file that will be copied and executed on
+	// remote hosts
 	public static final String IPTABLES_CONF_FILE_PATH = "iptables.conf.file.path";
 
 	//Specify infrastructure provider class name a.k.a. provisioning provider

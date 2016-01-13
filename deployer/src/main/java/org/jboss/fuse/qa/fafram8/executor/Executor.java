@@ -223,8 +223,8 @@ public class Executor {
 
 		while (!isSuccessful) {
 			if (retries > SystemProperty.getProvisionWaitTime()) {
-				log.error("Container root failed to provision in time");
-				throw new FaframException("Container root failed to provision in time");
+				log.error("Container " + containerName + " failed to provision in time");
+				throw new FaframException("Container " + containerName + " failed to provision in time");
 			}
 
 			String reason = "";

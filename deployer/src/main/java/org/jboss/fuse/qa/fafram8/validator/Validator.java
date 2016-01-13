@@ -72,7 +72,7 @@ public final class Validator {
 		}
 
 		// If we are on localhost and using custom zip
-		if (SystemProperty.getHost() == null && (zipFile != null && zipFile.startsWith("file"))) {
+		if (SystemProperty.getHost() == null && (zipFile != null && zipFile.startsWith("file")) && !SystemProperty.getProvider().contains("OpenStack")) {
 			if (!new File(StringUtils.substringAfter(zipFile, "file://")).exists()) {
 				throw new ValidatorException(String.format("Specified file (%s) does not exist!", zipFile));
 			}

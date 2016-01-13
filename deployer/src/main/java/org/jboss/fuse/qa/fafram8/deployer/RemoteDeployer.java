@@ -59,7 +59,6 @@ public class RemoteDeployer implements Deployer {
 					cm.setupFabric(nm);
 				}
 			}
-
 		} catch (FaframException ex) {
 			nm.stopAndClean(true);
 			throw new FaframException(ex);

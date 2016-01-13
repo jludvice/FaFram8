@@ -1,13 +1,18 @@
 package org.jboss.fuse.qa.fafram8.provision.provider;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
+import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -53,40 +58,61 @@ public class StaticProvider implements ProvisionProvider {
 	public void releaseResources() {
 	}
 
+	/**
+	 * //TODO(rjakubco): Create and think on how to clean and return iptables back to normal
+	 * This is experimental method for StaticProvider. It should work but after test or failure in setup environment there
+	 * is no cleaning method for now for restoring iptables back to default. This will be added late because there is serious
+	 * need for refactor.
+	 *
+	 * @param containerList list of containers
+	 */
 	@Override
 	public void loadIPtables(List<Container> containerList) {
-		log.info("Changing environment to offline.");
+		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
+		if (SystemProperty.getIptablesConfFilePath().isEmpty()) {
+			// There was no iptables configuration file set so the user doesn't want to change environment.
+			return;
+		}
+
+		log.info("Loading iptables configuration files.");
 		SSHClient sshClient;
 		Executor executor;
+
 		for (Container c : containerList) {
+			if (c.getContainerType() instanceof ChildContainerType) {
+				// If the child container is child then skip. The file will be copied and executed for all ssh containers
+				// and root. It doesn't make sense to do also for child containers.
+				return;
+			}
+
 			sshClient = new NodeSSHClient().defaultSSHPort().hostname(c.getHostNode().getHost())
 					.username(c.getHostNode().getUsername()).password(c.getHostNode().getPassword());
 			executor = new Executor(sshClient);
-			log.debug("Turning off internet on " + executor);
+			log.debug("Loading on iptables on node: " + executor);
 			try {
 				executor.connect();
-				String response = executor.executeCommand("sudo cat " + SystemProperty.getIptablesConfFilePath());
 
-				if (response.contains("No such file or directory"))
-					throw new OfflineEnvironmentException("Configuration file for iptables" +
-							" doesn't exists on node: " + c.getHostNode().getHost() + ".",
+				final String directory = ("".equals(SystemProperty.getWorkingDirectory()))
+						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
+
+				// Path to copied iptables file on remote nodes
+				final String remoteFilePath = directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
+
+				// Copy iptables configuration file from local to all remote nodes
+				((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
+
+				final String response = executor.executeCommand("sudo cat " + SystemProperty.getIptablesConfFilePath());
+
+				if (response.contains("No such file or directory")) {
+					throw new OfflineEnvironmentException("Configuration file for iptables"
+							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
 							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));
+				}
 
 				executor.executeCommand("sudo iptables-restore " + SystemProperty.getIptablesConfFilePath());
-
-				response = executor.executeCommand("wget www.google.com");
-				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."))
-					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
-							+ c.getHostNode().getHost() + ". Check " + 	SystemProperty.getIptablesConfFilePath()
-							+ " file on the node.");
-			} catch (SSHClientException e) {
+			} catch (SSHClientException | CopyFileException e) {
 				throw new OfflineEnvironmentException(e);
 			}
 		}
-	}
-
-	@Override
-	public void mountStorageOnRootNode(List<Container> containerList) {
-		// in static provider it doesn't make sense to mount something by default. Do nothing.
 	}
 }

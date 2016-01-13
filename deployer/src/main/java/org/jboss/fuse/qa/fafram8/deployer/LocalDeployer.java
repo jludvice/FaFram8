@@ -40,7 +40,7 @@ public class LocalDeployer implements Deployer {
 				nm.startFuse();
 				cm.patchStandaloneBeforeFabric();
 				if (SystemProperty.isFabric()) {
-					cm.setupFabric();
+					cm.setupFabric(nm);
 				}
 				cm.patchFuse(nm);
 			}

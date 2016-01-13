@@ -1,5 +1,7 @@
 package org.jboss.fuse.qa.fafram8.test.builder;
 
+import static org.junit.Assert.assertEquals;
+
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
@@ -43,16 +45,15 @@ public class ContainerRootTest {
 	}
 
 	public static Fafram fafram = new Fafram()
-			.withFabric().host(ipRoot)
+			.withFabric().host(ipRoot).name("root1")
 			.hostUser("fuse").hostPassword("fuse");
 
 	@Test
 	public void sshFaframTest() {
-		fafram.setup();
 		fafram.getBuilder().root("admin", "admin").name("root2")
-				.nodeSsh(ipSsh, "fuse", "fuse")
-				.addToFafram()
-				.buildAll();
+				.nodeSsh(ipSsh, "fuse", "fuse", 22)
+				.addToFafram();
+		fafram.setup();
 
 		Container root2 = null;
 		for (Container c : fafram.getContainerList()) {
@@ -62,7 +63,9 @@ public class ContainerRootTest {
 		}
 
 		Assert.assertTrue(fafram.executeCommand("container-list | grep root").contains("success"));
+		assertEquals("karaf.name", "root1", fafram.executeCommand("system-property karaf.name").trim());
 		Assert.assertTrue(root2.executeCommand("container-list | grep root").contains("success"));
+		assertEquals("karaf.name", "root2", root2.executeCommand("system-property karaf.name").trim());
 	}
 
 	@AfterClass

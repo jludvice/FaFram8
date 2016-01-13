@@ -8,6 +8,7 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setJvmOpts
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RandomModifier.changeRandomSource;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNamesModifier.setRootNames;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
@@ -192,6 +193,7 @@ public class Fafram extends ExternalResource {
 			ModifierExecutor.addModifiers(setDefaultJvmOpts());
 		}
 
+		ModifierExecutor.addModifiers(setRootNames());
 		ModifierExecutor.addModifiers(changeRandomSource());
 		ModifierExecutor.addPostModifiers(saveCommandHistory());
 		ModifierExecutor.addPostModifiers(registerArchiver());
@@ -372,7 +374,8 @@ public class Fafram extends ExternalResource {
 	 * @param status patch status (true/false)
 	 */
 	public void waitForPatch(String patchName, boolean status) {
-		((RootContainerType) this.rootContainer.getContainerType()).getDeployer().getContainerManager().getExecutor().waitForPatchStatus(patchName, status);
+		((RootContainerType) this.rootContainer.getContainerType()).getDeployer().getContainerManager().getExecutor().waitForPatchStatus(patchName,
+				status);
 	}
 
 	/**
@@ -519,7 +522,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram name(String name) {
 		this.containerName = name;
-		//TODO(avano): set real name to root container.
+
 		return this;
 	}
 

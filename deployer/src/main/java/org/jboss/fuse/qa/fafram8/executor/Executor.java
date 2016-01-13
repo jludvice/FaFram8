@@ -250,7 +250,7 @@ public class Executor {
 				}
 			}
 
-			if ("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")) {
+			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")) && nm != null) {
 				restarted = true;
 				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
 				break;

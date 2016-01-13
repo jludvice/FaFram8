@@ -56,7 +56,7 @@ public class RemoteDeployer implements Deployer {
 				nm.startFuse();
 				cm.patchStandaloneBeforeFabric();
 				if (SystemProperty.isFabric()) {
-					cm.setupFabric();
+					cm.setupFabric(nm);
 				}
 			}
 

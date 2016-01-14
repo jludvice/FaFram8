@@ -13,6 +13,9 @@ import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 import org.jboss.fuse.qa.fafram8.util.CommandHistory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -361,5 +364,33 @@ public class Executor {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Gets all the child containers and returns all their names.
+	 *
+	 * TODO(avano): this could be reworked in the future after the changes to deploying
+	 * @return list of child container names
+	 */
+	public List<String> listChildContainers() {
+		// I don't want this to be spammed in the log / added to history, therefore I'm using client instead of the executeCommand method
+		final List<String> childs = new ArrayList<>();
+		try {
+			final String[] childContainerList = client.executeCommand("container-list | grep -v root | grep karaf", true).split("\n");
+
+			for (String line : childContainerList) {
+				final String containerName = line.trim().split(" ")[0];
+				// Ssh container is also listed as root
+				final boolean isChild = client.executeCommand("container-info " + containerName, true).replaceAll(" +", " ")
+						.contains("Root: false");
+				if (isChild) {
+					childs.add(containerName);
+				}
+			}
+		} catch (Exception ex) {
+			log.error("Error while getting child container list! " + ex);
+		}
+
+		return childs;
 	}
 }

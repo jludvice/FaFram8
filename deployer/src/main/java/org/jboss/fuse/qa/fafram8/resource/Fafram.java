@@ -41,6 +41,7 @@ public class Fafram extends ExternalResource {
 	//List of containers used in test
 	@Getter
 	private final List<Container> containerList = new LinkedList<>();
+
 	//Provision provider instance in case of remote deployment
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
@@ -403,6 +404,10 @@ public class Fafram extends ExternalResource {
 	public void prepareNodes(ProvisionProvider provider) {
 		provider.createServerPool(containerList);
 		provider.assignAddresses(containerList);
+
+		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started -> problem with iptables
+		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper environment
+		provider.loadIPTables(containerList);
 	}
 
 	/**
@@ -413,6 +418,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram provideNodes(ProvisionProvider provider) {
 		provisionProvider = provider;
+		SystemProperty.set(FaframConstant.PROVIDER, provider.getClass().getName());
 		return this;
 	}
 
@@ -540,6 +546,41 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram command(String... commands) {
 		this.commands.addAll(Arrays.asList(commands));
+		return this;
+	}
+
+	/**
+	 * Turns environment to offline mode. For this purpose the "iptables-no-internet" configuration file is used which
+	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
+	 * specified in FaFram.
+	 * <p/>
+	 * This method can be used only with ecervena snapshots on OpenStack or snapshots that contain mentioned folder.
+	 * <p/>
+	 * By default the snapshot used for spawning containers using the OpenStack provider contains this file.
+	 *
+	 * @return this
+	 */
+	public Fafram offline() {
+		SystemProperty.set(FaframConstant.OFFLINE, "true");
+		return this;
+	}
+
+	/**
+	 * Loads up a custom iptables configuration file from local host and uploads it to remote hosts and executes them.
+	 * This method sets up the environment to environment defined in provided the configuration file.
+	 * <p/>
+	 * This option should be only used on OpenStack machines with sudo command configured to be used without password
+	 * otherwise it won't work. Also the snapshots should have exchanged ssh key to be able to connect between them
+	 * without password.
+	 * <p/>
+	 * At the moment this method is only experimental and should be used with caution. Cleaning up the iptables after
+	 * the test is not completed yet.
+	 *
+	 * @param localFilePath path to iptables configuration file
+	 * @return this
+	 */
+	public Fafram loadIPtablesConfigurationFile(String localFilePath) {
+		SystemProperty.set(FaframConstant.IPTABLES_CONF_FILE_PATH, localFilePath);
 		return this;
 	}
 

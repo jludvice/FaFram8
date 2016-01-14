@@ -13,39 +13,6 @@ import lombok.Setter;
  * Created by ecervena on 9/8/15.
  */
 public class Container {
-	/**
-	 * Constructor.
-	 *
-	 * @param name name
-	 */
-	public Container(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	public Container() {
-		this.profiles = new ArrayList<>();
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param container container according which will be new container cloned
-	 */
-	public Container(Container container) {
-		this.name = container.getName();
-		this.hostNode = new Node(container.getHostNode());
-		this.containerType = container.getContainerType();
-		this.parentContainer = container.getParentContainer();
-		this.resolver = container.getResolver();
-		this.envProperties = container.getEnvProperties();
-		this.profiles = new ArrayList<>(container.getProfiles());
-		this.path = container.getPath();
-		this.ensemble = container.isEnsemble();
-	}
-
 	@Getter
 	@Setter
 	private String name;
@@ -85,6 +52,39 @@ public class Container {
 	@Getter
 	@Setter
 	private String path;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param name name
+	 */
+	public Container(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	public Container() {
+		this.profiles = new ArrayList<>();
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container container according which will be new container cloned
+	 */
+	public Container(Container container) {
+		this.name = container.getName();
+		this.hostNode = new Node(container.getHostNode());
+		this.containerType = container.getContainerType();
+		this.parentContainer = container.getParentContainer();
+		this.resolver = container.getResolver();
+		this.envProperties = container.getEnvProperties();
+		this.profiles = new ArrayList<>(container.getProfiles());
+		this.path = container.getPath();
+		this.ensemble = container.isEnsemble();
+	}
 
 	/**
 	 * Method for container creation according container type.

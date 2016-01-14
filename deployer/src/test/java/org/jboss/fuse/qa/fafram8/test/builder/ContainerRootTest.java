@@ -14,6 +14,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -23,8 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ContainerRootTest {
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
-	public static final String ROOT_NAME = "Fafram-Test-root";
-	public static final String ROOT2_NAME = "fafram-Test-secondroot";
+	public static final String ROOT_NAME = "Fafram-Test-root" + new Date().getTime();
+	public static final String ROOT2_NAME = "fafram-Test-secondroot" + new Date().getTime();
 	public static String ipRoot = "";
 	public static String ipSsh = "";
 

@@ -13,6 +13,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Date;
+
 /** Tests execution of commands right after Fuse start.
  * Created by mmelko on 30/11/15.
  */
@@ -21,7 +23,7 @@ public class CommandsTest {
 	private static final String PROFILE = "test-profile";
 
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
-	public static String SERVER_NAME = "CommandsTest";
+	public static String SERVER_NAME = "CommandsTest" + new Date().getTime();
 	public static String ipRoot = "";
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();

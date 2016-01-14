@@ -13,6 +13,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,8 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ContainerBuilderSshTest {
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
-	public static final String SERVER_NAME = "FaframBuilderNode";
-	public static final String SSH_NAME = "FaframBuilderSSH";
+	public static final String SERVER_NAME = "FaframBuilderNode" + new Date().getTime();
+	public static final String SSH_NAME = "FaframBuilderSSH" + new Date().getTime();
 	public static String ipRoot = "";
 	public static String ipSsh = "";
 

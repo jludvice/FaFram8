@@ -2,6 +2,7 @@ package org.jboss.fuse.qa.fafram8.provision.openstack;
 
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.Server;

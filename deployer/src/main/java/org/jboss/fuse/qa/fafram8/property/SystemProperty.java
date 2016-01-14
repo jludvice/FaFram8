@@ -375,6 +375,7 @@ public class SystemProperty {
 
 	/**
 	 * Getter.
+	 *
 	 * @return config path
 	 */
 	public static String getConfigPath() {
@@ -400,7 +401,35 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 *
+	 * @return path to iptables configuration file
+	 */
+	public static String getIptablesConfFilePath() {
+		return System.getProperty(FaframConstant.IPTABLES_CONF_FILE_PATH, "");
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return offline property
+	 */
+	public static Boolean isOffline() {
+		return Boolean.parseBoolean(System.getProperty(FaframConstant.OFFLINE, "false"));
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return provider property
+	 */
+	public static String getProvider() {
+		return System.getProperty(FaframConstant.PROVIDER, "StaticProvider");
+	}
+
+	/**
 	 * Gets the external property from the property file.
+	 *
 	 * @param property property key
 	 * @return property value
 	 */
@@ -417,6 +446,7 @@ public class SystemProperty {
 
 	/**
 	 * Inits the fafram properties - loads the properties from fafram.properties and merge user changes.
+	 *
 	 * @return properties instance
 	 */
 	public static Properties initProperties() {
@@ -436,7 +466,6 @@ public class SystemProperty {
 					p.load(is);
 				}
 			}
-
 		} catch (IOException e) {
 			log.error("IOException while loading properties" + e);
 		}

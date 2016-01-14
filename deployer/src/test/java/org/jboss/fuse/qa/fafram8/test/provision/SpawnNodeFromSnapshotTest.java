@@ -2,7 +2,7 @@ package org.jboss.fuse.qa.fafram8.test.provision;
 
 import static org.junit.Assert.assertEquals;
 
-import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackProvisionProvider;
+import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 
 import org.junit.AfterClass;
 import org.junit.Test;

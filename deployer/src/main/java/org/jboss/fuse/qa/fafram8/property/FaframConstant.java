@@ -85,9 +85,6 @@ public final class FaframConstant {
 	// Patch standalone before fabric flag
 	public static final String PATCH_STANDALONE = "fafram.patch.standalone";
 
-	//Specify infrastructure provider class name a.k.a. provisioning provider
-	public static final String PROVIDER = "provider.class.name";
-
 	// If remote cluster should be cleaned
 	public static final String CLEAN = "fafram.clean";
 
@@ -150,4 +147,16 @@ public final class FaframConstant {
 
 	// Fafram root names CSV
 	public static final String FAFRAM_ROOT_NAMES = "fafram.rootNames";
+
+	// If offline environment should be used (a.k.a turn off internet in cluster)
+	public static final String OFFLINE = "fafram.offline";
+
+	// Property used for specifying local path to custom iptables configuration file that will be copied and executed on
+	// remote hosts
+	public static final String IPTABLES_CONF_FILE_PATH = "iptables.conf.file.path";
+
+	//Specify infrastructure provider class name a.k.a. provisioning provider
+	// TODO(rjakubco): I stole this unused property for setting the class name that is required in fafram. Is it needed for something else?
+	// This should be just internal property for FaFram
+	public static final String PROVIDER = "provider.class.name";
 }

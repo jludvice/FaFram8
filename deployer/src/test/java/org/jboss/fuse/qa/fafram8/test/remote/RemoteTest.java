@@ -9,6 +9,8 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
+import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 })
 @Slf4j
 public class RemoteTest {
-	public static final String SERVER_NAME = "FaframRemoteTestNode";
+	public static final String SERVER_NAME = "FaframRemoteTestNode" + new Date().getTime();
 
 	// associated floating IP address in Openstack
 	public static String ipAddress;

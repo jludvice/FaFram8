@@ -14,6 +14,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Date;
+
 /**
  * Tests ability of builder/fafram to create child containers.
  * Created by mmelko on 03/11/15.
@@ -23,7 +25,7 @@ public class ContainerBuilderChildsTest {
 	private ContainerBuilder containerBuilder = new ContainerBuilder();
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
-	private static final String SERVER_NAME = "ContainerBuilderChildsTest";
+	private static final String SERVER_NAME = "ContainerBuilderChildsTest" + new Date().getTime();
 	private static String ipRoot = "";
 
 	@BeforeClass

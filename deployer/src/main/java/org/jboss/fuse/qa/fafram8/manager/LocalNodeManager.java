@@ -187,6 +187,7 @@ public class LocalNodeManager implements NodeManager {
 		if (!stopped || restart) {
 			ModifierExecutor.executePostModifiers();
 			ModifierExecutor.clearAllModifiers();
+			cleanChildContainers();
 			stop(ignoreExceptions);
 			deleteTargetDir(ignoreExceptions);
 		} else {
@@ -270,5 +271,15 @@ public class LocalNodeManager implements NodeManager {
 		// If start fails, the flag will remain set so the shutdown will be called (see stop())
 		startFuse();
 		restart = false;
+	}
+
+	/**
+	 * Cleans all the child containers.
+	 */
+	private void cleanChildContainers() {
+		for (String name : executor.listChildContainers()) {
+			log.info("Deleting child container " + name);
+			executor.executeCommand("container-delete " + name);
+		}
 	}
 }

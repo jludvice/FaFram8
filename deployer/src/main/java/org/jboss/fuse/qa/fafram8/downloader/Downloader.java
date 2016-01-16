@@ -75,7 +75,7 @@ public final class Downloader {
 	 * @return absolute path to the file
 	 */
 	private static String getProductFromMaven() {
-		String localRepo = "";
+		String localRepo;
 
 		// If we use custom local repository, use it
 		if (System.getProperty("maven.repo.local") != null) {
@@ -99,7 +99,6 @@ public final class Downloader {
 		String location;
 		switch (protocol) {
 			case "http":
-				// wget
 				try {
 					final File fuseZip = new File("target" + SEP + StringUtils.substringAfterLast(SystemProperty.getFuseZip(), "/"));
 					FileUtils.copyURLToFile(new URL(SystemProperty.getFuseZip()), fuseZip);
@@ -133,8 +132,8 @@ public final class Downloader {
 		String location;
 		switch (protocol) {
 			case "http":
-				log.info(executor.executeCommand("wget --no-check-certificate -q -P " + RemoteNodeManager.getFolder() + " "
-						+ SystemProperty.getFuseZip()));
+				log.info(executor.executeCommand("curl -L -s -o " + RemoteNodeManager.getFolder()
+						+ SEP + "fuse.zip " + SystemProperty.getFuseZip()));
 				location = executor.executeCommand("ls -d -1 " + RemoteNodeManager.getFolder() + SEP + "*");
 				break;
 			case "scp":

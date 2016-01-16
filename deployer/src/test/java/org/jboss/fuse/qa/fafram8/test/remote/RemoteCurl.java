@@ -13,11 +13,11 @@ import org.junit.Test;
 
 /**
  * TODO(rjakubco): once the other tests are in file: protocol then this test will make sense.
- * Remote downloading of Fuse from http via wget test.
+ * Remote downloading of Fuse from http via curl test.
  *
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
-public class RemoteWget {
+public class RemoteCurl {
 	private Fafram fafram;
 
 	@Before
@@ -26,7 +26,7 @@ public class RemoteWget {
 	}
 
 	@Test
-	public void testWgetZip() throws Exception {
+	public void testCurlZip() throws Exception {
 		fafram = new Fafram();
 		fafram.setup();
 

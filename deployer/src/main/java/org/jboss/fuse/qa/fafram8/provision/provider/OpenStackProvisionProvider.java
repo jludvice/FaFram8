@@ -369,8 +369,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 				executor.executeCommand(preCommand + "sudo iptables-restore " + OFFLINE_IPTABLES_FILE);
 
-				response = executor.executeCommand(preCommand + "wget www.google.com");
-				if (response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable.")) {
+				response = executor.executeCommand(preCommand + "curl www.google.com");
+				if (!response.contains("Failed to connect") || !response.contains("Network is unreachable")) {
 					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
 							+ c.getHostNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
 							+ " file on the node.");

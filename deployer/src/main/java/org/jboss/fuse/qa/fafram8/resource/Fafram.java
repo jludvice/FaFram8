@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.resource;
 
+import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.ArchiveModifier.registerArchiver;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.CommandHistoryModifier.saveCommandHistory;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.FileModifier.moveFile;
@@ -200,10 +201,16 @@ public class Fafram extends ExternalResource {
 			ModifierExecutor.addModifiers(setDefaultJvmOpts());
 		}
 
-		ModifierExecutor.addModifiers(setRootNames());
-		ModifierExecutor.addModifiers(changeRandomSource());
-		ModifierExecutor.addPostModifiers(saveCommandHistory());
-		ModifierExecutor.addPostModifiers(registerArchiver());
+		ModifierExecutor.addModifiers(
+				setExecutable("bin/karaf", "bin/start", "bin/stop"),
+				setRootNames(),
+				changeRandomSource()
+		);
+
+		ModifierExecutor.addPostModifiers(
+				saveCommandHistory(),
+				registerArchiver()
+		);
 	}
 
 	/**
@@ -405,8 +412,10 @@ public class Fafram extends ExternalResource {
 		provider.createServerPool(containerList);
 		provider.assignAddresses(containerList);
 
-		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started -> problem with iptables
-		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper environment
+		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started ->
+		// problem with iptables
+		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
+		// environment
 		provider.loadIPTables(containerList);
 	}
 

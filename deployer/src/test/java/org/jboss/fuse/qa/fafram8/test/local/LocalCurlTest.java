@@ -9,11 +9,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Local downloading of Fuse from http via wget test.
+ * Local downloading of Fuse from http via curl test.
  *
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
-public class LocalWgetTest {
+public class LocalCurlTest {
 	private Fafram fafram;
 
 	@Before
@@ -22,7 +22,7 @@ public class LocalWgetTest {
 	}
 
 	@Test
-	public void testWgetZip() throws Exception {
+	public void testCurlZip() throws Exception {
 		fafram = new Fafram();
 		fafram.setup();
 	}

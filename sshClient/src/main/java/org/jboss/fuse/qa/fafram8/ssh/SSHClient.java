@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 @Slf4j
-@ToString
+@ToString(of = {"hostname", "port", "username", "password"})
 public abstract class SSHClient {
 
 	@Getter

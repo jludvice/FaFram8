@@ -58,9 +58,9 @@ public class RemoteTurnOffInternetTest {
 
 			sshClient.connect(true);
 
-			String response = sshClient.executeCommand(preCommand + "wget www.google.com", true);
+			String response = sshClient.executeCommand(preCommand + "curl www.google.com", true);
 
-			assertTrue(response.contains("failed: Connection refused") && response.contains("failed: Network is unreachable."));
+			assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 		}
 	}
 }

@@ -62,7 +62,8 @@ public class RemoteNodeManager implements NodeManager {
 	public void unzipArtifact() {
 		log.info("Unzipping fuse from " + productZipPath);
 
-		log.debug(executor.executeCommand("unzip -q -d " + getFolder() + " " + productZipPath));
+		// Jar can't unzip to specified directory, so we need to change the dir first
+		log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
 		// Problem if WORKING_DIRECTORY is set because then the first command doesn't work
 
 		productPath = "".equals(SystemProperty.getWorkingDirectory())

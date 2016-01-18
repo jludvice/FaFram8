@@ -1,7 +1,5 @@
 package org.jboss.fuse.qa.fafram8.manager;
 
-import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
-
 import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
@@ -119,13 +117,6 @@ public class LocalNodeManager implements NodeManager {
 
 	@Override
 	public void prepareFuse() {
-		if (!windows) {
-			// Restore execute rights to karaf, start, stop
-			log.debug("Setting executable flags to karaf, start, stop");
-			ModifierExecutor.addModifiers(setExecutable("bin" + SEP + "karaf", "bin" + SEP + "start",
-					"bin" + SEP + "stop"));
-		}
-
 		ModifierExecutor.executeModifiers();
 	}
 

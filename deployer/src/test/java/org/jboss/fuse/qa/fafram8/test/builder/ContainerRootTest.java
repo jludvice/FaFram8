@@ -52,7 +52,7 @@ public class ContainerRootTest {
 
 	@Test
 	public void sshFaframTest() {
-		fafram.getBuilder().root("admin", "admin").name("root2")
+		fafram.getBuilder().root("fafram", "fafram").name("root2")
 				.nodeSsh(ipSsh, "fuse", "fuse", 22)
 				.addToFafram();
 		fafram.setup();

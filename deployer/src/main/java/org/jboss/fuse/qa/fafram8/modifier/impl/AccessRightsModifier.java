@@ -40,11 +40,31 @@ public final class AccessRightsModifier implements Modifier {
 		return new AccessRightsModifier(paths);
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	@Override
 	public void execute() {
+		if (executor == null) {
+			localExecute();
+		} else {
+			remoteExecute();
+		}
+	}
+
+	@SuppressWarnings("ResultOfMethodCallIgnored")
+	/**
+	 * Executes the modifier on localhost.
+	 */
+	private void localExecute() {
 		for (String path : paths) {
 			new File(SystemProperty.getFusePath() + File.separator + path).setExecutable(true);
+		}
+	}
+
+	/**
+	 * Executes the modifier on remote.
+	 */
+	private void remoteExecute() {
+		for (String path : paths) {
+			executor.executeCommand("chmod +x " + SystemProperty.getFusePath() + path);
 		}
 	}
 }

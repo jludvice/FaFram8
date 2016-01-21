@@ -159,4 +159,7 @@ public final class FaframConstant {
 	// TODO(rjakubco): I stole this unused property for setting the class name that is required in fafram. Is it needed for something else?
 	// This should be just internal property for FaFram
 	public static final String PROVIDER = "provider.class.name";
+
+	// Skip broker waiting
+	public static final String SKIP_BROKER_WAIT = "fafram.skip.broker.wait";
 }

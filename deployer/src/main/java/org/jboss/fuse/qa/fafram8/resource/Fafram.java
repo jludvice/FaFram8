@@ -364,6 +364,15 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Skips waiting for broker.
+	 * @return this
+	 */
+	public Fafram skipBrokerWait() {
+		SystemProperty.set(FaframConstant.SKIP_BROKER_WAIT, "true");
+		return this;
+	}
+
+	/**
 	 * Gets the full product path.
 	 *
 	 * @return product path

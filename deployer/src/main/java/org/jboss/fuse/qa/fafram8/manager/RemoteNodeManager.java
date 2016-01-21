@@ -87,7 +87,7 @@ public class RemoteNodeManager implements NodeManager {
 			executor.executeCommand(productPath + SEP + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();
 			// TODO(avano): special usecase for remote standalone starting? maybe not necessary
-			if (!SystemProperty.isFabric()) {
+			if (!SystemProperty.isFabric() && !SystemProperty.skipBrokerWait()) {
 				fuseExecutor.waitForBroker();
 			}
 		} catch (Exception e) {
@@ -134,7 +134,7 @@ public class RemoteNodeManager implements NodeManager {
 	@Override
 	public void restart() {
 		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
-		executor.waitForShutdown();
+		fuseExecutor.waitForShutdown();
 		startFuse();
 	}
 }

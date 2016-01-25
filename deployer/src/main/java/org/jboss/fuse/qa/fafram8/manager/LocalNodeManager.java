@@ -143,7 +143,7 @@ public class LocalNodeManager implements NodeManager {
 			stopped = false;
 			log.info("Waiting for the container to be online");
 			executor.waitForBoot();
-			if (!SystemProperty.isFabric()) {
+			if (!SystemProperty.isFabric() && !SystemProperty.skipBrokerWait()) {
 				executor.waitForBroker();
 			}
 		} catch (Exception e) {

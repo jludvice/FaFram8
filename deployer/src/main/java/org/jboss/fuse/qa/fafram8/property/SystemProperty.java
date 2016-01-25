@@ -68,6 +68,7 @@ public class SystemProperty {
 
 	/**
 	 * Force sets the system property even if the property exists already.
+	 *
 	 * @param property property
 	 * @param value value
 	 */
@@ -425,6 +426,15 @@ public class SystemProperty {
 	 */
 	public static String getProvider() {
 		return System.getProperty(FaframConstant.PROVIDER, "StaticProvider");
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return provider property
+	 */
+	public static Boolean skipBrokerWait() {
+		return Boolean.parseBoolean(System.getProperty(FaframConstant.SKIP_BROKER_WAIT, "false"));
 	}
 
 	/**

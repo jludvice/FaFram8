@@ -253,7 +253,8 @@ public class Executor {
 				}
 			}
 
-			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")) && nm != null) {
+			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
+				|| provisionStatus.contains("Client is not started")) && nm != null) {
 				restarted = true;
 				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
 				break;
@@ -376,7 +377,13 @@ public class Executor {
 		// I don't want this to be spammed in the log / added to history, therefore I'm using client instead of the executeCommand method
 		final List<String> childs = new ArrayList<>();
 		try {
-			final String[] childContainerList = client.executeCommand("container-list | grep -v root | grep karaf", true).split("\n");
+			final String containerListResponse = client.executeCommand("container-list | grep -v root | grep karaf", true);
+
+			if (containerListResponse == null) {
+				return childs;
+			}
+
+			final String[] childContainerList = containerListResponse.split("\n");
 
 			for (String line : childContainerList) {
 				final String containerName = line.trim().split(" ")[0];

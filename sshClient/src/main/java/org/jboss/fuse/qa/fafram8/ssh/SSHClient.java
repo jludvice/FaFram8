@@ -85,6 +85,7 @@ public abstract class SSHClient {
 	 * @throws SSHClientException common exception for sshclient when there is some problem in executing command
 	 */
 	public void connect(boolean suppressLog) throws VerifyFalseException, SSHClientException {
+		log.debug("Connecting to: " + this.toString());
 		final int sessionTimeout = 20000;
 		try {
 			if (!"none".equals(privateKey)) {

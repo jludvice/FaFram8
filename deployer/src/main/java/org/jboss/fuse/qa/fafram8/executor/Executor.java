@@ -74,6 +74,7 @@ public class Executor {
 	 * @throws SSHClientException if something went wrong
 	 */
 	public void connect() throws SSHClientException {
+		log.debug("Connecting: " + this.toString());
 		Boolean connected = false;
 		final int step = 1;
 		int elapsed = 0;

@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
@@ -7,6 +8,7 @@ import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.deployer.LocalDeployer;
 import org.jboss.fuse.qa.fafram8.deployer.RemoteDeployer;
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by mmelko on 09/10/15.
  */
 @Slf4j
+@ToString
 public class RootContainerType extends ContainerType {
 
 	@Setter
@@ -32,7 +35,7 @@ public class RootContainerType extends ContainerType {
 	private Deployer deployer;
 
 	@Setter
-	private String username;
+	private String username = SystemProperty.getFuseUser();
 
 	@Setter
 	private String password;
@@ -48,16 +51,6 @@ public class RootContainerType extends ContainerType {
 	@Getter
 	private List<String> bundles = new LinkedList<>();
 
-	@Override
-	public String executeCommand(String command) {
-		return executor.executeCommand(command);
-	}
-
-	@Override
-	protected void initExecutor() {
-		this.executor = deployer.getContainerManager().getExecutor();
-	}
-
 	/**
 	 * Constructor.
 	 *
@@ -66,6 +59,34 @@ public class RootContainerType extends ContainerType {
 	public RootContainerType(Container c) {
 		super(c);
 	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param c container reference.
+	 * @param username
+	 */
+	public RootContainerType(Container c, String username, String password) {
+		super(c);
+		this.username = username;
+		this.password = password;
+	}
+
+	@Override
+	public String executeCommand(String command) {
+		return executor.executeCommand(command);
+	}
+
+	@Override
+	protected void initExecutor() {
+		try {
+			this.executor = deployer.getContainerManager().getExecutor();
+		} catch (NullPointerException NPE) {
+			//Instead of meaningless NPE throw NPE with field log to see which field was null.
+			throw new FaframException(this.toString(), NPE);
+		}
+	}
+
 
 	/**
 	 * Deployers are initialized.
@@ -77,8 +98,10 @@ public class RootContainerType extends ContainerType {
 		if (!container.getHostNode().getHost().contains("localhost")) {
 			final SSHClient nodeSsh = new NodeSSHClient().hostname(node.getHost()).port(node.getPort()).username(node.getUsername()).password(node.getPassword());
 			try {
+				log.debug("Creating remote deployer.");
 				this.deployer = new RemoteDeployer(nodeSsh, fuseSsh);
 			} catch (SSHClientException e) {
+				log.error("Remote deployer initialization exception.");
 				e.printStackTrace();
 			}
 			log.info("Setting up remote deployment on host " + node.getHost() + ":" + node.getPort());

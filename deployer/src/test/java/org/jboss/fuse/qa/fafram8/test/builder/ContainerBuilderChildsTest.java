@@ -86,7 +86,7 @@ public class ContainerBuilderChildsTest {
 
 	@Test
 	public void childContainersTest() {
-		ContainerBuilder builder = fafram.getBuilder();
+		ContainerBuilder builder = fafram.getContainerBuilder();
 
 		builder.child().name("child1")
 				.addToFafram()

@@ -387,7 +387,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		this.rootContainer.waitForProvision();
+		this.rootContainer.waitForProvision(containerName);
 	}
 
 	/**

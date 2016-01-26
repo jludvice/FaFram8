@@ -125,6 +125,13 @@ public class Container {
 	}
 
 	/**
+	 * Wait for provision of given container.
+	 */
+	public void waitForProvision(String containerName) {
+		containerType.getExecutor().waitForProvisioning(containerName);
+	}
+
+	/**
 	 * Executes command on container.
 	 *
 	 * @param command to execute

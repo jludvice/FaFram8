@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.test.builder;
 
+import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
@@ -42,7 +43,7 @@ public class CommandsTest {
 	public Fafram fafram = new Fafram().withFabric().host(ipRoot).hostUser("fuse").hostPassword("fuse").fuseZip(FaframTestBase
 			.CURRENT_URL)
 			.command("profile-create --parent default "+PROFILE)
-			.getBuilder().child("child").addProfile(PROFILE).addToFafram().getFafram();
+			.getContainerBuilder().child("child").addProfile(PROFILE).addToFafram().getFafram();
 
 	@Test
 	public void buildSmokeTest() {

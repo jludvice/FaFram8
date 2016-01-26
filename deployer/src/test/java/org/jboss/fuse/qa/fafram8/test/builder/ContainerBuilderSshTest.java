@@ -10,7 +10,6 @@ import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Date;
@@ -28,20 +27,20 @@ public class ContainerBuilderSshTest {
 	public static final String SSH_NAME = "FaframBuilderSSH" + new Date().getTime();
 	public static String ipRoot = "";
 	public static String ipSsh = "";
+	public static final String OPENSTACK_NAME_PREFIX = "fafram8";
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
 	@BeforeClass
 	public static void before() throws InterruptedException {
+		System.setProperty(FaframConstant.OPENSTACK_NAME_PREFIX, OPENSTACK_NAME_PREFIX);
 		log.info("Spawning testing node...");
 		osm.spawnNewServer(SERVER_NAME);
 		osm.spawnNewServer(SSH_NAME);
-		ipRoot = osm.assignFloatingAddress(osm.getServerByName(SERVER_NAME).getId());
-		ipSsh = osm.assignFloatingAddress(osm.getServerByName(SSH_NAME).getId());
-		System.out.println("Machine " + SERVER_NAME + " spawned on " + ipRoot);
-		System.out.println("Machine " + SSH_NAME + " spawned on " + ipSsh);
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
-		System.setProperty(FaframConstant.HOST, ipRoot);
+		ipRoot = osm.assignFloatingAddress(osm.getServerByName(OPENSTACK_NAME_PREFIX + "-" + SERVER_NAME).getId());
+		ipSsh = osm.assignFloatingAddress(osm.getServerByName(OPENSTACK_NAME_PREFIX + "-" + SSH_NAME).getId());
+		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);		System.setProperty(FaframConstant.HOST, ipRoot);
 		Thread.sleep(60000);
 	}
 
@@ -84,11 +83,10 @@ public class ContainerBuilderSshTest {
 	}
 
 	@Test
-	@Ignore("issue #39") // TODO(mmelko): investigate
 	public void sshFaframTest() {
 		fafram.setup();
 
-		fafram.getBuilder().ssh("ssh-test")
+		fafram.getContainerBuilder().ssh("ssh-test")
 				.nodeSsh(ipSsh, "fuse", "fuse")
 				.addToFafram()
 				.buildAll();

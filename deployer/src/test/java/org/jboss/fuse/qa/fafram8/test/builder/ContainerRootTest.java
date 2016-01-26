@@ -1,7 +1,5 @@
 package org.jboss.fuse.qa.fafram8.test.builder;
 
-import static org.junit.Assert.assertEquals;
-
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
@@ -39,35 +37,31 @@ public class ContainerRootTest {
 		osm.spawnNewServer(ROOT2_NAME);
 		ipRoot = osm.assignFloatingAddress(osm.getServerByName(ROOT_NAME).getId());
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(ROOT2_NAME).getId());
-		System.out.println("Machine " + ROOT_NAME + " spawned on " + ipRoot);
-		System.out.println("Machine " + ROOT2_NAME + " spawned on " + ipSsh);
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
+		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
+		System.setProperty(FaframConstant.FUSE_ZIP, "http://download.eng.bos.redhat.com/brewroot/repos/jb-fuse-6.2-build/latest/maven/org/jboss/fuse/jboss-fuse-full/6.2.0.redhat-133/jboss-fuse-full-6.2.0.redhat-133.zip");
 		System.setProperty(FaframConstant.HOST, ipRoot);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
 		Thread.sleep(60000);
 	}
 
 	public static Fafram fafram = new Fafram()
-			.withFabric().host(ipRoot).name("root1")
+			.withFabric().host(ipRoot)
 			.hostUser("fuse").hostPassword("fuse");
 
 	@Test
 	public void sshFaframTest() {
-		fafram.getBuilder().root("fafram", "fafram").name("root2")
-				.nodeSsh(ipSsh, "fuse", "fuse", 22)
-				.addToFafram();
 		fafram.setup();
+		//TODO(ecervena):Modifier config all root containers to use fafram. Do something smarter.
+		fafram.getContainerBuilder().root("fafram", "fafram").name("root2")
+				.nodeSsh(ipSsh, "fuse", "fuse")
+				.addToFafram()
+				.buildAll();
+		
+		Container root = fafram.getContainer("root");
+		Container root2 = fafram.getContainer("root2");
 
-		Container root2 = null;
-		for (Container c : fafram.getContainerList()) {
-			System.out.println(c.getHostNode());
-			if ("root2".equals(c.getName()))
-				root2 = c;
-		}
-
-		Assert.assertTrue(fafram.executeCommand("container-list | grep root").contains("success"));
-		assertEquals("karaf.name", "root1", fafram.executeCommand("system-property karaf.name").trim());
+		Assert.assertTrue(root.executeCommand("container-list | grep root").contains("success"));
 		Assert.assertTrue(root2.executeCommand("container-list | grep root").contains("success"));
-		assertEquals("karaf.name", "root2", root2.executeCommand("system-property karaf.name").trim());
 	}
 
 	@AfterClass

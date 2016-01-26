@@ -41,8 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Fafram extends ExternalResource {
 	//List of containers used in test
 	@Getter
-	private final List<Container> containerList = new LinkedList<>();
-
+	private static final List<Container> containerList = new LinkedList<>();
 	//Provision provider instance in case of remote deployment
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
@@ -54,21 +53,21 @@ public class Fafram extends ExternalResource {
 	private List<String> bundles = new LinkedList<>();
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private ConfigurationParser parser;
+	private ConfigurationParser configurationParser;
 
 	@Getter
-	private ContainerBuilder builder = new ContainerBuilder();
+	private ContainerBuilder containerBuilder = new ContainerBuilder();
 
 	@Getter
 	private Container rootContainer;
 
 	private String containerName = "root";
-
+	
 	/**
 	 * Constructor.
 	 */
 	public Fafram() {
-		builder.setFafram(this);
+		containerBuilder.setFafram(this);
 	}
 
 	/**
@@ -85,7 +84,8 @@ public class Fafram extends ExternalResource {
 	 *
 	 * @param container container specification picked up from configuration file
 	 */
-	public void addContainer(Container container) {
+	public static void addContainer(Container container) {
+		log.info("Adding container " + container.getName() + " to Fafram container list.");
 		containerList.add(container);
 	}
 
@@ -116,9 +116,8 @@ public class Fafram extends ExternalResource {
 		}
 		printLogo();
 		setDefaultModifiers();
-		//prepare container list
-
-		initRootContainer();
+		//ContainerList should have at least one root container initialized to preserve default behavior.
+		if(!rootContainerExists()) initRootContainer();
 		prepareNodes(provisionProvider);
 		initContainers();
 		return this;
@@ -128,7 +127,8 @@ public class Fafram extends ExternalResource {
 	 * Init of the root container.
 	 */
 	private void initRootContainer() {
-		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
+		log.info("Root container not found. Initializing default root container.");
+		this.rootContainer = containerBuilder.rootWithMappedProperties().name(containerName).build();
 		if (bundles != null && !bundles.isEmpty()) {
 			((RootContainerType) rootContainer.getContainerType()).setBundles(bundles);
 		}
@@ -143,14 +143,20 @@ public class Fafram extends ExternalResource {
 	 * Configuration init.
 	 */
 	public void initConfiguration() {
-		if (!SystemProperty.getConfigPath().contains("none")) {
-			this.parser = new ConfigurationParser(SystemProperty.getConfigPath());
-			this.parser.setContainerBuilder(this.builder);
+		if (!("none").equals(SystemProperty.getConfigPath())) {
+			this.configurationParser = new ConfigurationParser();
+			this.configurationParser.setContainerBuilder(this.containerBuilder);
 
 			try {
-				parser.parseConfigurationFile();
+				configurationParser.parseConfigurationFile(SystemProperty.getConfigPath());
 			} catch (Exception e) {
-				throw new FaframException("Problem with configuration file.");
+				throw new FaframException("XML configuration parsing error.", e);
+			}
+			
+			try {
+				configurationParser.buildContainers();
+			} catch (Exception e) {
+				throw new FaframException("Error while building containers from parsed model.",e);
 			}
 		}
 	}
@@ -224,13 +230,13 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Executes a command in root container shell.
+	 * Executes a command in container named "root".
 	 *
 	 * @param command command to execute on root container
 	 * @return command response
 	 */
 	public String executeCommand(String command) {
-		return rootContainer.getContainerType().getExecutor().executeCommand(command);
+		return this.getContainer("root").executeCommand(command);
 	}
 
 	/**
@@ -529,6 +535,7 @@ public class Fafram extends ExternalResource {
 
 		for (Container c : containerList) {
 			if (!c.isLive()) {
+				log.info("Deploying container: " + c.getName());
 				c.create();
 				if (c.isEnsemble()) {
 					ensembleServers += " " + c.getName();
@@ -568,6 +575,35 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Return container according specified container name.
+	 *
+	 * @param containerName name of container
+	 * @return Container object or null when not found.  
+	 */
+	public static Container getContainer(String containerName) {
+		for (Container c : containerList) {
+			if (c.getName().equals(containerName)) {
+				return c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Search for root container in list of Fafram containers. Return true if there is at least one root container.
+	 * Otherwise return false.
+	 * 
+	 * @return true when root exists or false when root doesn't exist
+	 * 
+     */
+	public boolean rootContainerExists() {
+		for (Container container: containerList) {
+			if (container.getContainerType() instanceof RootContainerType) return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Turns environment to offline mode. For this purpose the "iptables-no-internet" configuration file is used which
 	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
 	 * specified in FaFram.
@@ -600,21 +636,6 @@ public class Fafram extends ExternalResource {
 	public Fafram loadIPtablesConfigurationFile(String localFilePath) {
 		SystemProperty.set(FaframConstant.IPTABLES_CONF_FILE_PATH, localFilePath);
 		return this;
-	}
-
-	/**
-	 * Return container according specified container name.
-	 *
-	 * @param containerName name of container
-	 * @return Container object
-	 */
-	public Container getContainer(String containerName) {
-		for (Container c : containerList) {
-			if (c.getName().equals(containerName)) {
-				return c;
-			}
-		}
-		return null;
 	}
 
 	/**

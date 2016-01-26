@@ -1,11 +1,13 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 
 /**
  * Class represents ssh container type.
  * Created by mmelko on 27/10/15.
  */
+@Slf4j
 public class SshContainerType extends ContainerType {
 	@Override
 	public void createContainer() {
@@ -37,6 +39,7 @@ public class SshContainerType extends ContainerType {
 		//TODO(mmelko): add other parameters.
 		command = "container-create-ssh " + getNodeSsh() + " ";
 
+		//TODO(mmelko): When profiles is not set null pointer exception is rised. Not the first time you don't care about NPE! 
 		String profiles = "";
 		for (String p : this.container.getProfiles()) {
 			profiles += " --profile " + p;
@@ -69,6 +72,13 @@ public class SshContainerType extends ContainerType {
 
 	@Override
 	protected void initExecutor() {
-		executor = container.getParentContainer().getContainerType().getExecutor();
+		try {
+			executor = container.getParentContainer().getContainerType().getExecutor();
+		} catch (Exception ex) {
+			log.error(container.getParentContainer().toString());
+			log.error(container.getParentContainer().getContainerType().toString());
+			log.error(container.getParentContainer().getContainerType().getExecutor().toString());
+			throw ex;
+		}
 	}
 }

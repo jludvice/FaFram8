@@ -1,14 +1,16 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 /**
  * Class representing node.
  * Created by mmelko on 09/10/15.
  */
 @ToString
+@Builder
+@AllArgsConstructor
 public class Node implements Cloneable {
 	@Getter
 	@Setter

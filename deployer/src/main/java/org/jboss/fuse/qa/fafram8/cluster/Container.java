@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
+import lombok.ToString;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
 
@@ -7,12 +8,63 @@ import java.util.ArrayList;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
 
 /**
  * Class representing FUSE container.
  * Created by ecervena on 9/8/15.
  */
+@ToString
 public class Container {
+	/**
+	 * Constructor.
+	 *
+	 * @param name name
+	 */
+	public Container(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	public Container() {
+		this.profiles = new ArrayList<>();
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container container according which will be new container cloned
+	 */
+	public Container(Container container) {
+		this.name = container.getName();
+		this.hostNode = new Node(container.getHostNode());
+		this.containerType = container.getContainerType();
+		this.parentContainer = container.getParentContainer();
+		this.resolver = container.getResolver();
+		this.envProperties = container.getEnvProperties();
+		this.profiles = new ArrayList<>(container.getProfiles());
+		this.path = container.getPath();
+		this.ensemble = container.isEnsemble();
+	}
+
+	/**
+	 * Constructor used to create container object from XML container model holder object.
+	 * 
+	 * @param containerModel container model object parsef from Fafram8 XML configuration.
+     */
+	public Container(ContainerModel containerModel) {
+		this.name = containerModel.getName();
+		switch (containerModel.getContainerType()) {
+			case "root": {
+				this.containerType = new RootContainerType(this);
+				
+			}
+		}
+	}
+	
+
 	@Getter
 	@Setter
 	private String name;
@@ -47,44 +99,12 @@ public class Container {
 
 	@Setter
 	@Getter
-	private ArrayList<String> profiles;
+	//TODO(mmelko): You are requestig non initialized profiles list at org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.SshContainerType.getCreateCommand(SshContainerType.java:40) which leads to NPE
+	private ArrayList<String> profiles = new ArrayList<>();
 
 	@Getter
 	@Setter
 	private String path;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param name name
-	 */
-	public Container(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	public Container() {
-		this.profiles = new ArrayList<>();
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param container container according which will be new container cloned
-	 */
-	public Container(Container container) {
-		this.name = container.getName();
-		this.hostNode = new Node(container.getHostNode());
-		this.containerType = container.getContainerType();
-		this.parentContainer = container.getParentContainer();
-		this.resolver = container.getResolver();
-		this.envProperties = container.getEnvProperties();
-		this.profiles = new ArrayList<>(container.getProfiles());
-		this.path = container.getPath();
-		this.ensemble = container.isEnsemble();
-	}
 
 	/**
 	 * Method for container creation according container type.

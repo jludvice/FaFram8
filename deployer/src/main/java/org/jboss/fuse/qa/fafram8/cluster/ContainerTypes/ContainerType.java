@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
+import lombok.ToString;
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
  * Interface represents generic container type.
  * Created by mmelko on 09/10/15.
  */
+@ToString
 @Slf4j
 public abstract class ContainerType {
 
@@ -26,6 +28,26 @@ public abstract class ContainerType {
 	 * Constructor.
 	 */
 	public ContainerType() {
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container Reference to container
+	 */
+	public ContainerType(Container container) {
+		this.container = container;
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container reference to container
+	 * @param executor executor
+	 */
+	public ContainerType(Container container, Executor executor) {
+		this.container = container;
+		this.executor = executor;
 	}
 
 	/**
@@ -55,28 +77,6 @@ public abstract class ContainerType {
 	 * Inits the executor.
 	 */
 	protected abstract void initExecutor();
-
-	/**
-	 * Constructor.
-	 *
-	 * @param container Reference to container
-	 */
-	public ContainerType(Container container) {
-		super();
-		this.container = container;
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param container reference to container
-	 * @param executor executor
-	 */
-	public ContainerType(Container container, Executor executor) {
-		super();
-		this.container = container;
-		this.executor = executor;
-	}
 
 	/**
 	 * Create new container in cluster.

@@ -393,6 +393,15 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Get system property for openstack server name prefix.
+	 *
+	 * @return server name prefix set by system property
+	 */
+	public static String getOpenstackServerNamePrefix() {
+		return System.getProperty(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8");
+	}
+	
+	/**
 	 * Getter.
 	 *
 	 * @return root names as an array of CSV records, null if empty

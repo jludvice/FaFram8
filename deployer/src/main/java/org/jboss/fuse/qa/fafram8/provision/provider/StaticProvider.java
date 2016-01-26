@@ -33,7 +33,7 @@ public class StaticProvider implements ProvisionProvider {
 	 */
 	@Override
 	public void createServerPool(List<Container> containerList) {
-		log.info("Server instances specified in configuration.");
+		log.info("Assuming static test infrastructure. Dynamic server provision is skipped.");
 		if (SystemProperty.getClean()) {
 			log.info("Cleaning resources");
 			for (Container c : containerList) {

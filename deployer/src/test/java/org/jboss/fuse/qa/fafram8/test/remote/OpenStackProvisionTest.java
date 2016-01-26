@@ -23,7 +23,9 @@ public class OpenStackProvisionTest {
 
 	ProvisionProvider provider = new OpenStackProvisionProvider();
 	@Rule
-	public Fafram fafram = new Fafram().provideNodes(provider).withFabric();
+	public Fafram fafram = new Fafram().provideNodes(provider)
+									   .withFabric()
+			                           .setConfigPath("src/test/resources/OpenStackProvisionTestConfig.xml");
 
 	@BeforeClass
 	public static void init() {
@@ -36,11 +38,9 @@ public class OpenStackProvisionTest {
 		Fafram.getProvisionProvider().releaseResources();
 	}
 
-	//Uncomment ConfigurationParser.setDeployer(); in Fafaram to run remote deployment
-	@Ignore
 	@Test
 	public void fabricTest() {
-		assertTrue(fafram.executeCommand("container-list | grep root").contains("success"));
-		assertTrue(fafram.executeCommand("container-list | grep node1").contains("success"));
+		assertTrue(fafram.getContainer("ecervena-root").executeCommand("container-list | grep root").contains("success"));
+		assertTrue(fafram.getContainer("ecervena-root").executeCommand("container-list | grep ecervena-node1").contains("success"));
 	}
 }

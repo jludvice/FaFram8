@@ -94,11 +94,17 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	}
 
 	/**
-	 * Create new OpenStack node. Method will create Server object model, boot it and wait for active status.
+	 * Create new OpenStack node. Method will create Server object model, boot it,
+	 * add to register and wait for active status.
 	 *
 	 * @param serverName name of the new node
 	 */
+	//TODO(ecervena): Make getExternalProperty reading SystemProperty first. issue #49
 	public void spawnNewServer(String serverName) {
+		log.info("Spawning new server: " + 
+				SystemProperty.getOpenstackServerNamePrefix() + 
+				"-" + 
+				serverName);
 		final ServerCreate server = os
 				.compute()
 				.servers()
@@ -127,6 +133,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * @param serverName name of the node
 	 * @return Server representation of openstack node object
 	 */
+	//TODO(ecervena): resolve BUG
 	public Server getServerByName(String serverName) {
 		final Map<String, String> filter = new HashMap<>();
 		filter.put("name", serverName);
@@ -134,7 +141,21 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				.compute()
 				.servers()
 				.list(filter);
+		//BUG: os.list(filter) is implemented with .contains(paramValue) insted of .equals(paramValue)
+		//So when filtering name field e.g. "fafram-ecervena-1" all servers "fafram-ecervena-1*" is returned
+		//Therefor iteration and equality check is needed.
+		/*List<Server> equalsList =  new LinkedList<>();
+		for (Server server: serverList) {
+			System.out.println(serverName);
+			System.out.println(server.getName());
+			if (serverName.equals(server.getName())) {
+				equalsList.add(server);
+			}
+		}*/
 		if (serverList.size() != 1) {
+			for (Object obj: serverList) {
+				log.error(obj.toString());
+			}
 			throw new UniqueServerNameException("Server name is not unique. More than 1 (" + serverList.size() + ") server with specified name: " + serverName + " detected");
 		} else {
 			return serverList.get(0);

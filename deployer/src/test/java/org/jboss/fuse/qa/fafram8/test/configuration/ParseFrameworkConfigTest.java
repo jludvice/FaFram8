@@ -19,7 +19,8 @@ import java.io.IOException;
 /** Tests for framework configuration
  * Created by mmelko on 14/10/15.
  */
-
+//TODO(ecervena): Remove test class after full parser implamentation
+@Ignore
 public class ParseFrameworkConfigTest {
 
 	private static Fafram fafram;

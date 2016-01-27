@@ -154,7 +154,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}*/
 		if (serverList.size() != 1) {
 			for (Object obj : serverList) {
-				log.error(obj.toString());
+				log.error("Server with not unique name detected: ", obj.toString());
 			}
 			throw new UniqueServerNameException("Server name is not unique. More than 1 (" + serverList.size() + ") server with specified name: " + serverName + " detected");
 		} else {

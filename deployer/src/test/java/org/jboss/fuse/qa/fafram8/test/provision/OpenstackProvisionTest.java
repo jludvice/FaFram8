@@ -1,4 +1,4 @@
-package org.jboss.fuse.qa.fafram8.test.remote;
+package org.jboss.fuse.qa.fafram8.test.provision;
 
 import static org.junit.Assert.assertTrue;
 
@@ -20,7 +20,7 @@ import org.junit.Test;
  * <p/>
  * Created by ecervena on 25.9.15.
  */
-public class OpenStackProvisionTest {
+public class OpenstackProvisionTest {
 
 	ProvisionProvider provider = new OpenStackProvisionProvider();
 	@Rule

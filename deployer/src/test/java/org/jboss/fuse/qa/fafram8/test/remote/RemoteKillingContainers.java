@@ -39,7 +39,7 @@ public class RemoteKillingContainers {
 	}
 
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().getBuilder().child(childName).addToFafram().ssh(sshName).nodeSsh(ipSsh, "fuse", "fuse").addToFafram().getFafram();
+	public Fafram fafram = new Fafram().withFabric().getContainerBuilder().child(childName).addToFafram().ssh(sshName).nodeSsh(ipSsh, "fuse", "fuse").addToFafram().getFafram();
 
 	@Test
 	public void testName() throws Exception {

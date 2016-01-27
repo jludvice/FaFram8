@@ -63,6 +63,7 @@ public class Broker {
 
 	/**
 	 * Copy constructor.
+	 *
 	 * @param broker broker which should be cloned.
 	 */
 	public Broker(Broker broker) {

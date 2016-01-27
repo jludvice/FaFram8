@@ -1,14 +1,15 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
-import lombok.ToString;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
+import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.SshContainerType;
+import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
 
 import java.util.ArrayList;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
+import lombok.ToString;
 
 /**
  * Class representing FUSE container.
@@ -16,54 +17,6 @@ import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
  */
 @ToString
 public class Container {
-	/**
-	 * Constructor.
-	 *
-	 * @param name name
-	 */
-	public Container(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Constructor.
-	 */
-	public Container() {
-		this.profiles = new ArrayList<>();
-	}
-
-	/**
-	 * Constructor.
-	 *
-	 * @param container container according which will be new container cloned
-	 */
-	public Container(Container container) {
-		this.name = container.getName();
-		this.hostNode = new Node(container.getHostNode());
-		this.containerType = container.getContainerType();
-		this.parentContainer = container.getParentContainer();
-		this.resolver = container.getResolver();
-		this.envProperties = container.getEnvProperties();
-		this.profiles = new ArrayList<>(container.getProfiles());
-		this.path = container.getPath();
-		this.ensemble = container.isEnsemble();
-	}
-
-	/**
-	 * Constructor used to create container object from XML container model holder object.
-	 * 
-	 * @param containerModel container model object parsef from Fafram8 XML configuration.
-     */
-	public Container(ContainerModel containerModel) {
-		this.name = containerModel.getName();
-		switch (containerModel.getContainerType()) {
-			case "root": {
-				this.containerType = new RootContainerType(this);
-				
-			}
-		}
-	}
-	
 
 	@Getter
 	@Setter
@@ -107,6 +60,60 @@ public class Container {
 	private String path;
 
 	/**
+	 * Constructor.
+	 *
+	 * @param name name
+	 */
+	public Container(String name) {
+		this.name = name;
+	}
+
+	/**
+	 * Constructor.
+	 */
+	public Container() {
+		this.profiles = new ArrayList<>();
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param container container according which will be new container cloned
+	 */
+	public Container(Container container) {
+		this.name = container.getName();
+		this.hostNode = new Node(container.getHostNode());
+		this.containerType = container.getContainerType();
+		this.parentContainer = container.getParentContainer();
+		this.resolver = container.getResolver();
+		this.envProperties = container.getEnvProperties();
+		this.profiles = new ArrayList<>(container.getProfiles());
+		this.path = container.getPath();
+		this.ensemble = container.isEnsemble();
+	}
+
+	/**
+	 * Constructor used to create container object from XML container model holder object.
+	 *
+	 * @param containerModel container model object parsef from Fafram8 XML configuration.
+	 */
+	//TODO(ecervena): Finish constructor implementation and refactor ConfigurationParser.buildContainers()
+	public Container(ContainerModel containerModel) {
+		this.name = containerModel.getName();
+		switch (containerModel.getContainerType()) {
+			case "root": {
+				this.containerType = new RootContainerType(this);
+			}
+			case "ssh": {
+				this.containerType = new SshContainerType(this);
+			}
+			default: {
+				break;
+			}
+		}
+	}
+
+	/**
 	 * Method for container creation according container type.
 	 */
 	public void create() {
@@ -146,6 +153,8 @@ public class Container {
 
 	/**
 	 * Wait for provision of given container.
+	 *
+	 * @param containerName name of container
 	 */
 	public void waitForProvision(String containerName) {
 		containerType.getExecutor().waitForProvisioning(containerName);

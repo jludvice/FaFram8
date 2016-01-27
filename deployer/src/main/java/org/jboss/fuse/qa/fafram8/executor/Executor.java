@@ -255,7 +255,7 @@ public class Executor {
 			}
 
 			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
-				|| provisionStatus.contains("Client is not started")) && nm != null) {
+					|| provisionStatus.contains("Client is not started")) && nm != null) {
 				restarted = true;
 				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
 				break;
@@ -370,8 +370,9 @@ public class Executor {
 
 	/**
 	 * Gets all the child containers and returns all their names.
-	 *
+	 * <p/>
 	 * TODO(avano): this could be reworked in the future after the changes to deploying
+	 *
 	 * @return list of child container names
 	 */
 	public List<String> listChildContainers() {

@@ -10,13 +10,12 @@ import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * Uncoment "ConfigurationParser.setDeployer();" in Fafram setup method to enable remote deployment.
- *
+ * <p/>
  * Created by ecervena on 25.9.15.
  */
 public class OpenStackProvisionTest {
@@ -24,8 +23,8 @@ public class OpenStackProvisionTest {
 	ProvisionProvider provider = new OpenStackProvisionProvider();
 	@Rule
 	public Fafram fafram = new Fafram().provideNodes(provider)
-									   .withFabric()
-			                           .setConfigPath("src/test/resources/OpenStackProvisionTestConfig.xml");
+			.withFabric()
+			.setConfigPath("src/test/resources/OpenStackProvisionTestConfig.xml");
 
 	@BeforeClass
 	public static void init() {

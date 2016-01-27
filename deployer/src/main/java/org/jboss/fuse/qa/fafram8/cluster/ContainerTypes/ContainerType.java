@@ -1,11 +1,11 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
-import lombok.ToString;
 import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**

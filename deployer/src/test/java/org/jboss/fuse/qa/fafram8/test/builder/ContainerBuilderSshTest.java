@@ -40,7 +40,8 @@ public class ContainerBuilderSshTest {
 		ipRoot = osm.assignFloatingAddress(osm.getServerByName(OPENSTACK_NAME_PREFIX + "-" + SERVER_NAME).getId());
 		ipSsh = osm.assignFloatingAddress(osm.getServerByName(OPENSTACK_NAME_PREFIX + "-" + SSH_NAME).getId());
 		log.info("Testing node on Openstack spawned on IP address " + ipRoot);
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);		System.setProperty(FaframConstant.HOST, ipRoot);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
+		System.setProperty(FaframConstant.HOST, ipRoot);
 		Thread.sleep(60000);
 	}
 

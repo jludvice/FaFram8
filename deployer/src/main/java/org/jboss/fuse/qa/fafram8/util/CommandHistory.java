@@ -19,6 +19,7 @@ public class CommandHistory {
 
 	/**
 	 * Instance getter.
+	 *
 	 * @return instance
 	 */
 	public static CommandHistory getInstance() {
@@ -32,6 +33,7 @@ public class CommandHistory {
 
 	/**
 	 * Adds the cmd-response pair to the map.
+	 *
 	 * @param cmd command
 	 * @param res response
 	 */
@@ -51,6 +53,7 @@ public class CommandHistory {
 
 	/**
 	 * Dumps the command-response values into a string.
+	 *
 	 * @return command-response values in string
 	 */
 	public static String dumpCommands() {

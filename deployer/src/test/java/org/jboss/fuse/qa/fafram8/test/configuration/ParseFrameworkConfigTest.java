@@ -1,6 +1,5 @@
 package org.jboss.fuse.qa.fafram8.test.configuration;
 
-import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
@@ -16,7 +15,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 
-/** Tests for framework configuration
+/**
+ * Tests for framework configuration
  * Created by mmelko on 14/10/15.
  */
 //TODO(ecervena): Remove test class after full parser implamentation
@@ -34,7 +34,8 @@ public class ParseFrameworkConfigTest {
 	@Ignore
 	@Test
 	public void parseFuseGroup() throws IOException, SAXException, ParserConfigurationException {
-		Assert.assertEquals("testgroup", SystemProperty.getInstance().getFuseGroup());}
+		Assert.assertEquals("testgroup", SystemProperty.getInstance().getFuseGroup());
+	}
 
 	@Ignore
 	@Test
@@ -89,7 +90,9 @@ public class ParseFrameworkConfigTest {
 	}
 
 	@Test
-	public void workingDirectory() {Assert.assertEquals("testdirectory", SystemProperty.getInstance().getWorkingDirectory());}
+	public void workingDirectory() {
+		Assert.assertEquals("testdirectory", SystemProperty.getInstance().getWorkingDirectory());
+	}
 
 	@Test
 	public void faframPatchDir() {
@@ -97,7 +100,7 @@ public class ParseFrameworkConfigTest {
 	}
 
 	@AfterClass
-	public static void cleanProperties(){
+	public static void cleanProperties() {
 		SystemProperty.clearAllProperties();
 	}
 }

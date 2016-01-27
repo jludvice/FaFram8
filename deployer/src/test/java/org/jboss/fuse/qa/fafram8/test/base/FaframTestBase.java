@@ -11,6 +11,7 @@ public class FaframTestBase {
 
 	/**
 	 * Returns the url to the specified version.
+	 *
 	 * @param version version (e.g. 6.2.1-)
 	 * @return url to the specified version
 	 */

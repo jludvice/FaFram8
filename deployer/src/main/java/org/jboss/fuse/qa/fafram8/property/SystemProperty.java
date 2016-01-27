@@ -400,7 +400,7 @@ public class SystemProperty {
 	public static String getOpenstackServerNamePrefix() {
 		return System.getProperty(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8");
 	}
-	
+
 	/**
 	 * Getter.
 	 *

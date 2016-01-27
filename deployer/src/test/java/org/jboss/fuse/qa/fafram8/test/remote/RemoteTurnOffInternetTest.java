@@ -29,7 +29,7 @@ public class RemoteTurnOffInternetTest {
 	private ProvisionProvider provider = new OpenStackProvisionProvider();
 
 	@Rule
-	public Fafram fafram = new Fafram().name("internet-test").provideNodes(provider).withFabric().getBuilder().ssh("ssh-internet").nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().offline();
+	public Fafram fafram = new Fafram().name("internet-test").provideNodes(provider).withFabric().getContainerBuilder().ssh("ssh-internet").nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().offline();
 
 	@BeforeClass
 	public static void before() {

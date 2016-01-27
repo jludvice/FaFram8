@@ -1,8 +1,12 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
-import lombok.*;
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * Class representing node.
@@ -26,7 +30,7 @@ public class Node implements Cloneable {
 
 	@Getter
 	@Setter
-	private int port;
+	private int port = SystemProperty.getHostPort();
 
 	@Getter
 	@Setter

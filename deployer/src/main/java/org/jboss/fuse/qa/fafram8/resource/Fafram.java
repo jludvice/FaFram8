@@ -62,7 +62,7 @@ public class Fafram extends ExternalResource {
 	private Container rootContainer;
 
 	private String containerName = "root";
-	
+
 	/**
 	 * Constructor.
 	 */
@@ -117,7 +117,9 @@ public class Fafram extends ExternalResource {
 		printLogo();
 		setDefaultModifiers();
 		//ContainerList should have at least one root container initialized to preserve default behavior.
-		if(!rootContainerExists()) initRootContainer();
+		if (!rootContainerExists()) {
+			initRootContainer();
+		}
 		prepareNodes(provisionProvider);
 		initContainers();
 		return this;
@@ -152,11 +154,11 @@ public class Fafram extends ExternalResource {
 			} catch (Exception e) {
 				throw new FaframException("XML configuration parsing error.", e);
 			}
-			
+
 			try {
 				configurationParser.buildContainers();
 			} catch (Exception e) {
-				throw new FaframException("Error while building containers from parsed model.",e);
+				throw new FaframException("Error while building containers from parsed model.", e);
 			}
 		}
 	}
@@ -371,6 +373,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Skips waiting for broker.
+	 *
 	 * @return this
 	 */
 	public Fafram skipBrokerWait() {
@@ -578,7 +581,7 @@ public class Fafram extends ExternalResource {
 	 * Return container according specified container name.
 	 *
 	 * @param containerName name of container
-	 * @return Container object or null when not found.  
+	 * @return Container object or null when not found.
 	 */
 	public static Container getContainer(String containerName) {
 		for (Container c : containerList) {
@@ -592,13 +595,14 @@ public class Fafram extends ExternalResource {
 	/**
 	 * Search for root container in list of Fafram containers. Return true if there is at least one root container.
 	 * Otherwise return false.
-	 * 
+	 *
 	 * @return true when root exists or false when root doesn't exist
-	 * 
-     */
+	 */
 	public boolean rootContainerExists() {
-		for (Container container: containerList) {
-			if (container.getContainerType() instanceof RootContainerType) return true;
+		for (Container container : containerList) {
+			if (container.getContainerType() instanceof RootContainerType) {
+				return true;
+			}
 		}
 		return false;
 	}

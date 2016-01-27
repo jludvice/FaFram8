@@ -1,4 +1,3 @@
-
 package org.jboss.fuse.qa.fafram8.cluster;
 
 import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
@@ -14,7 +13,8 @@ import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Container builder class. Is used internally by Fafram and can be also used externally by users.
+/**
+ * Container builder class. Is used internally by Fafram and can be also used externally by users.
  * Created by mmelko on 27/10/15.
  */
 public class ContainerBuilder {
@@ -68,7 +68,7 @@ public class ContainerBuilder {
 	 * @return this - container builder
 	 */
 	public ContainerBuilder ssh() {
-		this.tempType = new SshContainerType();
+		this.tempType = new SshContainerType(tempContainer);
 		return this;
 	}
 
@@ -79,7 +79,7 @@ public class ContainerBuilder {
 	 * @return this - container builder
 	 */
 	public ContainerBuilder ssh(String name) {
-		this.tempType = new SshContainerType();
+		this.tempType = new SshContainerType(tempContainer);
 		return name(name);
 	}
 
@@ -106,6 +106,7 @@ public class ContainerBuilder {
 
 	/**
 	 * Defineses child container with specified name.
+	 *
 	 * @param name name of the child container
 	 * @return this - container builder
 	 */
@@ -268,7 +269,7 @@ public class ContainerBuilder {
 	 * Adds command which will be executed before  others containers are initialized.
 	 *
 	 * @param command to be executed.
-	 * @return  this
+	 * @return this
 	 */
 	public ContainerBuilder addCommand(String command) {
 		final RootContainerType rootType = ((RootContainerType) this.tempType);

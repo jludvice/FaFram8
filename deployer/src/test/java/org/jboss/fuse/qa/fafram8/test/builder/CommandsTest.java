@@ -1,6 +1,5 @@
 package org.jboss.fuse.qa.fafram8.test.builder;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
@@ -16,7 +15,8 @@ import org.junit.Test;
 
 import java.util.Date;
 
-/** Tests execution of commands right after Fuse start.
+/**
+ * Tests execution of commands right after Fuse start.
  * Created by mmelko on 30/11/15.
  */
 public class CommandsTest {
@@ -42,7 +42,7 @@ public class CommandsTest {
 	@Rule
 	public Fafram fafram = new Fafram().withFabric().host(ipRoot).hostUser("fuse").hostPassword("fuse").fuseZip(FaframTestBase
 			.CURRENT_URL)
-			.command("profile-create --parent default "+PROFILE)
+			.command("profile-create --parent default " + PROFILE)
 			.getContainerBuilder().child("child").addProfile(PROFILE).addToFafram().getFafram();
 
 	@Test

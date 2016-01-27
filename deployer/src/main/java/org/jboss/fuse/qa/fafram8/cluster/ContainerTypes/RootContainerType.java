@@ -1,6 +1,5 @@
 package org.jboss.fuse.qa.fafram8.cluster.ContainerTypes;
 
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.Container;
@@ -20,6 +19,7 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -64,7 +64,8 @@ public class RootContainerType extends ContainerType {
 	 * Constructor.
 	 *
 	 * @param c container reference.
-	 * @param username
+	 * @param username Fuse username
+	 * @param password Fuse password
 	 */
 	public RootContainerType(Container c, String username, String password) {
 		super(c);
@@ -81,12 +82,11 @@ public class RootContainerType extends ContainerType {
 	protected void initExecutor() {
 		try {
 			this.executor = deployer.getContainerManager().getExecutor();
-		} catch (NullPointerException NPE) {
+		} catch (NullPointerException npe) {
 			//Instead of meaningless NPE throw NPE with field log to see which field was null.
-			throw new FaframException(this.toString(), NPE);
+			throw new FaframException(this.toString(), npe);
 		}
 	}
-
 
 	/**
 	 * Deployers are initialized.

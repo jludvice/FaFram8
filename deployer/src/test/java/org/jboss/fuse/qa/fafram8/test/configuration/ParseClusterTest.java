@@ -6,7 +6,8 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-/**Tests for parsing container configuration.
+/**
+ * Tests for parsing container configuration.
  * Created by mmelko on 08/11/15.
  */
 //TODO(ecervena): Remove test class after full parser implamentation
@@ -21,17 +22,17 @@ public class ParseClusterTest {
 	}
 
 	@Test
-	public void parseRootContainersTest(){
+	public void parseRootContainersTest() {
 
 	}
 
 	@Test
-	public void parseChildContainerTest(){
+	public void parseChildContainerTest() {
 
 	}
 
 	@Test
-	public void parseSshContainerTest(){
+	public void parseSshContainerTest() {
 
 	}
 }

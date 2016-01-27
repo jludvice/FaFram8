@@ -31,7 +31,7 @@ public class RemoteSettingIPtablesTest {
 	private final static String DIR = "test/working/directory";
 
 	@Rule
-	public Fafram fafram = new Fafram().name("iptables-test").provideNodes(provider).withFabric().getBuilder().ssh("ssh-iptables").nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().loadIPtablesConfigurationFile("target/test-classes/iptables-test");
+	public Fafram fafram = new Fafram().name("iptables-test").provideNodes(provider).withFabric().getContainerBuilder().ssh("ssh-iptables").nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().loadIPtablesConfigurationFile("target/test-classes/iptables-test");
 
 	@BeforeClass
 	public static void before() {

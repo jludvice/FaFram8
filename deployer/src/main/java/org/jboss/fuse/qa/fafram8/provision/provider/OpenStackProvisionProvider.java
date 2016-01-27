@@ -101,10 +101,10 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	//TODO(ecervena): Make getExternalProperty reading SystemProperty first. issue #49
 	public void spawnNewServer(String serverName) {
-		log.info("Spawning new server: " + 
-				SystemProperty.getOpenstackServerNamePrefix() + 
-				"-" + 
-				serverName);
+		log.info("Spawning new server: "
+				+ SystemProperty.getOpenstackServerNamePrefix()
+				+ "-"
+				+ serverName);
 		final ServerCreate server = os
 				.compute()
 				.servers()
@@ -153,7 +153,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			}
 		}*/
 		if (serverList.size() != 1) {
-			for (Object obj: serverList) {
+			for (Object obj : serverList) {
 				log.error(obj.toString());
 			}
 			throw new UniqueServerNameException("Server name is not unique. More than 1 (" + serverList.size() + ") server with specified name: " + serverName + " detected");

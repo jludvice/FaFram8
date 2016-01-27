@@ -56,7 +56,7 @@ public class ContainerRootTest {
 				.nodeSsh(ipSsh, "fuse", "fuse")
 				.addToFafram()
 				.buildAll();
-		
+
 		Container root = fafram.getContainer("root");
 		Container root2 = fafram.getContainer("root2");
 

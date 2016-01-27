@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
  * patching, etc.
- *
+ * <p/>
  * Created by avano on 2.9.15.
  */
 @Slf4j

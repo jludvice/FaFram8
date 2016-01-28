@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Fafram extends ExternalResource {
 	//List of containers used in test
 	@Getter
-	private static final List<Container> containerList = new LinkedList<>();
+	private final List<Container> containerList = new LinkedList<>();
 	//Provision provider instance in case of remote deployment
 	@Getter
 	private static ProvisionProvider provisionProvider = new StaticProvider();
@@ -83,7 +83,7 @@ public class Fafram extends ExternalResource {
 	 *
 	 * @param container container specification picked up from configuration file
 	 */
-	public static void addContainer(Container container) {
+	public void addContainer(Container container) {
 		log.info("Adding container " + container.getName() + " to Fafram container list.");
 		containerList.add(container);
 	}
@@ -117,6 +117,8 @@ public class Fafram extends ExternalResource {
 		printLogo();
 		setDefaultModifiers();
 		//ContainerList should have at least one root container initialized to preserve default behavior.
+		//TODO(ecervena): root container is created also in case remote deployment with statically provided host which is wrong!
+		//however dynamic sever provision is skipped correctly
 		if (!rootContainerExists()) {
 			initRootContainer();
 		}
@@ -146,7 +148,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public void initConfiguration() {
 		if (!("none").equals(SystemProperty.getConfigPath())) {
-			this.configurationParser = new ConfigurationParser();
+			this.configurationParser = new ConfigurationParser(this);
 			this.configurationParser.setContainerBuilder(this.containerBuilder);
 
 			try {
@@ -583,7 +585,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName name of container
 	 * @return Container object or null when not found.
 	 */
-	public static Container getContainer(String containerName) {
+	public Container getContainer(String containerName) {
 		for (Container c : containerList) {
 			if (c.getName().equals(containerName)) {
 				return c;

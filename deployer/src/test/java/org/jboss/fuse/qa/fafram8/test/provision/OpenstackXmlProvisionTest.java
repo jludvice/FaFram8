@@ -20,12 +20,11 @@ import org.junit.Test;
  * <p/>
  * Created by ecervena on 25.9.15.
  */
-public class OpenstackProvisionTest {
-
-	ProvisionProvider provider = new OpenStackProvisionProvider();
+public class OpenstackXmlProvisionTest {
+	
 	@Rule
 	//TODO(ecervena): implement enhancement to add timestamp to container name 
-	public Fafram fafram = new Fafram().provideNodes(provider)
+	public Fafram fafram = new Fafram().provideNodes(new OpenStackProvisionProvider())
 			.withFabric()
 			.setConfigPath("src/test/resources/OpenStackProvisionTestConfig.xml");
 
@@ -33,6 +32,8 @@ public class OpenstackProvisionTest {
 	public static void init() {
 		System.setProperty(FaframConstant.KEEP_OS_RESOURCES, "false");
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
+		
+		
 	}
 
 	@AfterClass

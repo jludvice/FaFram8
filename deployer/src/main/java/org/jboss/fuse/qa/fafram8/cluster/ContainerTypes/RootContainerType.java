@@ -16,6 +16,7 @@ import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -112,7 +113,29 @@ public class RootContainerType extends ContainerType {
 
 	@Override
 	public void createContainer() {
-		prepare();
+		//TODO(ecervena): this is provisional implementation of waiting for container node response. Exception handling
+		//should be implemented in proper way!!!!
+		//in milliseconds
+		final int sleepPeriod = 1000;
+		//in seconds
+		final int timeout = 60;
+		Exception prepareException = null;
+		for (final long stop = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeout); stop > System.nanoTime();) {
+			try {
+				prepare();
+			} catch (Exception ex) {
+				log.debug("Waiting for host: " + this.container.getName());
+				prepareException = ex;
+				try {
+					Thread.sleep(sleepPeriod);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		if (!(prepareException == null)) {
+			throw (RuntimeException) prepareException;
+		}
 		initExecutor();
 		deployer.getContainerManager().setCommands(commands);
 		deployer.getContainerManager().setBundles(bundles);

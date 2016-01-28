@@ -22,8 +22,8 @@ public class ParserTest {
 
 	@Test
 	public void parseRootContainerTest() {
-		assertEquals("root1", Fafram.getContainerList().get(0).getName());
-		assertEquals("fafram8-ssh-container-a", Fafram.getContainerList().get(1).getName());
-		assertEquals("fafram8-ssh-container-b", Fafram.getContainerList().get(2).getName());
+		assertEquals("root1", fafram.getContainerList().get(0).getName());
+		assertEquals("fafram8-ssh-container-a", fafram.getContainerList().get(1).getName());
+		assertEquals("fafram8-ssh-container-b", fafram.getContainerList().get(2).getName());
 	}
 }

@@ -29,11 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ConfigurationParser {
 
+	//Fafram reference
+	private Fafram fafram;
+
 	//Parsed object cluster representation.
-	private static ClusterModel clusterModel;
+	private ClusterModel clusterModel;
 
 	//Unique name incrementer.
-	private static int uniqueNameIncrement = 0;
+	private int uniqueNameIncrement = 0;
 
 	@Setter
 	private ContainerBuilder containerBuilder;
@@ -43,8 +46,11 @@ public class ConfigurationParser {
 
 	/**
 	 * Constructor.
+	 *
+	 * @param fafram fafram reference
 	 */
-	public ConfigurationParser() {
+	public ConfigurationParser(Fafram fafram) {
+		this.fafram = fafram;
 	}
 
 	/**
@@ -112,7 +118,7 @@ public class ConfigurationParser {
 						container.setHostNode(node);
 
 						try {
-							final Container parentContainer = Fafram.getContainer(containerModel.getParentContainer());
+							final Container parentContainer = fafram.getContainer(containerModel.getParentContainer());
 							if (parentContainer == null) {
 								throw new NullPointerException();
 							}
@@ -129,7 +135,7 @@ public class ConfigurationParser {
 						container.setContainerType(containerType);
 
 						try {
-							final Container parentContainer = Fafram.getContainer(containerModel.getParentContainer());
+							final Container parentContainer = fafram.getContainer(containerModel.getParentContainer());
 							if (parentContainer == null) {
 								throw new NullPointerException();
 							}
@@ -142,7 +148,7 @@ public class ConfigurationParser {
 					default:
 						break;
 				}
-				Fafram.addContainer(container);
+				fafram.addContainer(container);
 			}
 			resetUniqueNameIncrement();
 		}

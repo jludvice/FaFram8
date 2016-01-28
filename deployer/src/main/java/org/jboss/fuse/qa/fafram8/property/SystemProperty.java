@@ -101,7 +101,7 @@ public class SystemProperty {
 	 * @return remote host
 	 */
 	public static String getHost() {
-		return System.getProperty(FaframConstant.HOST);
+		return System.getProperty(FaframConstant.HOST, "localhost");
 	}
 
 	/**

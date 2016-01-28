@@ -21,7 +21,6 @@ import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
-import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
@@ -107,13 +106,14 @@ public class Fafram extends ExternalResource {
 	public Fafram setup() {
 		initConfiguration();
 
-		if (SystemProperty.getHost() == null) {
+		//TODO(ecervena): logic is now based on RootContainerType.prepare()
+		/*if (SystemProperty.getHost() == null) {
 			log.info("Setting up local deployment");
 			Validator.validate();
 			SystemProperty.set(FaframConstant.HOST, "localhost");
 		} else {
 			Validator.validate();
-		}
+		}*/
 		printLogo();
 		setDefaultModifiers();
 		//ContainerList should have at least one root container initialized to preserve default behavior.

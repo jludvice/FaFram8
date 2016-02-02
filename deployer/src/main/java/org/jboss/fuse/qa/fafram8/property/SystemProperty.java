@@ -446,6 +446,14 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 * @return openstack wait time
+	 */
+	public static int getOpenstackWaitTime() {
+		return Integer.parseInt(System.getProperty(FaframConstant.OPENSTACK_WAIT_TIME, "300"));
+	}
+
+	/**
 	 * Gets the external property from the property file.
 	 *
 	 * @param property property key

@@ -49,13 +49,15 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void create() {
-		// Search the parent by its name
-		final Container parent = ContainerManager.getContainer(super.getParentName());
-		if (parent == null) {
-			throw new FaframException(String.format("Specified parent (%s) of container %s does not exist in container list!",
-					super.getParentName(), super.getName()));
+		if (super.getParent() == null) {
+			// Search the parent by its name
+			final Container parent = ContainerManager.getContainer(super.getParentName());
+			if (parent == null) {
+				throw new FaframException(String.format("Specified parent (%s) of container %s does not exist in container list!",
+						super.getParentName(), super.getName()));
+			}
+			super.setParent(parent);
 		}
-		super.setParent(parent);
 		super.getParent().getExecutor().executeCommand("container-create-child " + super.getParent().getName() + " " + super.getName());
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);

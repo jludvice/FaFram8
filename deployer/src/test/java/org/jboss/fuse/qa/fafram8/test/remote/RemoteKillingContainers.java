@@ -37,7 +37,7 @@ public class RemoteKillingContainers {
 	private Container root = RootContainer.builder().defaultRoot().build();
 	private Container child = ChildContainer.builder().name(childName).parentName("root").build();
 	private Container ssh =
-			SshContainer.builder().name(sshName).node(Node.builder().host(ipSsh).port(22).username("fuse").password("fuse").build()).build();
+			SshContainer.builder().name(sshName).node(Node.builder().host(ipSsh).username("fuse").password("fuse").build()).build();
 
 	@BeforeClass
 	public static void before() throws InterruptedException {

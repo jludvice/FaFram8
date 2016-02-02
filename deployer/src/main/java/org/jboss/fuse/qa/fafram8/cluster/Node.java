@@ -55,6 +55,19 @@ public class Node {
 	private String passPhrase;
 
 	/**
+	 * Creates the executor from the attributes - usable when you are changing the IP in the openstack provider.
+	 * @return executor instance
+	 */
+	public Executor createExecutor() {
+		final SSHClient nodeClient = new NodeSSHClient()
+				.hostname(this.getHost())
+				.port(this.getPort())
+				.username(this.getUsername())
+				.password(this.getPassword());
+		return new Executor(nodeClient);
+	}
+
+	/**
 	 * Builder getter.
 	 *
 	 * @return builder instance
@@ -196,13 +209,7 @@ public class Node {
 			Executor executor = null;
 			// Create the executor if we are not on localhost
 			if (!"localhost".equals(node.getHost())) {
-				final SSHClient nodeClient = new NodeSSHClient()
-						.hostname(node.getHost())
-						.port(node.getPort())
-						.username(node.getUsername())
-						.password(node.getPassword());
-				executor = new Executor(nodeClient);
-				executor.connect();
+				executor = node.createExecutor();
 			}
 			return new Node(node.getNodeId(), node.getHost(), node.getPort(), node.getUsername(), node.getPassword(),
 					executor, node.getPrivateKey(), node.getPassPhrase());

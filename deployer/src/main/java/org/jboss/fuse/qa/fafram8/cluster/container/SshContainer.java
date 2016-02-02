@@ -1,11 +1,16 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class representing ssh container. Instances of this class should and can be created just with SshBuilder class.
  * Created by avano on 1.2.16.
  */
+@Slf4j
 public class SshContainer extends Container {
 	/**
 	 * Constructor.
@@ -45,22 +50,44 @@ public class SshContainer extends Container {
 
 	@Override
 	public void create() {
+		if (super.getParent() == null) {
+			// Search the parent by its name
+			final Container parent = ContainerManager.getContainer(super.getParentName());
+			if (parent == null) {
+				throw new FaframException(String.format("Specified parent (%s) of container %s does not exist in container list!",
+						super.getParentName(), super.getName()));
+			}
+			super.setParent(parent);
+		}
+		super.getParent().getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s %s",
+				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), super.getName()));
+		super.getParent().getExecutor().waitForProvisioning(this);
+		super.setOnline(true);
 	}
 
 	@Override
 	public void destroy() {
+		super.getParent().getExecutor().executeCommand("container-delete " + super.getName());
 	}
 
 	@Override
 	public void restart() {
+		stop();
+		start();
 	}
 
 	@Override
 	public void start() {
+		super.getParent().getExecutor().executeCommand("container-start " + super.getName());
+		super.getParent().getExecutor().waitForProvisioning(this);
+		super.setOnline(true);
 	}
 
 	@Override
 	public void stop() {
+		super.getParent().getExecutor().executeCommand("container-stop " + super.getName());
+		log.error("TODO: wait for stop");
+		super.setOnline(false);
 	}
 
 	@Override
@@ -69,7 +96,7 @@ public class SshContainer extends Container {
 
 	@Override
 	public String executeCommand(String command) {
-		return null;
+		return super.getParent().getExecutor().executeCommand(command);
 	}
 
 	/**
@@ -170,7 +197,7 @@ public class SshContainer extends Container {
 					.name(container.getName())
 					.user(container.getUser())
 					.password(container.getPassword())
-					.parent(null)
+					.parent(container.getParent())
 					.parentName(null)
 					.node(container.getNode())
 					.executor(null);

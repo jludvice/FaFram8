@@ -162,4 +162,7 @@ public final class FaframConstant {
 
 	// Default root container name
 	public static final String DEFAULT_ROOT_NAME = "fafram.default.root.name";
+
+	// Openstack machine boot wait time
+	public static final String OPENSTACK_WAIT_TIME = "openstack.wait.time";
 }

@@ -85,8 +85,6 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram setup() {
-		initConfiguration();
-
 		//TODO(ecervena): logic is now based on RootContainerType.prepare()
 		/*if (SystemProperty.getHost() == null) {
 			log.info("Setting up local deployment");
@@ -95,12 +93,14 @@ public class Fafram extends ExternalResource {
 		} else {
 			Validator.validate();
 		}*/
-		printLogo();
-		setDefaultModifiers();
+
 		//ContainerList should have at least one root container initialized to preserve default behavior.
 		//TODO(ecervena): root container is created also in case remote deployment with statically provided host which is wrong!
 		//however dynamic sever provision is skipped correctly
 		try {
+			initConfiguration();
+			printLogo();
+			setDefaultModifiers();
 			prepareNodes(provisionProvider);
 			Deployer.deploy();
 		} catch (Exception ex) {
@@ -109,6 +109,8 @@ public class Fafram extends ExternalResource {
 			ContainerManager.clearAllLists();
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
+			// Rethrow the exception so that we will know what happened
+			throw new FaframException("Exception thrown while initializing! " + ex);
 		}
 		// Save the first root we find
 		root = getRoot();
@@ -409,14 +411,14 @@ public class Fafram extends ExternalResource {
 	 * @param provider provider type name
 	 */
 	public void prepareNodes(ProvisionProvider provider) {
-		//		provider.createServerPool(ContainerManager.getContainerList());
-		//		provider.assignAddresses(ContainerManager.getContainerList());
+		provider.createServerPool(ContainerManager.getContainerList());
+		provider.assignAddresses(ContainerManager.getContainerList());
 
 		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started ->
 		// problem with iptables
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
 		// environment
-		//		provider.loadIPTables(ContainerManager.getContainerList());
+//				provider.loadIPTables(ContainerManager.getContainerList());
 	}
 
 	/**

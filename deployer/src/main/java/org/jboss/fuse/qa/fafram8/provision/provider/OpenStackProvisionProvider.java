@@ -113,7 +113,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
 				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
 				.build();
-		serverRegister.add(os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT));
+		final Server node = os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT);
+		serverRegister.add(node);
 	}
 
 	/**
@@ -194,7 +195,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				final String ip = assignFloatingAddress(server.getId());
 				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
 				container.getNode().setHost(ip);
-				System.setProperty(FaframConstant.HOST, ip);
+				container.getNode().setExecutor(container.getNode().createExecutor());
+				container.setExecutor(container.createExecutor());
 				removeServerFromPool(server);
 			} else {
 				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress

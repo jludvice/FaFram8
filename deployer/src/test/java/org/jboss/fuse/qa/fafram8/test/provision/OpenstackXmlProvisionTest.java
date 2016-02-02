@@ -32,12 +32,12 @@ public class OpenstackXmlProvisionTest {
 	public static void init() {
 		System.setProperty(FaframConstant.KEEP_OS_RESOURCES, "false");
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
-		
-		
 	}
 
 	@AfterClass
 	public static void clean() {
+		System.clearProperty(FaframConstant.KEEP_OS_RESOURCES);
+		System.clearProperty(FaframConstant.FUSE_ZIP);
 		Fafram.getProvisionProvider().releaseResources();
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
@@ -46,7 +46,7 @@ public class OpenstackXmlProvisionTest {
 
 	@Test
 	public void fabricTest() {
-		assertTrue(fafram.getContainer("ecervena-root").executeCommand("container-list | grep root").contains("success"));
-		assertTrue(fafram.getContainer("ecervena-root").executeCommand("container-list | grep ecervena-node1").contains("success"));
+		assertTrue(fafram.executeCommand("container-list | grep ecervena-root123").contains("success"));
+		assertTrue(fafram.executeCommand("container-list | grep ecervena-node1123").contains("success"));
 	}
 }

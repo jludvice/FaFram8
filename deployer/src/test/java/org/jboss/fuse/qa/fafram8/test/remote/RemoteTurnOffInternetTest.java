@@ -2,8 +2,8 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 
 import static org.junit.Assert.assertTrue;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
@@ -28,8 +28,9 @@ import org.junit.Test;
 public class RemoteTurnOffInternetTest {
 	private ProvisionProvider provider = new OpenStackProvisionProvider();
 
-	@Rule
-	public Fafram fafram = new Fafram().name("internet-test").provideNodes(provider).withFabric().getContainerBuilder().ssh("ssh-internet").nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().offline();
+//	@Rule
+//	public Fafram fafram = new Fafram().name("internet-test").provideNodes(provider).withFabric();//.getContainerBuilder().ssh("ssh-internet")
+	//.nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().offline();
 
 	@BeforeClass
 	public static void before() {
@@ -46,21 +47,21 @@ public class RemoteTurnOffInternetTest {
 	@Test
 	@Ignore
 	public void testInternet() throws VerifyFalseException, SSHClientException, KarafSessionDownException {
-		Node rootNode = fafram.getContainerList().get(0).getHostNode();
-		for (Container c : fafram.getContainerList()) {
-			String preCommand = "";
-			if (!c.isRoot()) {
-				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
-			}
-
-			SSHClient sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
-					.username(rootNode.getUsername()).password(rootNode.getPassword());
-
-			sshClient.connect(true);
-
-			String response = sshClient.executeCommand(preCommand + "curl www.google.com", true);
-
-			assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
-		}
+//		Node rootNode = fafram.getContainerList().get(0).getNode();
+//		for (Container c : fafram.getContainerList()) {
+//			String preCommand = "";
+//			if (!c.isRoot()) {
+//				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
+//			}
+//
+//			SSHClient sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
+//					.username(rootNode.getUsername()).password(rootNode.getPassword());
+//
+//			sshClient.connect(true);
+//
+//			String response = sshClient.executeCommand(preCommand + "curl www.google.com", true);
+//
+//			assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
+//		}
 	}
 }

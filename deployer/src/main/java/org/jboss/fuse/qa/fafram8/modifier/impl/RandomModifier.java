@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 public final class RandomModifier implements Modifier {
 	@Setter
 	private Executor executor;
-
+	@Getter
+	private String host;
 	/**
 	 * Private constructor.
 	 */

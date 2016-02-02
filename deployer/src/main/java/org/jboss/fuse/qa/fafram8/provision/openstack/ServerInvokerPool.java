@@ -1,6 +1,6 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.InvokerPoolInterruptedException;
 
 import java.util.List;
@@ -18,11 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServerInvokerPool {
 
-	//Number of threads
+	// Number of threads
 	private static final int POOL_SIZE = 5;
 
 	/**
-	 * Calling this methond will spawn thread workers to create OpenStack nodes in parallel.
+	 * Calling this method will spawn thread workers to create OpenStack nodes in parallel.
 	 *
 	 * @param containers list of containers provided by ConfigurationParser
 	 */

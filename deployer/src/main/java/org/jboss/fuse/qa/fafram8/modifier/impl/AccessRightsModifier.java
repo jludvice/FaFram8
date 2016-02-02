@@ -6,6 +6,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -18,6 +19,8 @@ public final class AccessRightsModifier implements Modifier {
 	@Setter
 	private Executor executor;
 
+	@Getter
+	private String host;
 	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private String[] paths;
 

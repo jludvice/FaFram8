@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,10 @@ public final class PropertyModifier implements Modifier {
 	private String key;
 	private String value;
 	private boolean extend;
+
+	@Getter
+	private String host;
+
 	@Setter
 	private Executor executor;
 
@@ -43,6 +48,20 @@ public final class PropertyModifier implements Modifier {
 	 * @param extend extend
 	 */
 	private PropertyModifier(String filePath, String key, String value, boolean extend) {
+		this(null, filePath, key, value, extend);
+	}
+
+	/**
+	 * Private constructor.
+	 *
+	 * @param ip ip to execute on
+	 * @param filePath file path
+	 * @param key key
+	 * @param value value
+	 * @param extend extend
+	 */
+	private PropertyModifier(String ip, String filePath, String key, String value, boolean extend) {
+		this.host = ip;
 		this.filePath = filePath;
 		this.key = key;
 		this.value = value;
@@ -59,6 +78,18 @@ public final class PropertyModifier implements Modifier {
 	 */
 	public static PropertyModifier putProperty(final String filePath, final String key, final String value) {
 		return new PropertyModifier(filePath, key, value, false);
+	}
+
+	/**
+	 * Factory method - command for put/replace entry in property file.
+	 * @param ip ip to execute on
+	 * @param filePath path to property file - absolute, or relative to $FUSE_HOME
+	 * @param key key in property file
+	 * @param value value for key
+	 * @return command instance
+	 */
+	public static PropertyModifier putProperty(String ip, String filePath, String key, String value) {
+		return new PropertyModifier(ip, filePath, key, value, false);
 	}
 
 	/**

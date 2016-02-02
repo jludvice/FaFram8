@@ -380,7 +380,7 @@ public class SystemProperty {
 	 * @return config path
 	 */
 	public static String getConfigPath() {
-		return System.getProperty(FaframConstant.CONFIG_PATH, "none");
+		return System.getProperty(FaframConstant.CONFIG_PATH);
 	}
 
 	/**
@@ -439,6 +439,7 @@ public class SystemProperty {
 
 	/**
 	 * Getter.
+	 *
 	 * @return default root name
 	 */
 	public static String getDefaultRootName() {
@@ -447,10 +448,21 @@ public class SystemProperty {
 
 	/**
 	 * Getter.
+	 *
 	 * @return openstack wait time
 	 */
 	public static int getOpenstackWaitTime() {
 		return Integer.parseInt(System.getProperty(FaframConstant.OPENSTACK_WAIT_TIME, "300"));
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return openstack wait time
+	 */
+	public static boolean isKeepContainers() {
+		return System.getProperty(FaframConstant.KEEP_CONTAINERS) == null ?
+				false : Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
 	}
 
 	/**
@@ -462,6 +474,11 @@ public class SystemProperty {
 	public static String getExternalProperty(String property) {
 		// Force the initialization
 		SystemProperty.getInstance();
+
+		// If there is defined system property, use that first
+		if (System.getProperty(property) != null) {
+			return System.getProperty(property);
+		}
 
 		if (externalProperties.isEmpty()) {
 			externalProperties = initProperties();

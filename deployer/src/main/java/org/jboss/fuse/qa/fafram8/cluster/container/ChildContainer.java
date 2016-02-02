@@ -3,6 +3,8 @@ package org.jboss.fuse.qa.fafram8.cluster.container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
+import java.util.Arrays;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,7 +36,7 @@ public class ChildContainer extends Container {
 	 * @return builder instance
 	 */
 	public static ChildBuilder builder() {
-		return new ChildBuilder();
+		return new ChildBuilder(new ChildContainer());
 	}
 
 	/**
@@ -58,13 +60,21 @@ public class ChildContainer extends Container {
 			}
 			super.setParent(parent);
 		}
-		super.getParent().getExecutor().executeCommand("container-create-child " + super.getParent().getName() + " " + super.getName());
+		String profilesString = "";
+
+		for (String profile : super.getProfiles()) {
+			profilesString += " --profile " + profile;
+		}
+
+		super.getParent().getExecutor().executeCommand("container-create-child" + profilesString + " " + super.getParent().getName()
+				+ " " + super.getName());
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 	}
 
 	@Override
 	public void destroy() {
+		log.info("Destroying container " + super.getName());
 		super.getParent().getExecutor().executeCommand("container-delete " + super.getName());
 	}
 
@@ -89,6 +99,7 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void kill() {
+		super.getParent().getExecutor().executeCommand("exec pkill -9 -f " + super.getName());
 	}
 
 	@Override
@@ -102,13 +113,6 @@ public class ChildContainer extends Container {
 	public static class ChildBuilder {
 		// Container instance
 		private Container container;
-
-		/**
-		 * Constructor.
-		 */
-		public ChildBuilder() {
-			this(null);
-		}
 
 		/**
 		 * Constructor.
@@ -157,6 +161,17 @@ public class ChildContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param profiles profiles array
+		 * @return this
+		 */
+		public ChildBuilder profiles(String... profiles) {
+			container.setProfiles(Arrays.asList(profiles));
+			return this;
+		}
+
+		/**
 		 * Builds the container.
 		 *
 		 * @return childcontainer instance
@@ -168,6 +183,7 @@ public class ChildContainer extends Container {
 					.password(container.getPassword())
 					.parent(null)
 					.parentName(container.getParentName())
+					.profiles(container.getProfiles())
 					.node(null)
 					.executor(null);
 		}

@@ -17,7 +17,7 @@ public class ParseClusterTest {
 
 	@BeforeClass
 	public static void init() {
-		fafram = new Fafram().setConfigPath("src/test/resources/parser_test1.xml");
+		fafram = new Fafram().config("src/test/resources/parser_test1.xml");
 		fafram.initConfiguration();
 	}
 

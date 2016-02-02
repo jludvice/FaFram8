@@ -36,8 +36,6 @@ public class RemoteKillingContainers {
 
 	private Container root = RootContainer.builder().defaultRoot().build();
 	private Container child = ChildContainer.builder().name(childName).parentName("root").build();
-	private Container ssh =
-			SshContainer.builder().name(sshName).node(Node.builder().host(ipSsh).username("fuse").password("fuse").build()).build();
 
 	@BeforeClass
 	public static void before() throws InterruptedException {
@@ -49,10 +47,11 @@ public class RemoteKillingContainers {
 	}
 
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().containers(root, child, ssh);
+	public Fafram fafram = new Fafram().withFabric().containers(root, child,
+			SshContainer.builder().name(sshName).parent(root).node(Node.builder().host(ipSsh).username("fuse").password("fuse").build()).build());
 
 	@Test
-	public void testName() throws Exception {
+	public void killTest() throws Exception {
 		child.kill();
 		String response = fafram.executeCommand("exec ps aux | grep " + childName);
 		assertFalse(response.contains("karaf.base"));
@@ -60,7 +59,7 @@ public class RemoteKillingContainers {
 		SSHClient nodeSSHClient = new NodeSSHClient().hostname(ipSsh).username("fuse").password("fuse").defaultSSHPort();
 		nodeSSHClient.connect(true);
 
-		ssh.kill();
+		nodeSSHClient.executeCommand("pkill -9 -f karaf", false);
 		response = nodeSSHClient.executeCommand("ps aux | grep " + sshName, true);
 		assertFalse(response.contains("karaf.base"));
 

@@ -53,7 +53,7 @@ public class RemoteTest {
 		log.info("Testing node on Openstack spawned on IP address " + ipAddress);
 
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
-		System.setProperty(FaframConstant.HOST, RemoteTest.ipAddress);
+		System.setProperty(FaframConstant.HOST, ipAddress);
 
 		Thread.sleep(30000);
 	}

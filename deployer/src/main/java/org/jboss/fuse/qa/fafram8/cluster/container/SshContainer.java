@@ -4,6 +4,8 @@ import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
+import java.util.Arrays;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,7 +37,7 @@ public class SshContainer extends Container {
 	 * @return builder instance
 	 */
 	public static SshBuilder builder() {
-		return new SshBuilder(null);
+		return new SshBuilder(new SshContainer());
 	}
 
 	/**
@@ -59,14 +61,21 @@ public class SshContainer extends Container {
 			}
 			super.setParent(parent);
 		}
-		super.getParent().getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s %s",
-				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), super.getName()));
+		String profilesString = "";
+
+		for (String profile : super.getProfiles()) {
+			profilesString += " --profile " + profile;
+		}
+
+		super.getParent().getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s%s %s",
+				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), profilesString, super.getName()));
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 	}
 
 	@Override
 	public void destroy() {
+		log.info("Destroying container " + super.getName());
 		super.getParent().getExecutor().executeCommand("container-delete " + super.getName());
 	}
 
@@ -188,6 +197,17 @@ public class SshContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param profiles profiles array
+		 * @return this
+		 */
+		public SshBuilder profiles(String... profiles) {
+			container.setProfiles(Arrays.asList(profiles));
+			return this;
+		}
+
+		/**
 		 * Builds the instance.
 		 *
 		 * @return sshcontainer instance
@@ -200,7 +220,8 @@ public class SshContainer extends Container {
 					.parent(container.getParent())
 					.parentName(null)
 					.node(container.getNode())
-					.executor(null);
+					.executor(null)
+					.profiles(container.getProfiles());
 		}
 	}
 }

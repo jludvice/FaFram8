@@ -66,6 +66,10 @@ public abstract class Container {
 	@Setter
 	private List<String> bundles = new ArrayList<>();
 
+	@Getter
+	@Setter
+	private List<String> profiles = new ArrayList<>();
+
 	/**
 	 * Creates a container.
 	 */
@@ -225,6 +229,17 @@ public abstract class Container {
 	 */
 	public Container root(boolean root) {
 		this.root = root;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param profiles profiles list
+	 * @return this
+	 */
+	public Container profiles(List<String> profiles) {
+		this.profiles = profiles;
 		return this;
 	}
 }

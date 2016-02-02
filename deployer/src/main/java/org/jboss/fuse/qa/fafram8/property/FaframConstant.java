@@ -165,4 +165,7 @@ public final class FaframConstant {
 
 	// Openstack machine boot wait time
 	public static final String OPENSTACK_WAIT_TIME = "openstack.wait.time";
+
+	// Keep containers running after the test
+	public static final String KEEP_CONTAINERS = "keepContainers";
 }

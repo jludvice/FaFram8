@@ -175,7 +175,6 @@ public class LocalNodeManager implements NodeManager {
 
 		// If the instance is running or we fail restarting
 		if (!stopped || restart) {
-			ModifierExecutor.executePostModifiers();
 			ModifierExecutor.clearAllModifiers();
 			cleanChildContainers();
 			stop(ignoreExceptions);
@@ -183,7 +182,6 @@ public class LocalNodeManager implements NodeManager {
 		} else {
 			// If the instance is not running - if the 8181 port is occupied or we suppress start
 			if (SystemProperty.suppressStart()) { // If there are some files
-				ModifierExecutor.executePostModifiers();
 				ModifierExecutor.clearAllModifiers();
 				// This should be called after all modifiers but before stop/delete because they can throw exceptions
 				deleteTargetDir(ignoreExceptions);

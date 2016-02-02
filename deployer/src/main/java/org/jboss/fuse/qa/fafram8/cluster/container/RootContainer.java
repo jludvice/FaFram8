@@ -12,6 +12,7 @@ import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.Arrays;
@@ -50,7 +51,7 @@ public class RootContainer extends Container {
 	 * @return builder instance
 	 */
 	public static RootBuilder builder() {
-		return new RootBuilder(null);
+		return new RootBuilder(new RootContainer());
 	}
 
 	/**
@@ -65,6 +66,9 @@ public class RootContainer extends Container {
 
 	@Override
 	public void create() {
+		// Create fuse executor
+		super.setExecutor(super.createExecutor());
+
 		// Instantiate the node manager based on node.getHost()
 		if ("localhost".equals(super.getNode().getHost())) {
 			nodeManager = new LocalNodeManager(getExecutor());
@@ -87,6 +91,11 @@ public class RootContainer extends Container {
 				changeRandomSource()
 		);
 
+		if (nodeManager instanceof RemoteNodeManager) {
+			log.error("TODO: refactor this");
+			((RemoteNodeManager) nodeManager).clean();
+		}
+
 		nodeManager.checkRunningContainer();
 		try {
 			nodeManager.detectPlatformAndProduct();
@@ -97,13 +106,22 @@ public class RootContainer extends Container {
 				nodeManager.startFuse();
 				ContainerManager.patchStandaloneBeforeFabric(this);
 				if (SystemProperty.isFabric()) {
+					String profilesString = "";
+
+					for (String profile : super.getProfiles()) {
+						profilesString += " --profile " + profile;
+					}
+
+					// Add the profiles to the fabric command
+					SystemProperty.forceSet(FaframConstant.FABRIC, SystemProperty.getFabric() + profilesString);
+
 					ContainerManager.setupFabric(this);
 				}
 				ContainerManager.patchFuse(this);
-
 				super.setOnline(true);
 			}
 		} catch (FaframException ex) {
+			ex.printStackTrace();
 			nodeManager.stopAndClean(true);
 			throw new FaframException(ex);
 		}
@@ -111,7 +129,13 @@ public class RootContainer extends Container {
 
 	@Override
 	public void destroy() {
-		nodeManager.stopAndClean(false);
+		ModifierExecutor.executePostModifiers();
+
+		log.info("Destroying container " + super.getName());
+
+		if (super.isOnline()) {
+			nodeManager.stopAndClean(false);
+		}
 	}
 
 	@Override
@@ -122,6 +146,7 @@ public class RootContainer extends Container {
 	@Override
 	public void start() {
 		nodeManager.startFuse();
+		super.setOnline(true);
 	}
 
 	@Override
@@ -227,6 +252,17 @@ public class RootContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param profiles profiles array
+		 * @return this
+		 */
+		public RootBuilder profiles(String... profiles) {
+			container.setProfiles(Arrays.asList(profiles));
+			return this;
+		}
+
+		/**
 		 * Builds the default root container.
 		 *
 		 * @return this
@@ -256,13 +292,14 @@ public class RootContainer extends Container {
 					.name(container.getName())
 					.user(container.getUser())
 					.password(container.getPassword())
-					.executor(container.createExecutor())
+					.executor(null) // fuse executor is set when the container is being created
 					.root(true)
 					.node(container.getNode())
 					.parent(null)
 					.parentName(null)
 					.commands(container.getCommands())
-					.bundles(container.getBundles());
+					.bundles(container.getBundles())
+					.profiles(container.getProfiles());
 		}
 	}
 }

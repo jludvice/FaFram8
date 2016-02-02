@@ -121,6 +121,8 @@ public class ContainerManager {
 		for (int i = commands.size() - 1; i >= 0; i--) {
 			commands.remove(i);
 		}
+
+		log.debug("Container manager lists cleared");
 	}
 
 	/**

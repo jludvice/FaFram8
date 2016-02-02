@@ -12,12 +12,14 @@ import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
+import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
@@ -36,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Fafram extends ExternalResource {
 	//Provision provider instance in case of remote deployment
 	@Getter
-	private static ProvisionProvider provisionProvider = new StaticProvider();
+	private ProvisionProvider provisionProvider = new StaticProvider();
 
 	@SuppressWarnings("FieldCanBeLocal")
 	private ConfigurationParser configurationParser;
@@ -85,23 +87,12 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram setup() {
-		//TODO(ecervena): logic is now based on RootContainerType.prepare()
-		/*if (SystemProperty.getHost() == null) {
-			log.info("Setting up local deployment");
-			Validator.validate();
-			SystemProperty.set(FaframConstant.HOST, "localhost");
-		} else {
-			Validator.validate();
-		}*/
-
-		//ContainerList should have at least one root container initialized to preserve default behavior.
-		//TODO(ecervena): root container is created also in case remote deployment with statically provided host which is wrong!
-		//however dynamic sever provision is skipped correctly
 		try {
 			initConfiguration();
 			printLogo();
 			setDefaultModifiers();
 			prepareNodes(provisionProvider);
+			Validator.validate();
 			Deployer.deploy();
 		} catch (Exception ex) {
 			provisionProvider.releaseResources();
@@ -109,10 +100,17 @@ public class Fafram extends ExternalResource {
 			ContainerManager.clearAllLists();
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
+
 			// Rethrow the exception so that we will know what happened
-			throw new FaframException("Exception thrown while initializing! " + ex);
+			if (ex instanceof ValidatorException) {
+				throw ex;
+			} else {
+				ex.printStackTrace();
+				throw new FaframException("Exception thrown while initializing! " + ex);
+			}
 		}
-		// Save the first root we find
+
+		// Save the first root we find - used in .executeCommand() and probably some more methods
 		root = getRoot();
 
 		return this;
@@ -137,8 +135,7 @@ public class Fafram extends ExternalResource {
 	 * Configuration init.
 	 */
 	public void initConfiguration() {
-		log.error("TODO: scan sysprop / resources dir / do nothing");
-		if (!("none").equals(SystemProperty.getConfigPath())) {
+		if (SystemProperty.getConfigPath() != null) {
 			this.configurationParser = new ConfigurationParser();
 
 			try {
@@ -175,7 +172,16 @@ public class Fafram extends ExternalResource {
 		//TODO(mmelko): cleanup the containers node .. here is the right place
 
 		log.error("TODO: property if we should stop all containers");
-		Deployer.destroy(false);
+		try {
+			// There can be a problem with stopping containers
+			Deployer.destroy(false);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			SystemProperty.clearAllProperties();
+			ModifierExecutor.clearAllModifiers();
+			ContainerManager.clearAllLists();
+			throw new FaframException(ex);
+		}
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
 		ContainerManager.clearAllLists();
@@ -418,7 +424,7 @@ public class Fafram extends ExternalResource {
 		// problem with iptables
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
 		// environment
-//				provider.loadIPTables(ContainerManager.getContainerList());
+		//				provider.loadIPTables(ContainerManager.getContainerList());
 	}
 
 	/**
@@ -504,7 +510,7 @@ public class Fafram extends ExternalResource {
 	 * @param configPath patch to configuration file
 	 * @return this
 	 */
-	public Fafram setConfigPath(String configPath) {
+	public Fafram config(String configPath) {
 		SystemProperty.set(FaframConstant.CONFIG_PATH, configPath);
 		return this;
 	}

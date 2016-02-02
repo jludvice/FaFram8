@@ -41,14 +41,14 @@ public class RemoteSettingIPtablesTest {
 
 	@After
 	public void tearDown() {
-		Fafram.getProvisionProvider().releaseResources();
+//		Fafram.getProvisionProvider().releaseResources();
 		System.clearProperty(FaframConstant.WORKING_DIRECTORY);
 	}
 
 	@AfterClass
 	public static void clean() {
 		System.clearProperty(FaframConstant.FUSE_ZIP);
-		Fafram.getProvisionProvider().releaseResources();
+//		Fafram.getProvisionProvider().releaseResources();
 	}
 
 	//TODO(rjakubco): uncomment this when OpenStack is more stable and fafram was refactored

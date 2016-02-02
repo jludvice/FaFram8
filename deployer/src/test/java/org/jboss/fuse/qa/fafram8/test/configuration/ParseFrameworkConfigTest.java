@@ -22,12 +22,11 @@ import java.io.IOException;
 //TODO(ecervena): Remove test class after full parser implamentation
 @Ignore
 public class ParseFrameworkConfigTest {
-
 	private static Fafram fafram;
 
 	@BeforeClass
 	public static void init() {
-		fafram = new Fafram().setConfigPath("src/test/resources/parser_test1.xml");
+		fafram = new Fafram().config("src/test/resources/parser_test1.xml");
 		fafram.initConfiguration();
 	}
 

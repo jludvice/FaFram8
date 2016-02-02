@@ -39,7 +39,7 @@ public class RemoteTurnOffInternetTest {
 
 	@AfterClass
 	public static void clean() {
-		Fafram.getProvisionProvider().releaseResources();
+//		Fafram.getProvisionProvider().releaseResources();
 		System.clearProperty(FaframConstant.FUSE_ZIP);
 	}
 

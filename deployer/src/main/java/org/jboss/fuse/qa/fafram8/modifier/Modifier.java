@@ -18,4 +18,10 @@ public interface Modifier {
 	 * @param executor executor
 	 */
 	void setExecutor(Executor executor);
+
+	/**
+	 * Gets the host associated with the modifier.
+	 * @return host
+	 */
+	String getHost();
 }

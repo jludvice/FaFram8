@@ -1,16 +1,15 @@
 package org.jboss.fuse.qa.fafram8.configuration;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.SshContainerType;
 import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.cluster.xml.ClusterModel;
 import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
 import org.jboss.fuse.qa.fafram8.cluster.xml.FrameworkConfigurationModel;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -28,10 +27,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ConfigurationParser {
-
-	//Fafram reference
-	private Fafram fafram;
-
 	//Parsed object cluster representation.
 	private ClusterModel clusterModel;
 
@@ -39,18 +34,12 @@ public class ConfigurationParser {
 	private int uniqueNameIncrement = 0;
 
 	@Setter
-	private ContainerBuilder containerBuilder;
-
-	@Setter
 	private String path;
 
 	/**
 	 * Constructor.
-	 *
-	 * @param fafram fafram reference
 	 */
-	public ConfigurationParser(Fafram fafram) {
-		this.fafram = fafram;
+	public ConfigurationParser() {
 	}
 
 	/**
@@ -86,69 +75,56 @@ public class ConfigurationParser {
 		for (ContainerModel containerModel : clusterModel.getContainerModelList()) {
 			for (int i = 1; i <= containerModel.getInstances(); i++) {
 
-				final Container container = new Container(returnUniqueName(containerModel));
+				Container container = null;
 
 				switch (containerModel.getContainerType()) {
 					case "root": {
-						final RootContainerType rootContainerType = new RootContainerType(container);
+						final RootContainer.RootBuilder builder = RootContainer.builder().name(returnUniqueName(containerModel));
 						if (containerModel.getUsername() != null) {
-							rootContainerType.setUsername(containerModel.getUsername());
+							builder.name(containerModel.getUsername());
 						}
 						if (containerModel.getPassword() != null) {
-							rootContainerType.setPassword(containerModel.getPassword());
+							builder.password(containerModel.getPassword());
 						}
-						container.setContainerType(rootContainerType);
-						//TODO(ecervena): Should be port 22 hardcoded??? Maybe init it in Node class.
+
 						final Node node = Node.builder().host(containerModel.getNode().getHost())
 								.username(containerModel.getNode().getUsername())
 								.password(containerModel.getNode().getPassword())
 								.build();
-						container.setHostNode(node);
+						builder.node(node);
+						container = builder.build();
 						break;
 					}
 					case "ssh": {
-						final SshContainerType containerType = new SshContainerType();
-						containerType.setContainer(container);
-						container.setContainerType(containerType);
-
+						final SshContainer.SshBuilder builder = SshContainer.builder().name(returnUniqueName(containerModel));
 						final Node node = Node.builder().host(containerModel.getNode().getHost())
 								.username(containerModel.getNode().getUsername())
 								.password(containerModel.getNode().getPassword())
 								.build();
-						container.setHostNode(node);
-
-						try {
-							final Container parentContainer = fafram.getContainer(containerModel.getParentContainer());
-							if (parentContainer == null) {
-								throw new NullPointerException();
-							}
-							log.info("Assigning parrent container " + parentContainer.getName() + " to container " + container.getName());
-							container.setParentContainer(parentContainer);
-						} catch (NullPointerException npe) {
-							throw new FaframException("Parent container does not exists.", npe);
+						builder.node(node);
+						final Container parentContainer = ContainerManager.getContainer(containerModel.getParentContainer());
+						if (parentContainer == null) {
+							throw new FaframException("Parent container does not exists.");
 						}
+						builder.parent(parentContainer);
 						break;
 					}
 					case "child": {
-						final ChildContainerType containerType = new ChildContainerType();
-						containerType.setContainer(container);
-						container.setContainerType(containerType);
-
-						try {
-							final Container parentContainer = fafram.getContainer(containerModel.getParentContainer());
-							if (parentContainer == null) {
-								throw new NullPointerException();
-							}
-							container.setParentContainer(parentContainer);
-						} catch (NullPointerException npe) {
-							throw new FaframException("Parent container does not exists.", npe);
+						final ChildContainer.ChildBuilder builder = ChildContainer.builder().name(returnUniqueName(containerModel));
+						final Container parentContainer = ContainerManager.getContainer(containerModel.getParentContainer());
+						if (parentContainer == null) {
+							throw new FaframException("Parent container does not exists.");
 						}
+						builder.parent(parentContainer);
 						break;
 					}
 					default:
 						break;
 				}
-				fafram.addContainer(container);
+
+				if (container != null) {
+					ContainerManager.getContainerList().add(container);
+				}
 			}
 			resetUniqueNameIncrement();
 		}
@@ -169,7 +145,7 @@ public class ConfigurationParser {
 	 * will results into 5 containers named xxx-1,xxx-2,xxx-3,xxx-4,xxx-5.
 	 *
 	 * @param containerModel XML container mapping object
-	 * @return
+	 * @return unique name
 	 */
 	private String returnUniqueName(ContainerModel containerModel) {
 		if (containerModel.getInstances() <= 1) {

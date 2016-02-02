@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 public final class CommandHistoryModifier implements Modifier {
 	@Setter
 	private Executor executor;
-
+	@Getter
+	private String host;
 	/**
 	 * Private constructor.
 	 */

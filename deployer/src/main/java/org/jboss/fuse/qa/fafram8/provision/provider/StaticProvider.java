@@ -2,11 +2,9 @@ package org.jboss.fuse.qa.fafram8.provision.provider;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
-import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
@@ -79,14 +77,14 @@ public class StaticProvider implements ProvisionProvider {
 		Executor executor;
 
 		for (Container c : containerList) {
-			if (c.getContainerType() instanceof ChildContainerType) {
-				// If the child container is child then skip. The file will be copied and executed for all ssh containers
-				// and root. It doesn't make sense to do also for child containers.
+			if (c instanceof ChildContainer) {
+				//				 If the child container is child then skip. The file will be copied and executed for all ssh containers
+				//				 and root. It doesn't make sense to do also for child containers.
 				continue;
 			}
 
-			sshClient = new NodeSSHClient().defaultSSHPort().hostname(c.getHostNode().getHost())
-					.username(c.getHostNode().getUsername()).password(c.getHostNode().getPassword());
+			sshClient = new NodeSSHClient().defaultSSHPort().hostname(c.getNode().getHost())
+					.username(c.getNode().getUsername()).password(c.getNode().getPassword());
 			executor = new Executor(sshClient);
 			log.debug("Loading on iptables on node: " + executor);
 			try {
@@ -96,7 +94,8 @@ public class StaticProvider implements ProvisionProvider {
 						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
 
 				// Path to copied iptables file on remote nodes
-				final String remoteFilePath = directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
+				final String remoteFilePath =
+						directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
 
 				// Copy iptables configuration file from local to all remote nodes
 				((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
@@ -105,12 +104,12 @@ public class StaticProvider implements ProvisionProvider {
 
 				if (response.contains("No such file or directory")) {
 					throw new OfflineEnvironmentException("Configuration file for iptables"
-							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
 							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));
 				}
 
 				executor.executeCommand("sudo iptables-restore " + SystemProperty.getIptablesConfFilePath());
-			} catch (SSHClientException | CopyFileException e) {
+			} catch (Exception e) {
 				throw new OfflineEnvironmentException(e);
 			}
 		}

@@ -1,8 +1,10 @@
 package org.jboss.fuse.qa.fafram8.cluster;
 
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
+import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,15 +14,17 @@ import lombok.ToString;
  * Created by mmelko on 09/10/15.
  */
 @ToString
-@Builder
-public class Node implements Cloneable {
-	@Getter
-	@Setter
-	private String nodeId;
+@AllArgsConstructor
+public class Node {
+	/**
+	 * Constructor.
+	 */
+	protected Node() {
+	}
 
 	@Getter
 	@Setter
-	private boolean live;
+	private String nodeId;
 
 	@Getter
 	@Setter
@@ -28,7 +32,7 @@ public class Node implements Cloneable {
 
 	@Getter
 	@Setter
-	private int port = SystemProperty.getHostPort();
+	private int port;
 
 	@Getter
 	@Setter
@@ -40,6 +44,10 @@ public class Node implements Cloneable {
 
 	@Getter
 	@Setter
+	private Executor executor;
+
+	@Getter
+	@Setter
 	private String privateKey;
 
 	@Getter
@@ -47,51 +55,157 @@ public class Node implements Cloneable {
 	private String passPhrase;
 
 	/**
-	 * Constructor.
+	 * Builder getter.
+	 *
+	 * @return builder instance
 	 */
-	public Node() {
-		super();
+	public static NodeBuilder builder() {
+		return new NodeBuilder(null);
 	}
 
 	/**
-	 * Constructor.
+	 * Builder getter.
 	 *
-	 * @param hostNode node which will be cloned
+	 * @param node node that will be copied
+	 * @return builder instance
 	 */
-	public Node(Node hostNode) {
-		this.nodeId = hostNode.getNodeId();
-		this.host = hostNode.getHost();
-		this.port = hostNode.getPort();
-		this.username = hostNode.getUsername();
-		this.password = hostNode.getPassword();
-		this.privateKey = hostNode.getPrivateKey();
-		this.passPhrase = hostNode.getPassPhrase();
+	public static NodeBuilder builder(Node node) {
+		return new NodeBuilder(node);
 	}
 
 	/**
-	 * All args constructor.
-	 *
-	 * @param nodeId ID of node
-	 * @param live is live
-	 * @param host host name
-	 * @param port port
-	 * @param username username
-	 * @param password password
-	 * @param privateKey private key
-	 * @param passPhrase pass phrase
+	 * Node builder class - this class returns the Node object and it is the only way the node should be built.
 	 */
-	@java.beans.ConstructorProperties({"nodeId", "live", "host", "port", "username", "password", "privateKey", "passPhrase"})
-	public Node(String nodeId, boolean live, String host, int port, String username, String password, String privateKey, String passPhrase) {
-		this.nodeId = nodeId;
-		this.live = live;
-		this.host = host;
-		if (port == 0) {
-		} else {
-			this.port = port;
+	public static class NodeBuilder {
+		// Node instance
+		private Node node;
+
+		/**
+		 * Constructor.
+		 *
+		 * @param node node that will be copied
+		 */
+		public NodeBuilder(Node node) {
+			if (node != null) {
+				this.node = node;
+			} else {
+				this.node = new Node();
+			}
 		}
-		this.username = username;
-		this.password = password;
-		this.privateKey = privateKey;
-		this.passPhrase = passPhrase;
+
+		/**
+		 * Setter.
+		 *
+		 * @param nodeId node ID
+		 * @return this
+		 */
+		public NodeBuilder nodeId(String nodeId) {
+			node.setNodeId(nodeId);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param host host
+		 * @return this
+		 */
+		public NodeBuilder host(String host) {
+			node.setHost(host);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param port port
+		 * @return this
+		 */
+		public NodeBuilder port(int port) {
+			node.setPort(port);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param username username
+		 * @return this
+		 */
+		public NodeBuilder username(String username) {
+			node.setUsername(username);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param password password
+		 * @return this
+		 */
+		public NodeBuilder password(String password) {
+			node.setPassword(password);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param executor node executor
+		 * @return this
+		 */
+		public NodeBuilder executor(Executor executor) {
+			node.setExecutor(executor);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param privateKey private key
+		 * @return this
+		 */
+		public NodeBuilder privateKey(String privateKey) {
+			node.setPrivateKey(privateKey);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param passPhrase pass phrase
+		 * @return this
+		 */
+		public NodeBuilder passPhrase(String passPhrase) {
+			node.setPassPhrase(passPhrase);
+			return this;
+		}
+
+		/**
+		 * Builds the instance.
+		 *
+		 * @return node instance
+		 */
+		public Node build() {
+			final int defaultPort = 22;
+			// If there is no port specified, use the default one
+			if (node.getPort() == 0) {
+				node.setPort(defaultPort);
+			}
+
+			Executor executor = null;
+			// Create the executor if we are not on localhost
+			if (!"localhost".equals(node.getHost())) {
+				final SSHClient nodeClient = new NodeSSHClient()
+						.hostname(node.getHost())
+						.port(node.getPort())
+						.username(node.getUsername())
+						.password(node.getPassword());
+				executor = new Executor(nodeClient);
+				executor.connect();
+			}
+			return new Node(node.getNodeId(), node.getHost(), node.getPort(), node.getUsername(), node.getPassword(),
+					executor, node.getPrivateKey(), node.getPassPhrase());
+		}
 	}
 }

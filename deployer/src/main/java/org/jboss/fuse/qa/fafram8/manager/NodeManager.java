@@ -18,9 +18,11 @@ public interface NodeManager {
 	void unzipArtifact();
 
 	/**
-	 * Configures fuse.
+	 * Configures fuse on specified host.
+	 *
+	 * @param host host
 	 */
-	void prepareFuse();
+	void prepareFuse(String host);
 
 	/**
 	 * Starts fuse.
@@ -42,7 +44,27 @@ public interface NodeManager {
 	void stopAndClean(boolean ignoreExceptions);
 
 	/**
+	 * Stops the container.
+	 */
+	void stop();
+
+	/**
 	 * Restarts the container.
 	 */
 	void restart();
+
+	/**
+	 * Checks if the container is already running on the host.
+	 */
+	void checkRunningContainer();
+
+	/**
+	 * Detects platform and product.
+	 */
+	void detectPlatformAndProduct();
+
+	/**
+	 * Kills the container.
+	 */
+	void kill();
 }

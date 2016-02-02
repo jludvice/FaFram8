@@ -145,9 +145,6 @@ public final class FaframConstant {
 	// Openstack address type
 	public static final String OPENSTACK_ADDRESS_TYPE = "openstack.addressType";
 
-	// Fafram root names CSV
-	public static final String FAFRAM_ROOT_NAMES = "fafram.rootNames";
-
 	// If offline environment should be used (a.k.a turn off internet in cluster)
 	public static final String OFFLINE = "fafram.offline";
 
@@ -162,4 +159,7 @@ public final class FaframConstant {
 
 	// Skip broker waiting
 	public static final String SKIP_BROKER_WAIT = "fafram.skip.broker.wait";
+
+	// Default root container name
+	public static final String DEFAULT_ROOT_NAME = "fafram.default.root.name";
 }

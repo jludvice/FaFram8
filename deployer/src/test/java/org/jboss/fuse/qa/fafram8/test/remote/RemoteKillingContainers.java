@@ -3,6 +3,11 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
+import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
@@ -29,6 +34,11 @@ public class RemoteKillingContainers {
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
+	private Container root = RootContainer.builder().defaultRoot().build();
+	private Container child = ChildContainer.builder().name(childName).parentName("root").build();
+	private Container ssh =
+			SshContainer.builder().name(sshName).node(Node.builder().host(ipSsh).port(22).username("fuse").password("fuse").build()).build();
+
 	@BeforeClass
 	public static void before() throws InterruptedException {
 		log.info("Spawning testing node...");
@@ -39,22 +49,22 @@ public class RemoteKillingContainers {
 	}
 
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().getContainerBuilder().child(childName).addToFafram().ssh(sshName).nodeSsh(ipSsh, "fuse", "fuse").addToFafram().getFafram();
+	public Fafram fafram = new Fafram().withFabric().containers(root, child, ssh);
 
 	@Test
 	public void testName() throws Exception {
-		fafram.killContainer(childName);
+		child.kill();
 		String response = fafram.executeCommand("exec ps aux | grep " + childName);
 		assertFalse(response.contains("karaf.base"));
 
 		SSHClient nodeSSHClient = new NodeSSHClient().hostname(ipSsh).username("fuse").password("fuse").defaultSSHPort();
 		nodeSSHClient.connect(true);
 
-		fafram.killContainer(sshName);
+		ssh.kill();
 		response = nodeSSHClient.executeCommand("ps aux | grep " + sshName, true);
 		assertFalse(response.contains("karaf.base"));
 
-		fafram.killContainer("root");
+		root.kill();
 
 		assertNull(fafram.executeCommand("list"));
 	}

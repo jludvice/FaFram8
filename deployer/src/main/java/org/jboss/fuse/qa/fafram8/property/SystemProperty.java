@@ -404,15 +404,6 @@ public class SystemProperty {
 	/**
 	 * Getter.
 	 *
-	 * @return root names as an array of CSV records, null if empty
-	 */
-	public static String[] getRootNames() {
-		return System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES) == null ? null : System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES).split(";");
-	}
-
-	/**
-	 * Getter.
-	 *
 	 * @return path to iptables configuration file
 	 */
 	public static String getIptablesConfFilePath() {
@@ -444,6 +435,14 @@ public class SystemProperty {
 	 */
 	public static Boolean skipBrokerWait() {
 		return Boolean.parseBoolean(System.getProperty(FaframConstant.SKIP_BROKER_WAIT, "false"));
+	}
+
+	/**
+	 * Getter.
+	 * @return default root name
+	 */
+	public static String getDefaultRootName() {
+		return System.getProperty(FaframConstant.DEFAULT_ROOT_NAME, "root");
 	}
 
 	/**

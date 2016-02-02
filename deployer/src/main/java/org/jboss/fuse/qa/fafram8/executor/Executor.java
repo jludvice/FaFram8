@@ -2,12 +2,12 @@ package org.jboss.fuse.qa.fafram8.executor;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
-import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
@@ -70,10 +70,8 @@ public class Executor {
 
 	/**
 	 * Connects client to specified remote server.
-	 *
-	 * @throws SSHClientException if something went wrong
 	 */
-	public void connect() throws SSHClientException {
+	public void connect() {
 		log.debug("Connecting: " + this.toString());
 		Boolean connected = false;
 		final int step = 1;
@@ -96,6 +94,8 @@ public class Executor {
 			} catch (VerifyFalseException ex) {
 				log.debug("Remaining time: " + (SystemProperty.getStartWaitTime() - elapsed) + " seconds. ");
 				elapsed += step;
+			} catch (SSHClientException e) {
+				throw new FaframException("Error while waiting for ssh connection! " + e);
 			}
 			sleep(timeout);
 		}
@@ -205,17 +205,37 @@ public class Executor {
 	}
 
 	/**
+	 * Waits for the provisioning of a container.
+	 *
+	 * @param containerName container name
+	 */
+	public void waitForProvisioning(String containerName) {
+		waitForProvisioning(containerName, null);
+	}
+
+	/**
 	 * Waits for container provisioning. It may restart the container if the provision status is "requires full restart"
 	 * or if the provision status contains "NoNodeException"
 	 *
-	 * @param containerName container name
-	 * @param nm NodeManager instance if restart is necessary
+	 * @param c Container instance
 	 */
-	public void waitForProvisioning(String containerName, NodeManager nm) {
+	public void waitForProvisioning(Container c) {
+		waitForProvisioning(null, c);
+	}
+
+	/**
+	 * General wait for provisioning method, called by the others. Waits for provisioning of container/container name.
+	 *
+	 * @param containerName container name
+	 * @param c container
+	 */
+	public void waitForProvisioning(String containerName, Container c) {
 		final int step = 3;
 		final long timeout = step * 1000L;
 		final long startTimeout = 10000L;
 		final int maxLength = 6;
+
+		final String waitFor = c == null ? containerName : c.getName();
 
 		// Wait before executing - sometimes the provision is triggered a bit later
 		sleep(startTimeout);
@@ -227,14 +247,14 @@ public class Executor {
 
 		while (!isSuccessful) {
 			if (retries > SystemProperty.getProvisionWaitTime()) {
-				log.error("Container " + containerName + " failed to provision in time");
-				throw new FaframException("Container " + containerName + " failed to provision in time");
+				log.error("Container " + waitFor + " failed to provision in time");
+				throw new FaframException("Container " + waitFor + " failed to provision in time");
 			}
 
 			String reason = "";
 
 			try {
-				container = client.executeCommand("container-list | grep " + containerName, true);
+				container = client.executeCommand("container-list | grep " + waitFor, true);
 				isSuccessful = container.contains("success");
 
 				// Parse the provision status from the container-list output
@@ -255,7 +275,7 @@ public class Executor {
 			}
 
 			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
-					|| provisionStatus.contains("Client is not started")) && nm != null) {
+					|| provisionStatus.contains("Client is not started")) && c != null) {
 				restarted = true;
 				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
 				break;
@@ -273,19 +293,10 @@ public class Executor {
 
 		// If the container was restarted during the provisioning, trigger the provisioning again
 		if (restarted) {
-			nm.restart();
-			waitForBoot();
-			waitForProvisioning(containerName);
+			log.error("TODO: add maximum amount of reprovisioning");
+			c.restart();
+			waitForProvisioning(c);
 		}
-	}
-
-	/**
-	 * Waits for the successful container provisioning.
-	 *
-	 * @param containerName container name
-	 */
-	public void waitForProvisioning(String containerName) {
-		waitForProvisioning(containerName, null);
 	}
 
 	/**

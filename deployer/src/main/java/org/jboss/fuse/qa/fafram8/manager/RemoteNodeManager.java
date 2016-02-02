@@ -2,12 +2,10 @@ package org.jboss.fuse.qa.fafram8.manager;
 
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.io.File;
 
@@ -40,14 +38,12 @@ public class RemoteNodeManager implements NodeManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param nodeClient sshClient to remote host
-	 * @param fuseClient sshClient to fuse on remote host
-	 * @throws SSHClientException if there is some serious problem with ssh
+	 * @param nodeExecutor node executor
+	 * @param fuseExecutor fuse executor
 	 */
-	public RemoteNodeManager(SSHClient nodeClient, SSHClient fuseClient) throws SSHClientException {
-		this.executor = new Executor(nodeClient);
-		this.fuseExecutor = new Executor(fuseClient);
-		executor.connect();
+	public RemoteNodeManager(Executor nodeExecutor, Executor fuseExecutor) {
+		this.executor = nodeExecutor;
+		this.fuseExecutor = fuseExecutor;
 	}
 
 	@Override
@@ -75,8 +71,8 @@ public class RemoteNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void prepareFuse() {
-		ModifierExecutor.executeModifiers(executor);
+	public void prepareFuse(String host) {
+		ModifierExecutor.executeModifiers(host, executor);
 	}
 
 	@Override
@@ -101,6 +97,10 @@ public class RemoteNodeManager implements NodeManager {
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.executePostModifiers();
 		ModifierExecutor.clearAllModifiers();
+	}
+
+	@Override
+	public void stop() {
 	}
 
 	/**
@@ -136,5 +136,19 @@ public class RemoteNodeManager implements NodeManager {
 		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
 		fuseExecutor.waitForShutdown();
 		startFuse();
+	}
+
+	@Override
+	public void checkRunningContainer() {
+		// Do nothing on remote because the machine is cleaned anyway before start
+	}
+
+	@Override
+	public void detectPlatformAndProduct() {
+		// Do nothing
+	}
+
+	@Override
+	public void kill() {
 	}
 }

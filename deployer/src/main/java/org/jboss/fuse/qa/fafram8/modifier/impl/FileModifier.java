@@ -10,6 +10,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,8 @@ public final class FileModifier implements Modifier {
 	private String fileToUse;
 	@Setter
 	private Executor executor;
-
+	@Getter
+	private String host;
 	private FileModifier(String fileToReplace, String fileToUse, Executor executor) {
 		this.fileToReplace = fileToReplace;
 		this.fileToUse = fileToUse;

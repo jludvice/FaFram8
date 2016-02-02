@@ -2,7 +2,7 @@ package org.jboss.fuse.qa.fafram8.cluster.brokers;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 
 import java.util.HashMap;
 import java.util.LinkedList;

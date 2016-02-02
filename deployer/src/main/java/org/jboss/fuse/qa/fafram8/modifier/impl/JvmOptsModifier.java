@@ -11,6 +11,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,8 @@ public final class JvmOptsModifier implements Modifier {
 	private String maxPermMem = "1536M";
 	@Setter
 	private Executor executor;
+	@Getter
+	private String host;
 
 	/**
 	 * Private constructor.

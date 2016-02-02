@@ -16,7 +16,6 @@ import org.jboss.fuse.qa.fafram8.util.CommandHistory;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,11 +24,20 @@ import lombok.extern.slf4j.Slf4j;
  * startup, waiting for successful provision, etc.
  * Created by avano on 19.8.15.
  */
-@AllArgsConstructor
 @Slf4j
-@ToString
+@ToString(of = {"client"})
 public class Executor {
 	private SSHClient client;
+	private int provisionRetries = 0;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param client ssh client instance
+	 */
+	public Executor(SSHClient client) {
+		this.client = client;
+	}
 
 	/**
 	 * Executes a command.
@@ -74,7 +82,7 @@ public class Executor {
 	public void connect() {
 		log.debug("Connecting: " + this.toString());
 		Boolean connected = false;
-		final int step = 1;
+		final int step = 5;
 		int elapsed = 0;
 		final long timeout = step * 1000L;
 
@@ -88,14 +96,14 @@ public class Executor {
 						+ SystemProperty.getStartWaitTime() + " seconds");
 			}
 			try {
-				client.connect(false);
+				client.connect(true);
 				connected = true;
 				log.info("Connected to remote SSH server (node/fuse)");
 			} catch (VerifyFalseException ex) {
 				log.debug("Remaining time: " + (SystemProperty.getStartWaitTime() - elapsed) + " seconds. ");
 				elapsed += step;
 			} catch (SSHClientException e) {
-				throw new FaframException("Error while waiting for ssh connection! " + e);
+				elapsed += step;
 			}
 			sleep(timeout);
 		}
@@ -205,12 +213,22 @@ public class Executor {
 	}
 
 	/**
+	 * Waits for the defined status of container.
+	 *
+	 * @param c container
+	 * @param status status
+	 */
+	public void waitForProvisionStatus(Container c, String status) {
+		waitForProvisioning(null, c, status);
+	}
+
+	/**
 	 * Waits for the provisioning of a container.
 	 *
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		waitForProvisioning(containerName, null);
+		waitForProvisioning(containerName, null, "success");
 	}
 
 	/**
@@ -220,7 +238,7 @@ public class Executor {
 	 * @param c Container instance
 	 */
 	public void waitForProvisioning(Container c) {
-		waitForProvisioning(null, c);
+		waitForProvisioning(null, c, "success");
 	}
 
 	/**
@@ -229,13 +247,18 @@ public class Executor {
 	 * @param containerName container name
 	 * @param c container
 	 */
-	public void waitForProvisioning(String containerName, Container c) {
+	public void waitForProvisioning(String containerName, Container c, String status) {
+		final String waitFor = c == null ? containerName : c.getName();
+
+		if (provisionRetries > 2) {
+			log.error("Container " + waitFor + " did not provision to state \"" + status + "\" after 3 retries");
+			throw new FaframException("Container " + waitFor + " did not provision to state \"" + status + "\" after 3 retries");
+		}
+
 		final int step = 3;
 		final long timeout = step * 1000L;
 		final long startTimeout = 10000L;
 		final int maxLength = 6;
-
-		final String waitFor = c == null ? containerName : c.getName();
 
 		// Wait before executing - sometimes the provision is triggered a bit later
 		sleep(startTimeout);
@@ -247,15 +270,15 @@ public class Executor {
 
 		while (!isSuccessful) {
 			if (retries > SystemProperty.getProvisionWaitTime()) {
-				log.error("Container " + waitFor + " failed to provision in time");
-				throw new FaframException("Container " + waitFor + " failed to provision in time");
+				log.error("Container " + waitFor + " failed to provision to state \"" + status + "\" in time");
+				throw new FaframException("Container " + waitFor + " failed to provision to state \"" + status + "\" in time");
 			}
 
 			String reason = "";
 
 			try {
 				container = client.executeCommand("container-list | grep " + waitFor, true);
-				isSuccessful = container.contains("success");
+				isSuccessful = container.contains(status);
 
 				// Parse the provision status from the container-list output
 				container = container.replaceAll(" +", " ").trim();
@@ -293,10 +316,12 @@ public class Executor {
 
 		// If the container was restarted during the provisioning, trigger the provisioning again
 		if (restarted) {
-			log.error("TODO: add maximum amount of reprovisioning");
 			c.restart();
+			provisionRetries++;
 			waitForProvisioning(c);
 		}
+
+		provisionRetries = 0;
 	}
 
 	/**

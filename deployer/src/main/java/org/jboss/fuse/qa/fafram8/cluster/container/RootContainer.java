@@ -7,15 +7,12 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootNa
 
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.util.Arrays;
 
@@ -72,8 +69,23 @@ public class RootContainer extends Container {
 		if ("localhost".equals(super.getNode().getHost())) {
 			nodeManager = new LocalNodeManager(getExecutor());
 		} else {
+			// Connect the node executor
+			super.getNode().getExecutor().connect();
 			nodeManager = new RemoteNodeManager(getNode().getExecutor(), getExecutor());
 		}
+
+		// Add the modifiers
+		if (!SystemProperty.skipDefaultUser()) {
+			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
+			ModifierExecutor.addModifiers(putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(),
+					super.getPassword() + ",Administrator"));
+		}
+
+		ModifierExecutor.addModifiers(
+				setExecutable("bin/karaf", "bin/start", "bin/stop"),
+				setRootName(this),
+				changeRandomSource()
+		);
 
 		nodeManager.checkRunningContainer();
 		try {
@@ -240,31 +252,11 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
-			// Create the necessary executors
-			final SSHClient fuseClient = new FuseSSHClient()
-					.hostname(container.getNode().getHost())
-					.fuseSSHPort()
-					.username(container.getUser())
-					.password(container.getPassword());
-
-			// Add the modifiers
-			if (!SystemProperty.skipDefaultUser()) {
-				// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
-				ModifierExecutor.addModifiers(putProperty(container.getNode().getHost(), "etc/users.properties", container.getUser(),
-						container.getPassword() + ",Administrator"));
-			}
-
-			ModifierExecutor.addModifiers(
-					setExecutable("bin/karaf", "bin/start", "bin/stop"),
-					setRootName(container),
-					changeRandomSource()
-			);
-
 			return new RootContainer()
 					.name(container.getName())
 					.user(container.getUser())
 					.password(container.getPassword())
-					.executor(new Executor(fuseClient))
+					.executor(container.createExecutor())
 					.root(true)
 					.node(container.getNode())
 					.parent(null)

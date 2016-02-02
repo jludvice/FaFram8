@@ -3,10 +3,10 @@ package org.jboss.fuse.qa.fafram8.modifier;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ModifierExecutor {
 	private static ModifierExecutor instance = null;
-	private static List<Modifier> modifiers = null;
-	private static List<Modifier> postModifiers = null;
+	private static Set<Modifier> modifiers = null;
+	private static Set<Modifier> postModifiers = null;
 
 	/**
 	 * Constructor.
@@ -34,8 +34,8 @@ public class ModifierExecutor {
 	public static ModifierExecutor getInstance() {
 		if (instance == null) {
 			instance = new ModifierExecutor();
-			modifiers = new ArrayList<>();
-			postModifiers = new ArrayList<>();
+			modifiers = new HashSet<>();
+			postModifiers = new HashSet<>();
 		}
 
 		return instance;

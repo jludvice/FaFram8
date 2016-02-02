@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
+@EqualsAndHashCode(of = {"filePath", "key"})
 public final class PropertyModifier implements Modifier {
 	private String filePath;
 	private String key;

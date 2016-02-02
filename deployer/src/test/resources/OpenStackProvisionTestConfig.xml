@@ -7,17 +7,17 @@
 
 	<container type="root" instances="1">
 		<!-- Note the root container name is always "root" -->
-		<name>ecervena-root</name>
+		<name>ecervena-root123</name>
 		<username>fafram</username>
 		<password>fafram</password>
 		<node host="openstack" username="fuse" password="fuse"/>
 	</container>
 
 	<container instances="1" type="ssh">
-		<name>ecervena-node1</name>
+		<name>ecervena-node1123</name>
 		<username>fafram</username>
 		<password>fafram</password>
-		<parent>ecervena-root</parent>
+		<parent>ecervena-root123</parent>
 		<node host="openstack" username="fuse" password="fuse"/>
 	</container>
 

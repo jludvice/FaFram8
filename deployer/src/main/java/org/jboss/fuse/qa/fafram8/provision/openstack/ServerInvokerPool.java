@@ -38,7 +38,7 @@ public class ServerInvokerPool {
 		executor.shutdown();
 		log.info("Waiting for ServerInvoker threads to finish a job.");
 		try {
-			while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+			while (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
 				log.debug("Waiting for ServerInvoker threads to finish a job.");
 			}
 		} catch (InterruptedException ie) {

@@ -54,9 +54,9 @@ public final class Deployer {
 				}
 			} catch (Exception ex) {
 				if (!force) {
-					throw new FaframException("Error while destroying child/ssh container!" + ex);
+					throw new FaframException("Error while destroying child/ssh container! " + ex);
 				} else {
-					log.warn("Error while destroying child/ssh container!" + ex);
+					log.warn("Error while destroying child/ssh container! " + ex);
 				}
 			}
 		}
@@ -68,9 +68,9 @@ public final class Deployer {
 				list.remove(i);
 			} catch (Exception ex) {
 				if (!force) {
-					throw new FaframException("Error while destroying root container!" + ex);
+					throw new FaframException("Error while destroying root container! " + ex);
 				} else {
-					log.warn("Error while destroying root container!" + ex);
+					log.warn("Error while destroying root container! " + ex);
 				}
 			}
 		}

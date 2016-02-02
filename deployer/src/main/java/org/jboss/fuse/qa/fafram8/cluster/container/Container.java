@@ -2,6 +2,8 @@ package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
+import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +103,20 @@ public abstract class Container {
 	 * @return command response
 	 */
 	public abstract String executeCommand(String command);
+
+	/**
+	 * Creates the executor from the specified attributes. It is used in builder and in OpenstackProvisionProvider.
+	 *
+	 * @return executor instance
+	 */
+	public Executor createExecutor() {
+		final SSHClient fuseClient = new FuseSSHClient()
+				.hostname(this.getNode().getHost())
+				.fuseSSHPort()
+				.username(this.getUser())
+				.password(this.getPassword());
+		return new Executor(fuseClient);
+	}
 
 	/**
 	 * Setter.

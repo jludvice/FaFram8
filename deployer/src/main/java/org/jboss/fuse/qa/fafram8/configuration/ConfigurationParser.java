@@ -81,7 +81,7 @@ public class ConfigurationParser {
 					case "root": {
 						final RootContainer.RootBuilder builder = RootContainer.builder().name(returnUniqueName(containerModel));
 						if (containerModel.getUsername() != null) {
-							builder.name(containerModel.getUsername());
+							builder.user(containerModel.getUsername());
 						}
 						if (containerModel.getPassword() != null) {
 							builder.password(containerModel.getPassword());
@@ -107,6 +107,7 @@ public class ConfigurationParser {
 							throw new FaframException("Parent container does not exists.");
 						}
 						builder.parent(parentContainer);
+						container = builder.build();
 						break;
 					}
 					case "child": {
@@ -116,6 +117,7 @@ public class ConfigurationParser {
 							throw new FaframException("Parent container does not exists.");
 						}
 						builder.parent(parentContainer);
+						container = builder.build();
 						break;
 					}
 					default:

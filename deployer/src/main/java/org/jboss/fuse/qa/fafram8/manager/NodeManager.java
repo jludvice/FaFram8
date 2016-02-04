@@ -67,4 +67,9 @@ public interface NodeManager {
 	 * Kills the container.
 	 */
 	void kill();
+
+	/**
+	 * Kills the karaf instances.
+	 */
+	void clean();
 }

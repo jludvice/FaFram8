@@ -106,7 +106,6 @@ public class ModifierExecutor {
 	 *
 	 * @param executor executor
 	 */
-	//TODO(avano): figure out the null
 	public static void executePostModifiers(Executor executor) {
 		executeModifiersFromCollection(null, executor, postModifiers);
 	}

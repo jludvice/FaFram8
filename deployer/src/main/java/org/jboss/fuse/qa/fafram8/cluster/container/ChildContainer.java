@@ -93,7 +93,7 @@ public class ChildContainer extends Container {
 	@Override
 	public void stop() {
 		super.getParent().getExecutor().executeCommand("container-stop " + super.getName());
-		log.error("TODO: wait here for the container stop?");
+		super.getParent().getExecutor().waitForProvisionStatus(this, "stopped");
 		super.setOnline(false);
 	}
 

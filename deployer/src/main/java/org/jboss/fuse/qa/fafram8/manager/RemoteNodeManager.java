@@ -79,7 +79,7 @@ public class RemoteNodeManager implements NodeManager {
 	public void startFuse() {
 		try {
 			// TODO(rjakubco): add changing java before start
-			log.info("Starting fuse");
+			log.info("Starting container");
 			executor.executeCommand(productPath + SEP + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();
 			// TODO(avano): special usecase for remote standalone starting? maybe not necessary
@@ -101,6 +101,9 @@ public class RemoteNodeManager implements NodeManager {
 
 	@Override
 	public void stop() {
+		log.info("Stopping container");
+		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
+		fuseExecutor.waitForShutdown();
 	}
 
 	/**
@@ -108,10 +111,10 @@ public class RemoteNodeManager implements NodeManager {
 	 */
 	public void clean() {
 		// todo(rjakubco): create better cleaning mechanism for Fabric on Windows machines
-		log.info("Killing Fuse ");
-		executor.executeCommand("pkill -9 -f karaf");
+		log.info("Killing container");
+		executor.executeCommand("pkill -9 -f karaf.base");
 
-		log.info("Deleting Fafram folder on  " + SystemProperty.getHost());
+		log.info("Deleting Fafram folder on " + executor.getClient().getHostname());
 		executor.executeCommand("rm -rf " + SystemProperty.getFaframFolder());
 	}
 
@@ -140,7 +143,10 @@ public class RemoteNodeManager implements NodeManager {
 
 	@Override
 	public void checkRunningContainer() {
-		// Do nothing on remote because the machine is cleaned anyway before start
+		if (!executor.executeCommand("ps aux | grep karaf.base | grep -v grep").isEmpty()) {
+			log.error("Port 8101 is not free! Other karaf instance may be running. Shutting down...");
+			throw new FaframException("Port 8101 is not free! Other karaf instance may be running.");
+		}
 	}
 
 	@Override

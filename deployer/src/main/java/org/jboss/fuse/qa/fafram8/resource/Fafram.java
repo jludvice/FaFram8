@@ -16,7 +16,9 @@ import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
 import org.jboss.fuse.qa.fafram8.validator.Validator;
@@ -50,15 +52,6 @@ public class Fafram extends ExternalResource {
 	 * Constructor.
 	 */
 	public Fafram() {
-	}
-
-	/**
-	 * Create Fafram and set ProvisionProvider implementation for remote deployment on-demmand provisioning.
-	 *
-	 * @param provisionProvider implementation of ProvisionProvider interface.
-	 */
-	public Fafram(ProvisionProvider provisionProvider) {
-		this.provisionProvider = provisionProvider;
 	}
 
 	/**
@@ -171,7 +164,6 @@ public class Fafram extends ExternalResource {
 		// Do nothing if deployer is null - when the validation fails.
 		//TODO(mmelko): cleanup the containers node .. here is the right place
 
-		log.error("TODO: property if we should stop all containers");
 		try {
 			// There can be a problem with stopping containers
 			Deployer.destroy(false);
@@ -420,8 +412,6 @@ public class Fafram extends ExternalResource {
 		provider.createServerPool(ContainerManager.getContainerList());
 		provider.assignAddresses(ContainerManager.getContainerList());
 
-		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started ->
-		// problem with iptables
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
 		// environment
 		//				provider.loadIPTables(ContainerManager.getContainerList());
@@ -433,9 +423,20 @@ public class Fafram extends ExternalResource {
 	 * @param provider Implementation of ProvisionProvider interface
 	 * @return this
 	 */
-	public Fafram provideNodes(ProvisionProvider provider) {
-		provisionProvider = provider;
-		SystemProperty.set(FaframConstant.PROVIDER, provider.getClass().getName());
+	public Fafram provider(FaframProvider provider) {
+		switch (provider) {
+			case STATIC:
+				provisionProvider = new StaticProvider();
+				break;
+			case OPENSTACK:
+				provisionProvider = new OpenStackProvisionProvider();
+				break;
+			default:
+				log.warn("Provider not found! Using default static provider!");
+				provisionProvider = new StaticProvider();
+				break;
+		}
+		SystemProperty.set(FaframConstant.PROVIDER, provisionProvider.getClass().getName());
 		return this;
 	}
 

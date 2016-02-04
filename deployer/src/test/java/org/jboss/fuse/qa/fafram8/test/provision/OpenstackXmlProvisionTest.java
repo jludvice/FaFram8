@@ -23,7 +23,7 @@ public class OpenstackXmlProvisionTest {
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 	@Rule
 	//TODO(ecervena): implement enhancement to add timestamp to container name 
-	public Fafram fafram = new Fafram().provideNodes(osm)
+	public Fafram fafram = new Fafram().provider(osm)
 			.withFabric().config("src/test/resources/OpenStackProvisionTestConfig.xml");
 
 	@BeforeClass

@@ -95,7 +95,7 @@ public class SshContainer extends Container {
 	@Override
 	public void stop() {
 		super.getParent().getExecutor().executeCommand("container-stop " + super.getName());
-		log.error("TODO: wait for stop");
+		super.getParent().getExecutor().waitForProvisionStatus(this, "stopped");
 		super.setOnline(false);
 	}
 
@@ -218,7 +218,7 @@ public class SshContainer extends Container {
 					.user(container.getUser())
 					.password(container.getPassword())
 					.parent(container.getParent())
-					.parentName(null)
+					.parentName(container.getParentName())
 					.node(container.getNode())
 					.executor(null)
 					.profiles(container.getProfiles());

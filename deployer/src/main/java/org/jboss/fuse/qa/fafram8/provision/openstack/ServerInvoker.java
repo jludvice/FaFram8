@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServerInvoker implements Runnable {
 
-	private static final int BOOT_TIMEOUT = 120000;
+	private static final int BOOT_TIMEOUT = 300000;
 
 	//Name of the node
 	private String nodeName;
@@ -55,7 +55,7 @@ public class ServerInvoker implements Runnable {
 		final Server server = os.compute().servers().bootAndWaitActive(serverCreate, BOOT_TIMEOUT);
 		OpenStackProvisionProvider.registerServer(server);
 		OpenStackProvisionProvider.addServerToPool(server);
-		waitForRunningServer(server);
+//		waitForRunningServer(server);
 	}
 
 	private void waitForRunningServer(Server server) {

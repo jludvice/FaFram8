@@ -91,9 +91,8 @@ public class RootContainer extends Container {
 				changeRandomSource()
 		);
 
-		if (nodeManager instanceof RemoteNodeManager) {
-			log.error("TODO: refactor this");
-			((RemoteNodeManager) nodeManager).clean();
+		if (!SystemProperty.isClean()) {
+			nodeManager.clean();
 		}
 
 		nodeManager.checkRunningContainer();

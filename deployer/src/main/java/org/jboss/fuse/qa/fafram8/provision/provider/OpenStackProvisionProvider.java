@@ -215,7 +215,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	public void releaseResources() {
 		if (SystemProperty.isKeepOsResources()) {
-			log.info("Keeping OpenStack resources. Don't forget to release them later!");
+			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
 			return;
 		}
 		log.info("Releasing allocated OpenStack resources.");

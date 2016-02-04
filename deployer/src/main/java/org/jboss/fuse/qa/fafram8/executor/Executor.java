@@ -16,6 +16,7 @@ import org.jboss.fuse.qa.fafram8.util.CommandHistory;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString(of = {"client"})
 public class Executor {
+	@Getter
 	private SSHClient client;
 	private int provisionRetries = 0;
 

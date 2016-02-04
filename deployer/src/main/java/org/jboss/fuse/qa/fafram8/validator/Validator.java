@@ -150,6 +150,7 @@ public final class Validator {
 			validateZip();
 			validatePatch();
 		} else {
+			validateZip();
 			validateHost();
 		}
 	}

@@ -170,6 +170,11 @@ public class LocalNodeManager implements NodeManager {
 	}
 
 	@Override
+	public void clean() {
+		// We do not clean on local
+	}
+
+	@Override
 	public void stopAndClean(boolean ignoreExceptions) {
 		final boolean suppressStart = SystemProperty.suppressStart();
 

@@ -48,7 +48,7 @@ public final class Deployer {
 	 */
 	public static void destroy(boolean force) {
 		// Do nothing
-		if (!SystemProperty.isKeepContainers()) {
+		if (SystemProperty.isKeepContainers()) {
 			return;
 		}
 		// Temp set which holds all root containers after the first cycle, so that we don't need to mess with concurent mods

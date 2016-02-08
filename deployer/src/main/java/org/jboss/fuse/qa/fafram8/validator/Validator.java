@@ -2,7 +2,11 @@ package org.jboss.fuse.qa.fafram8.validator;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
@@ -28,30 +32,147 @@ public final class Validator {
 	 * Validate method.
 	 */
 	public static void validate() {
-		log.info("Validating properties...");
-		validateZip();
-		validateHost();
-		validatePatch();
+		log.info("Validating containers...");
+		validateContainers();
 		log.info("Validation complete!");
+	}
+
+	/**
+	 * Validates containers in container list.
+	 */
+	private static void validateContainers() {
+		if (ContainerManager.getContainerList().isEmpty()) {
+			validateDefaultContainer();
+			return;
+		}
+
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c instanceof RootContainer) {
+				validateRootContainer(c);
+			} else if (c instanceof ChildContainer) {
+				validateChildContainer(c);
+			} else {
+				validateSshContainer(c);
+			}
+		}
+	}
+
+	/**
+	 * Validates root container.
+	 *
+	 * @param c root container
+	 */
+	private static void validateRootContainer(Container c) {
+		if (c.getNode() == null) {
+			throw new ValidatorException("Root container (" + c.getName() + ") node is null!");
+		}
+
+		validateZip(c.getNode().getHost());
+
+		if ("".equals(c.getName())) {
+			throw new ValidatorException("Root name can't be empty!");
+		}
+
+		if (c.getNode().getHost() == null || c.getNode().getPort() == 0 || c.getNode().getUsername() == null
+				|| c.getNode().getPassword() == null) {
+			throw new ValidatorException("Atleast one of root container node attributes (" + c.getName() + ") is not set!");
+		}
+
+		if (c.getParent() != null || c.getParentName() != null) {
+			throw new ValidatorException("Root container (" + c.getName() + ") can't have a parent! (Parent container"
+					+ " or parent container name was set)");
+		}
+	}
+
+	/**
+	 * Validates child container.
+	 *
+	 * @param c child container
+	 */
+	private static void validateChildContainer(Container c) {
+		// If there is no fabric flag, you can't have child containers
+		if (!SystemProperty.isFabric()) {
+			throw new ValidatorException("Fabric flag is not set! Did you forget to use .withFabric()?");
+		}
+
+		if ("".equals(c.getName())) {
+			throw new ValidatorException("Child name can't be empty!");
+		}
+
+		if (c.getParentName() == null && c.getParent() == null) {
+			throw new ValidatorException("Child container (" + c.getName() + ") must have a parent!");
+		}
+
+		if (c.getParentName() != null) {
+			if (ContainerManager.getContainer(c.getParentName()) == null) {
+				throw new ValidatorException(String.format("Parent of %s (%s) does not exist in container list!", c.getName(), c.getParentName()));
+			}
+		}
+	}
+
+	/**
+	 * Validates ssh container.
+	 *
+	 * @param c container
+	 */
+	private static void validateSshContainer(Container c) {
+		// If there is no fabric flag, you can't have ssh containers
+		if (!SystemProperty.isFabric()) {
+			throw new ValidatorException("Fabric flag is not set! Did you forget to use .withFabric()?");
+		}
+
+		if ("".equals(c.getName())) {
+			throw new ValidatorException("SSH container name can't be empty!");
+		}
+
+		if (c.getNode() == null) {
+			throw new ValidatorException("SSH container node is null!");
+		}
+
+		if (c.getNode().getHost() == null || c.getNode().getUsername() == null || c.getNode().getPassword() == null) {
+			throw new ValidatorException("Atleast one of ssh container (" + c.getName() + ") node attributes is not set!");
+		}
+
+		if (c.getParentName() == null && c.getParent() == null) {
+			throw new ValidatorException("SSH container (" + c.getName() + ") must have a parent!");
+		}
+
+		if (c.getParentName() != null) {
+			if (ContainerManager.getContainer(c.getParentName()) == null) {
+				throw new ValidatorException(String.format("Parent of %s (%s) does not exist in container list!", c.getName(), c.getParentName()));
+			}
+		}
+	}
+
+	/**
+	 * Validates default container built from system properties.
+	 */
+	private static void validateDefaultContainer() {
+		if ("localhost".equals(SystemProperty.getHost())) {
+			validateZip(SystemProperty.getHost());
+			validatePatch();
+		} else {
+			validateHost();
+		}
 	}
 
 	/**
 	 * Validates zip property.
 	 */
-	private static void validateZip() {
-		validateNonNullZip();
-		validateNullZip();
+	private static void validateZip(String host) {
+		validateNonNullZip(host);
+		validateNullZip(host);
 	}
 
 	/**
 	 * Validates null zip.
 	 */
-	private static void validateNullZip() {
+	private static void validateNullZip(String host) {
 		final String zipFile = SystemProperty.getFuseZip();
 
 		// Validator is called after the machine is provisioned, so the host property should be set
 		// If we are on remote but not specifying zip
-		if (SystemProperty.getHost() != null && zipFile == null) {
+		if (!"localhost".equals(host) && zipFile == null) {
 			throw new ValidatorException(FaframConstant.FUSE_ZIP + " property is not set on remote!");
 		}
 
@@ -65,14 +186,15 @@ public final class Validator {
 	/**
 	 * Validates non null zip.
 	 */
-	private static void validateNonNullZip() {
+	private static void validateNonNullZip(String host) {
 		final String zipFile = SystemProperty.getFuseZip();
 		if ("".equals(zipFile)) {
 			throw new ValidatorException(FaframConstant.FUSE_ZIP + " property is empty!");
 		}
 
 		// If we are on localhost and using custom zip
-		if (SystemProperty.getHost() == null && (zipFile != null && zipFile.startsWith("file")) && !SystemProperty.getProvider().contains("OpenStack")) {
+		if ("localhost".equals(host) && (zipFile != null && zipFile.startsWith("file")) && !SystemProperty.getProvider()
+				.contains("OpenStack")) {
 			if (!new File(StringUtils.substringAfter(zipFile, "file://")).exists()) {
 				throw new ValidatorException(String.format("Specified file (%s) does not exist!", zipFile));
 			}
@@ -90,7 +212,7 @@ public final class Validator {
 			throw new ValidatorException(FaframConstant.HOST + " property is empty!");
 		}
 
-		if (host != null && !"openstack".equals(host)) {
+		if (!"localhost".equals(host) && !"openstack".equals(host)) {
 			try {
 				final InetAddress inet = InetAddress.getByName(host);
 				if (!inet.isReachable(timeout)) {

@@ -8,7 +8,6 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,15 +59,13 @@ public class LocalNodeManager implements NodeManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param client ssh client
+	 * @param executor node executor
 	 */
-	public LocalNodeManager(SSHClient client) {
-		executor = new Executor(client);
+	public LocalNodeManager(Executor executor) {
+		this.executor = executor;
 	}
 
-	/**
-	 * Checks if some container is already running.
-	 */
+	@Override
 	public void checkRunningContainer() {
 		final int port = 8101;
 		try (Socket s = new Socket("localhost", port)) {
@@ -116,8 +113,8 @@ public class LocalNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void prepareFuse() {
-		ModifierExecutor.executeModifiers();
+	public void prepareFuse(String host) {
+		ModifierExecutor.executeModifiers(host);
 	}
 
 	@Override
@@ -151,9 +148,7 @@ public class LocalNodeManager implements NodeManager {
 		}
 	}
 
-	/**
-	 * Detects platform and product.
-	 */
+	@Override
 	public void detectPlatformAndProduct() {
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			windows = true;
@@ -171,20 +166,34 @@ public class LocalNodeManager implements NodeManager {
 	}
 
 	@Override
+	public void kill() {
+	}
+
+	@Override
+	public void clean() {
+		// We do not clean on local
+	}
+
+	@Override
 	public void stopAndClean(boolean ignoreExceptions) {
 		final boolean suppressStart = SystemProperty.suppressStart();
 
 		// If the instance is running or we fail restarting
 		if (!stopped || restart) {
-			ModifierExecutor.executePostModifiers();
 			ModifierExecutor.clearAllModifiers();
 			cleanChildContainers();
 			stop(ignoreExceptions);
 			deleteTargetDir(ignoreExceptions);
+			if (windows) {
+				try {
+					Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		} else {
 			// If the instance is not running - if the 8181 port is occupied or we suppress start
 			if (SystemProperty.suppressStart()) { // If there are some files
-				ModifierExecutor.executePostModifiers();
 				ModifierExecutor.clearAllModifiers();
 				// This should be called after all modifiers but before stop/delete because they can throw exceptions
 				deleteTargetDir(ignoreExceptions);
@@ -192,6 +201,11 @@ public class LocalNodeManager implements NodeManager {
 		}
 
 		SystemProperty.clearAllProperties();
+	}
+
+	@Override
+	public void stop() {
+		stop(false);
 	}
 
 	/**

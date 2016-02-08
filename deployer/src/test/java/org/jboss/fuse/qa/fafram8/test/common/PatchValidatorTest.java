@@ -5,12 +5,14 @@ import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Patch validator tests.
  * Created by avano on 22.9.15.
  */
+@Ignore
 public class PatchValidatorTest {
 	private Fafram fafram;
 

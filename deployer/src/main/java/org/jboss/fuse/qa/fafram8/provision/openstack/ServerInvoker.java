@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ServerInvoker implements Runnable {
 
-	private static final int BOOT_TIMEOUT = 120000;
+	private static final int BOOT_TIMEOUT = 300000;
 
 	//Name of the node
 	private String nodeName;
@@ -55,5 +55,43 @@ public class ServerInvoker implements Runnable {
 		final Server server = os.compute().servers().bootAndWaitActive(serverCreate, BOOT_TIMEOUT);
 		OpenStackProvisionProvider.registerServer(server);
 		OpenStackProvisionProvider.addServerToPool(server);
+//		waitForRunningServer(server);
+	}
+
+	private void waitForRunningServer(Server server) {
+		final int step = 3;
+		final long timeout = step * 1000L;
+		boolean online = false;
+
+		int elapsed = 0;
+		log.info("Waiting for the server " + server.getName() + " to be in \"running\" state");
+
+		String status;
+		while (!online) {
+			// Check if the time is up
+			if (elapsed > SystemProperty.getOpenstackWaitTime()) {
+				log.error("Openstack machine wasn't running after " + SystemProperty.getOpenstackWaitTime() + " seconds");
+				// todo (avano): throw excepion - InstanceNotRunningException
+				break;
+			}
+
+			status = server.getPowerState();
+
+			// "1" should be running, didn't get any docs about this
+			if (!"1".equals(status)) {
+				log.debug("Remaining time: " + (SystemProperty.getOpenstackWaitTime() - elapsed) + " seconds. "
+						+ ("".equals(status) ? "" : ("(" + status + ")")));
+				elapsed += step;
+			} else {
+				online = true;
+				log.info("Server online");
+			}
+
+			try {
+				Thread.sleep(timeout);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

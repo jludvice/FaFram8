@@ -6,31 +6,33 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-/**Tests for parsing container configuration.
+/**
+ * Tests for parsing container configuration.
  * Created by mmelko on 08/11/15.
  */
+//TODO(ecervena): Remove test class after full parser implamentation
 @Ignore
 public class ParseClusterTest {
 	private static Fafram fafram;
 
 	@BeforeClass
 	public static void init() {
-		fafram = new Fafram().setConfigPath("src/test/resources/parser_test1.xml");
+		fafram = new Fafram().config("src/test/resources/parser_test1.xml");
 		fafram.initConfiguration();
 	}
 
 	@Test
-	public void parseRootContainersTest(){
+	public void parseRootContainersTest() {
 
 	}
 
 	@Test
-	public void parseChildContainerTest(){
+	public void parseChildContainerTest() {
 
 	}
 
 	@Test
-	public void parseSshContainerTest(){
+	public void parseSshContainerTest() {
 
 	}
 }

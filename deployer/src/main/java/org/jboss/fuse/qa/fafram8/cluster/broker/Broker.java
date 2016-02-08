@@ -1,8 +1,8 @@
-package org.jboss.fuse.qa.fafram8.cluster.brokers;
+package org.jboss.fuse.qa.fafram8.cluster.broker;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -63,6 +63,7 @@ public class Broker {
 
 	/**
 	 * Copy constructor.
+	 *
 	 * @param broker broker which should be cloned.
 	 */
 	public Broker(Broker broker) {

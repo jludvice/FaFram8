@@ -6,6 +6,8 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -14,10 +16,13 @@ import lombok.ToString;
  * Created by avano on 20.8.15.
  */
 @ToString
+@EqualsAndHashCode(exclude = {"executor"})
 public final class AccessRightsModifier implements Modifier {
 	@Setter
 	private Executor executor;
 
+	@Getter
+	private String host;
 	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private String[] paths;
 

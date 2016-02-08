@@ -2,16 +2,16 @@ package org.jboss.fuse.qa.fafram8.provision.provider;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.ChildContainerType;
-import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.exception.InstanceAlreadyExistsException;
 import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
 import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
@@ -27,6 +27,7 @@ import org.openstack4j.model.compute.ServerCreate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -94,11 +95,16 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	}
 
 	/**
-	 * Create new OpenStack node. Method will create Server object model, boot it and wait for active status.
+	 * Create new OpenStack node. Method will create Server object model, boot it,
+	 * add to register and wait for active status.
 	 *
 	 * @param serverName name of the new node
 	 */
 	public void spawnNewServer(String serverName) {
+		log.info("Spawning new server: "
+				+ SystemProperty.getOpenstackServerNamePrefix()
+				+ "-"
+				+ serverName);
 		final ServerCreate server = os
 				.compute()
 				.servers()
@@ -108,7 +114,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
 				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
 				.build();
-		serverRegister.add(os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT));
+		final Server node = os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT);
+		serverRegister.add(node);
 	}
 
 	/**
@@ -128,17 +135,45 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * @return Server representation of openstack node object
 	 */
 	public Server getServerByName(String serverName) {
+		final List<Server> equalsList = getServers(serverName);
+		if (equalsList.size() != 1) {
+			for (Object obj : equalsList) {
+				log.error("Server with not unique name detected: ", obj.toString());
+			}
+			throw new UniqueServerNameException(
+					"Server name is not unique. More than 1 (" + equalsList.size() + ") server with specified name: " + serverName + " detected");
+		} else {
+			return equalsList.get(0);
+		}
+	}
+
+	/**
+	 * Gets the count of the servers with name (prefix + "name"). Used to check if there are already some servers with defined name.
+	 *
+	 * @param name container name
+	 * @return list of servers with given name
+	 */
+	public List<Server> getServers(String name) {
 		final Map<String, String> filter = new HashMap<>();
-		filter.put("name", serverName);
+		if (!name.startsWith(SystemProperty.getOpenstackServerNamePrefix())) {
+			name = SystemProperty.getOpenstackServerNamePrefix() + "-" + name;
+		}
+
+		filter.put("name", name);
+
 		final List<? extends Server> serverList = os
 				.compute()
 				.servers()
 				.list(filter);
-		if (serverList.size() != 1) {
-			throw new UniqueServerNameException("Server name is not unique. More than 1 (" + serverList.size() + ") server with specified name: " + serverName + " detected");
-		} else {
-			return serverList.get(0);
+		final List<Server> equalsList = new ArrayList<>();
+
+		for (Server server : serverList) {
+			if (name.equals(server.getName())) {
+				equalsList.add(server);
+			}
 		}
+
+		return equalsList;
 	}
 
 	/**
@@ -167,13 +202,13 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		for (Container container : containerList) {
 			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
 					+ "-" + container.getName());
-			container.getHostNode().setNodeId(server.getId());
+			container.getNode().setNodeId(server.getId());
 
 			if (container.isRoot()) {
 				final String ip = assignFloatingAddress(server.getId());
 				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
-				container.getHostNode().setHost(ip);
-				System.setProperty(FaframConstant.HOST, ip);
+				container.getNode().setHost(ip);
+				container.getNode().setExecutor(container.getNode().createExecutor());
 				removeServerFromPool(server);
 			} else {
 				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
@@ -192,7 +227,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	public void releaseResources() {
 		if (SystemProperty.isKeepOsResources()) {
-			log.info("Keeping OpenStack resources. Don't forget to release them later!");
+			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
 			return;
 		}
 		log.info("Releasing allocated OpenStack resources.");
@@ -229,7 +264,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	private void setLocalIPToContainer(Container container, Server server) {
 		try {
-			container.getHostNode().setHost(server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_ADDRESS_TYPE))
+			container.getNode().setHost(server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_ADDRESS_TYPE))
 					.get(0).getAddr());
 		} catch (NullPointerException npe) {
 			throw new NoIPAddressException("OpenStack server local IP address not found. Maybe server is not active yet.");
@@ -255,10 +290,10 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		Executor executor;
 
 		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
-		final Node rootNode = containerList.get(0).getHostNode();
+		final Node rootNode = containerList.get(0).getNode();
 
 		for (Container c : containerList) {
-			if (c.getContainerType() instanceof ChildContainerType) {
+			if (c instanceof ChildContainer) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
 				continue;
@@ -275,7 +310,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
 
 				// Path to copied iptables file on remote nodes
-				final String remoteFilePath = directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
+				final String remoteFilePath =
+						directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
 
 				log.debug("Copying iptables configuration file on node: " + sshClient.toString());
 
@@ -285,7 +321,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 						// This means this copying will be executed before other nodes.
 						((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
 					} catch (CopyFileException e) {
-						throw new FaframException("Problem with copying iptables configuration file to node: " + c.getHostNode().getHost() + ".", e);
+						throw new FaframException("Problem with copying iptables configuration file to node: " + c.getNode().getHost() + ".", e);
 					}
 				} else {
 					// This is needed for executing commands on nodes without publicip on openstack.
@@ -293,10 +329,11 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 					// we are connected via the SSHClient.
 					// If the container is root this string is empty and the commands are executed only on root.
 					// TODO(rjakubco): maybe do it in nicer way?
-					preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+					preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
 
 					// Copy iptables file already on root node to other nodes via the scp command (hack for nodes without public ip)
-					executor.executeCommand("scp -o StrictHostKeyChecking=no " + remoteFilePath + " " + c.getHostNode().getHost() + ":" + remoteFilePath);
+					executor.executeCommand("scp -o StrictHostKeyChecking=no " + remoteFilePath + " " + c.getNode().getHost() + ":"
+							+ remoteFilePath);
 				}
 
 				log.debug("Executing iptables configuration file on node: " + executor.toString());
@@ -305,13 +342,23 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 				if (response.contains("No such file or directory")) {
 					throw new OfflineEnvironmentException("Configuration file for iptables"
-							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
 							new FileNotFoundException("File " + remoteFilePath + " doesn't exists."));
 				}
 				executor.executeCommand(preCommand + "sudo iptables-restore " + remoteFilePath);
-			} catch (SSHClientException e) {
+			} catch (Exception e) {
 				throw new FaframException("There was problem setting iptables on node: "
-						+ c.getHostNode().getHost(), e);
+						+ c.getNode().getHost(), e);
+			}
+		}
+	}
+
+	@Override
+	public void checkNodes(List<Container> containerList) {
+		for (Container c : containerList) {
+			if (getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
+				throw new InstanceAlreadyExistsException("Instance " + SystemProperty.getOpenstackServerNamePrefix()
+						+ "-" + c.getName() + " already exists!");
 			}
 		}
 	}
@@ -332,10 +379,10 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		Executor executor;
 
 		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
-		final Node rootNode = containerList.get(0).getHostNode();
+		final Node rootNode = containerList.get(0).getNode();
 
 		for (Container c : containerList) {
-			if (c.getContainerType() instanceof ChildContainerType) {
+			if (c instanceof ChildContainer) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
 				continue;
@@ -348,7 +395,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				// we are connected via the SSHClient. If the container is root this string is empty and the commands are
 				// executed only on root.
 				// TODO(rjakubco): maybe do it in nicer way?
-				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getHostNode().getUsername() + "@" + c.getHostNode().getHost() + " ";
+				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
 			}
 
 			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
@@ -363,7 +410,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 				if (response.contains("No such file or directory")) {
 					throw new OfflineEnvironmentException("Configuration file for iptables"
-							+ " doesn't exists on node: " + c.getHostNode().getHost() + ".",
+							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
 							new FileNotFoundException("File " + OFFLINE_IPTABLES_FILE + " doesn't exists."));
 				}
 
@@ -372,12 +419,12 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				response = executor.executeCommand(preCommand + "curl www.google.com");
 				if (!response.contains("Failed to connect") || !response.contains("Network is unreachable")) {
 					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
-							+ c.getHostNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
+							+ c.getNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
 							+ " file on the node.");
 				}
-			} catch (SSHClientException e) {
+			} catch (Exception e) {
 				throw new OfflineEnvironmentException("There was problem with turning off the internet on node: "
-						+ c.getHostNode().getHost(), e);
+						+ c.getNode().getHost(), e);
 			}
 		}
 	}

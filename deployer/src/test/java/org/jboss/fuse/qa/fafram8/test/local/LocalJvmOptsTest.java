@@ -29,7 +29,7 @@ public class LocalJvmOptsTest {
 	public void customJvmOptsTest() throws Exception {
 		fafram = new Fafram().setJvmOptions("312M", "512M", "312M", "512M").setup();
 		assertTrue(FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
-				File.separator + "setenv.bat")).contains("312M"));
+				File.separator + "setenv")).contains("312M"));
 	}
 
 	@After

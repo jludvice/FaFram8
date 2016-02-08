@@ -19,7 +19,7 @@ import java.io.File;
  */
 public class LocalRootNameTest {
 	@Rule
-	public Fafram fafram = new Fafram().withoutDefaultUser().name("testroot").suppressStart();
+	public Fafram fafram = new Fafram().name("testroot").suppressStart();
 
 	@Test
 	public void rootNameTest() throws Exception {

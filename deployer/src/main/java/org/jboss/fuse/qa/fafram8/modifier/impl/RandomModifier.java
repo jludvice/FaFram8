@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +23,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
+@EqualsAndHashCode(of = {"host"})
 public final class RandomModifier implements Modifier {
 	@Setter
 	private Executor executor;
-
+	@Getter
+	private String host;
 	/**
 	 * Private constructor.
 	 */
@@ -60,7 +64,7 @@ public final class RandomModifier implements Modifier {
 
 			// Default java opts from karaf + randomness location
 			content += "\nexport JAVA_OPTS=\"-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava"
-					+ ".security.egd=file:/dev/./urandom\"";
+					+ ".security.egd=file:/dev/./urandom\"\n";
 			final FileOutputStream fos = new FileOutputStream(filePath, false);
 			IOUtils.write(content, fos);
 

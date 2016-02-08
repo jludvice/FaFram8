@@ -1,6 +1,6 @@
 package org.jboss.fuse.qa.fafram8.provision.provider;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 
 import java.util.List;
 
@@ -44,4 +44,10 @@ public interface ProvisionProvider {
 	 * @param containerList list of containers
 	 */
 	void loadIPTables(List<Container> containerList);
+
+	/**
+	 * Checks if there are already nodes with the same name defined (for Openstack only).
+	 * @param containerList container list
+	 */
+	void checkNodes(List<Container> containerList);
 }

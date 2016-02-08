@@ -101,7 +101,7 @@ public class SystemProperty {
 	 * @return remote host
 	 */
 	public static String getHost() {
-		return System.getProperty(FaframConstant.HOST);
+		return System.getProperty(FaframConstant.HOST, "localhost");
 	}
 
 	/**
@@ -370,7 +370,7 @@ public class SystemProperty {
 	 *
 	 * @return clean property
 	 */
-	public static Boolean getClean() {
+	public static Boolean isClean() {
 		return Boolean.parseBoolean(System.getProperty(FaframConstant.CLEAN, "false"));
 	}
 
@@ -380,7 +380,7 @@ public class SystemProperty {
 	 * @return config path
 	 */
 	public static String getConfigPath() {
-		return System.getProperty(FaframConstant.CONFIG_PATH, "none");
+		return System.getProperty(FaframConstant.CONFIG_PATH);
 	}
 
 	/**
@@ -393,12 +393,12 @@ public class SystemProperty {
 	}
 
 	/**
-	 * Getter.
+	 * Get system property for openstack server name prefix.
 	 *
-	 * @return root names as an array of CSV records, null if empty
+	 * @return server name prefix set by system property
 	 */
-	public static String[] getRootNames() {
-		return System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES) == null ? null : System.getProperty(FaframConstant.FAFRAM_ROOT_NAMES).split(";");
+	public static String getOpenstackServerNamePrefix() {
+		return System.getProperty(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8");
 	}
 
 	/**
@@ -438,6 +438,34 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 *
+	 * @return default root name
+	 */
+	public static String getDefaultRootName() {
+		return System.getProperty(FaframConstant.DEFAULT_ROOT_NAME, "root");
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return openstack wait time
+	 */
+	public static int getOpenstackWaitTime() {
+		return Integer.parseInt(System.getProperty(FaframConstant.OPENSTACK_WAIT_TIME, "300"));
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return openstack wait time
+	 */
+	public static boolean isKeepContainers() {
+		return System.getProperty(FaframConstant.KEEP_CONTAINERS) == null
+				? false : Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
+	}
+
+	/**
 	 * Gets the external property from the property file.
 	 *
 	 * @param property property key
@@ -446,6 +474,11 @@ public class SystemProperty {
 	public static String getExternalProperty(String property) {
 		// Force the initialization
 		SystemProperty.getInstance();
+
+		// If there is defined system property, use that first
+		if (System.getProperty(property) != null) {
+			return System.getProperty(property);
+		}
 
 		if (externalProperties.isEmpty()) {
 			externalProperties = initProperties();

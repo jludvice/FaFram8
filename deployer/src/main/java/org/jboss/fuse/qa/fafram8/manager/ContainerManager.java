@@ -3,76 +3,155 @@ package org.jboss.fuse.qa.fafram8.manager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.BundleUploadException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.net.URISyntaxException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
  * patching, etc.
- *
+ * <p/>
  * Created by avano on 2.9.15.
  */
 @Slf4j
 public class ContainerManager {
+	// Singleton instance
+	private static ContainerManager instance = null;
 
-	@Getter
-	private Executor executor;
+	// List of all containers
+	private static List<Container> containerList = null;
 
-	@Setter
-	@Getter
-	private List<String> commands = new LinkedList<>();
+	// List of bundles that will be installed into the _default_ root container only.
+	private static List<String> bundles = null;
 
-	@Setter
-	@Getter
-	private List<String> bundles = new LinkedList<>();
+	// List of bundles that will be executed on the _default_ root container only.
+	private static List<String> commands = null;
 
 	/**
 	 * Constructor.
-	 *
-	 * @param client ssh client
 	 */
-	public ContainerManager(SSHClient client) {
-		this.executor = new Executor(client);
+	protected ContainerManager() {
 	}
 
 	/**
-	 * Sets up fabric.
+	 * Gets the singleton instance.
 	 *
-	 * @param nm nodemanager instance in case the restart is required
+	 * @return singleton instance
 	 */
-	public void setupFabric(NodeManager nm) {
-		executor.executeCommand("fabric:create " + SystemProperty.getFabric());
+	public static ContainerManager getInstance() {
+		if (instance == null) {
+			instance = new ContainerManager();
+			containerList = new ArrayList<>();
+			bundles = new ArrayList<>();
+			commands = new ArrayList<>();
+		}
+
+		return instance;
+	}
+
+	/**
+	 * Gets the bundle list.
+	 *
+	 * @return bundle list
+	 */
+	public static List<String> getBundles() {
+		// Force the initialization
+		getInstance();
+		return bundles;
+	}
+
+	/**
+	 * Gets the command list.
+	 *
+	 * @return command list
+	 */
+	public static List<String> getCommands() {
+		// Force the initialization
+		getInstance();
+		return commands;
+	}
+
+	/**
+	 * Gets the container list.
+	 *
+	 * @return container list
+	 */
+	public static List<Container> getContainerList() {
+		// Force the initialization
+		getInstance();
+		return containerList;
+	}
+
+	/**
+	 * Gets the container by its name.
+	 *
+	 * @param name container name
+	 * @return container instance
+	 */
+	public static Container getContainer(String name) {
+		for (Container c : containerList) {
+			if (name.equals(c.getName())) {
+				return c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Clears all the lists in this class - containerList, bundles, commands.
+	 */
+	public static void clearAllLists() {
+		// Force the initialization
+		getInstance();
+		for (int i = containerList.size() - 1; i >= 0; i--) {
+			containerList.remove(i);
+		}
+		for (int i = bundles.size() - 1; i >= 0; i--) {
+			bundles.remove(i);
+		}
+		for (int i = commands.size() - 1; i >= 0; i--) {
+			commands.remove(i);
+		}
+
+		log.debug("Container manager lists cleared");
+	}
+
+	/**
+	 * Sets up fabric on specified container.
+	 *
+	 * @param c container
+	 * @param fabricString fabric create arguments
+	 */
+	public static void setupFabric(Container c, String fabricString) {
+		c.executeCommand("fabric:create" + (fabricString.startsWith(" ") ? "" : " ") + fabricString);
 		try {
-			executor.waitForProvisioning("root", nm);
+			c.getExecutor().waitForProvisioning(c);
 		} catch (FaframException ex) {
 			// Container is not provisioned in time
-			throw new FaframException("Container did not provision in time");
+			throw new FaframException("Container " + c.getName() + " did not provision in time");
 		}
-		uploadBundles();
-		executeStartupCommands();
+		uploadBundles(c);
+		executeStartupCommands(c);
 	}
 
 	/**
 	 * Executes defined commands right after fabric-create.
+	 *
+	 * @param c container to execute on
 	 */
-	public void executeStartupCommands() {
-		if (commands != null && !commands.isEmpty()) {
-			for (String command : commands) {
-				executor.executeCommand(command);
+	public static void executeStartupCommands(Container c) {
+		if (c.getCommands() != null && !c.getCommands().isEmpty()) {
+			for (String command : c.getCommands()) {
+				c.executeCommand(command);
 			}
 		}
 	}
@@ -80,13 +159,13 @@ public class ContainerManager {
 	/**
 	 * Uploads bundles to fabric maven proxy on root container (remote).
 	 *
-	 * @throws BundleUploadException exception if there was problem with upload
+	 * @param c container to execute on
 	 */
-	public void uploadBundles() throws BundleUploadException {
-		if (bundles != null && !bundles.isEmpty()) {
-			for (String bundle : bundles) {
-				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + SystemProperty.getFuseUser()
-						+ ":" + SystemProperty.getFusePassword() + "@" + SystemProperty.getHost() + ":8181/maven/upload");
+	public static void uploadBundles(Container c) {
+		if (c.getBundles() != null && !c.getBundles().isEmpty()) {
+			for (String bundle : c.getBundles()) {
+				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + c.getUser()
+						+ ":" + c.getPassword() + "@" + c.getNode().getHost() + ":8181/maven/upload");
 				try {
 					bundleInstaller.installFile();
 				} catch (URISyntaxException | MavenInvocationException e) {
@@ -97,86 +176,71 @@ public class ContainerManager {
 	}
 
 	/**
-	 * TODO(mmelko): just idea -> check if needed
-	 * Sets up fabric on specific container.
-	 *
-	 * @param c container on which fabric will be set.
-	 */
-	public void setupFabric(Container c) {
-		final Executor rootExecutor = c.getContainerType().getExecutor();
-		rootExecutor.executeCommand("fabric:create " + SystemProperty.getFabric());
-		try {
-			rootExecutor.waitForProvisioning("root");
-		} catch (FaframException ex) {
-			// Container is not provisioned in time
-			throw new FaframException("Container did not provision in time");
-		}
-		uploadBundles();
-		executeStartupCommands();
-	}
-
-	/**
 	 * Patches fuse based on its mode (standalone / fabric).
 	 *
-	 * @param nm NodeManager instance - in case when the restart is necessary
+	 * @param c Container instance
 	 */
-	public void patchFuse(NodeManager nm) {
+	public static void patchFuse(Container c) {
 		if (SystemProperty.getPatch() != null) {
 			if (SystemProperty.isFabric()) {
-				patchFabric(nm);
+				patchFabric(c);
 			} else {
-				patchStandalone();
+				patchStandalone(c);
 			}
 		}
 	}
 
 	/**
 	 * Patches the standalone before fabric creation.
+	 *
+	 * @param c container to execute on
 	 */
-	public void patchStandaloneBeforeFabric() {
+	public static void patchStandaloneBeforeFabric(Container c) {
 		if (SystemProperty.patchStandalone()) {
-			patchStandalone();
+			patchStandalone(c);
 		}
 	}
 
 	/**
 	 * Patches the standalone container.
+	 *
+	 * @param c container to execute on
 	 */
-	private void patchStandalone() {
+	private static void patchStandalone(Container c) {
 		for (String s : Patcher.getPatches()) {
-			final String patchName = getPatchName(executor.executeCommand("patch:add " + s));
-			executor.executeCommand("patch:install " + patchName);
-			executor.waitForPatchStatus(patchName, true);
+			final String patchName = getPatchName(c.executeCommand("patch:add " + s));
+			c.executeCommand("patch:install " + patchName);
+			c.getExecutor().waitForPatchStatus(patchName, true);
 		}
 	}
 
 	/**
 	 * Patches fabric root and sets the default version to the patched version.
 	 *
-	 * @param nm NodeManager instance in case if the restart is necessary
+	 * @param c Container instance
 	 */
-	private void patchFabric(NodeManager nm) {
+	private static void patchFabric(Container c) {
 		// Create a new version
-		final String version = executor.executeCommand("version-create").split(" ")[2];
+		final String version = c.executeCommand("version-create").split(" ")[2];
 
 		// We need to check if the are using old or new patching mechanism
 		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
 			for (String s : Patcher.getPatches()) {
-				executor.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+				c.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
 						.getFusePassword() + " --version " + version + " " + s);
 			}
 		} else {
 			// 6.2.1 onwards
 			for (String s : Patcher.getPatches()) {
-				final String patchName = getPatchName(executor.executeCommand("patch:add " + s));
-				executor.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
+				final String patchName = getPatchName(c.executeCommand("patch:add " + s));
+				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
 						.getFusePassword() + " --upload --version " + version + " " + patchName);
 			}
 		}
 
-		executor.executeCommand("container-upgrade " + version + " root");
-		executor.waitForProvisioning("root", nm);
-		executor.executeCommand("version-set-default " + version);
+		c.executeCommand("container-upgrade " + version + " " + c.getName());
+		c.getExecutor().waitForProvisioning(c);
+		c.executeCommand("version-set-default " + version);
 	}
 
 	/**
@@ -185,7 +249,7 @@ public class ContainerManager {
 	 * @param patchAddResponse patch-add command response.
 	 * @return patch name
 	 */
-	private String getPatchName(String patchAddResponse) {
+	private static String getPatchName(String patchAddResponse) {
 		// Get the 2nd row only
 		String response = StringUtils.substringAfter(patchAddResponse, System.lineSeparator());
 		// Replace multiple whitespaces

@@ -1,52 +1,40 @@
 package org.jboss.fuse.qa.fafram8.configuration;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
+import org.jboss.fuse.qa.fafram8.cluster.xml.ClusterModel;
+import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
+import org.jboss.fuse.qa.fafram8.cluster.xml.FrameworkConfigurationModel;
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * XML Configuration parsing class.
+ * Fafram8 XML configuration parser class.
+ * <p/>
  * Created by mmelko on 9/8/15.
  */
 @Slf4j
 public class ConfigurationParser {
+	//Parsed object cluster representation.
+	private ClusterModel clusterModel;
 
-	private static final String CLUSTER_ELEMENT = "cluster";
-	private static final String FRAMEWORK_ELEMENT = "framework";
-
-	@Setter
-	private ContainerBuilder containerBuilder;
-
-	private boolean autoName = false;
-	private int containerCount = -1;
+	//Unique name incrementer.
+	private int uniqueNameIncrement = 0;
 
 	@Setter
 	private String path;
-
-	@Getter
-	private List<Container> containerList = new LinkedList<Container>();
-
-	private Container globalContainerConf;
 
 	/**
 	 * Constructor.
@@ -55,105 +43,125 @@ public class ConfigurationParser {
 	}
 
 	/**
-	 * Constructor.
+	 * Parse referenced Fafram8 XML configuration.
 	 *
-	 * @param path to configuration file
+	 * @param path path to Fafram8 XML configuration
+	 * @throws JAXBException if an error was encountered while creating the Unmarshaller object.
 	 */
-	public ConfigurationParser(String path) {
-		super();
-		this.path = path;
-	}
+	public void parseConfigurationFile(String path) throws JAXBException {
+		log.info("Configuration parser started.");
 
-	/**
-	 * Parses the configuration file.
-	 *
-	 * @param path path to confifuration file
-	 * @throws IOException exception
-	 * @throws SAXException exception
-	 * @throws ParserConfigurationException exception
-	 */
-	public void parseConfigurationFile(String path) throws IOException, SAXException, ParserConfigurationException {
-		log.info("Start parsing the configuration file");
-		final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		documentBuilderFactory.setNamespaceAware(true);
-		documentBuilderFactory.setValidating(true);
+		log.info("Creating unmarshaller.");
+		final JAXBContext jaxbContext = JAXBContext.newInstance(ClusterModel.class);
+		final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
-		final DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
-		final Document document = builder.parse(new File(path));
+		log.info("Unmarshalling cluster model from " + path);
+		clusterModel = (ClusterModel) jaxbUnmarshaller.unmarshal(new File(path));
 
-		parseCluster(document.getDocumentElement().getElementsByTagName(CLUSTER_ELEMENT));
-		parseFrameworkConfiguration(document.getDocumentElement().getElementsByTagName(FRAMEWORK_ELEMENT).item(0));
-	}
-
-	/**
-	 * Parse the configuration file.
-	 *
-	 * @throws ParserConfigurationException exception
-	 * @throws SAXException exception
-	 * @throws IOException exception
-	 */
-	public void parseConfigurationFile() throws ParserConfigurationException, SAXException, IOException {
-		parseConfigurationFile(this.path);
-	}
-
-	/**
-	 * Method for parsing framework configuration such a Host, ssh credentials etc.
-	 *
-	 * @param conf XML configuration node
-	 */
-	private void parseFrameworkConfiguration(Node conf) {
-		final NodeList values = conf.getChildNodes();
-		for (int i = 0; i < values.getLength(); i++) {
-			final Node n = values.item(i);
-
-			if (n.getNodeType() == Node.ELEMENT_NODE) {
-				final Element element = (Element) n;
-				SystemProperty.set(element.getNodeName(), element.getTextContent());
-			}
+		//TODO(ecervena): provisional debug logging
+		for (ContainerModel containerModel : clusterModel.getContainerModelList()) {
+			log.info(containerModel.toString());
 		}
 	}
 
 	/**
-	 * Parse cluster element.
-	 *
-	 * @param clusterNodeList clusterNodeList element
+	 * Call of this method will set parsed framework configuration and build container
+	 * objects parsed from Fafram8 XML configuration.
 	 */
-	private void parseCluster(NodeList clusterNodeList) {
-		for (int i = 0; i < clusterNodeList.getLength(); i++) {
-			final Node n = clusterNodeList.item(i);
+	public void buildContainers() {
+		log.info("Building containers.");
+		setFrameworkConfiguration(clusterModel.getFrameworkConfigurationModel());
 
-			if (n.getNodeType() == Node.ELEMENT_NODE) {
-				final Element element = (Element) n;
-				if ("global".equals(element.getNodeName())) {
-					parseContainer(element, true);
-				} else if (("containers").equals(element.getNodeName())) {
-					parseContainers(element);
+		for (ContainerModel containerModel : clusterModel.getContainerModelList()) {
+			for (int i = 1; i <= containerModel.getInstances(); i++) {
+
+				Container container = null;
+
+				switch (containerModel.getContainerType()) {
+					case "root": {
+						final RootContainer.RootBuilder builder = RootContainer.builder().name(returnUniqueName(containerModel));
+						if (containerModel.getUsername() != null) {
+							builder.user(containerModel.getUsername());
+						}
+						if (containerModel.getPassword() != null) {
+							builder.password(containerModel.getPassword());
+						}
+
+						final Node node = Node.builder().host(containerModel.getNode().getHost())
+								.username(containerModel.getNode().getUsername())
+								.password(containerModel.getNode().getPassword())
+								.build();
+						builder.node(node);
+						container = builder.build();
+						break;
+					}
+					case "ssh": {
+						final SshContainer.SshBuilder builder = SshContainer.builder().name(returnUniqueName(containerModel));
+						final Node node = Node.builder().host(containerModel.getNode().getHost())
+								.username(containerModel.getNode().getUsername())
+								.password(containerModel.getNode().getPassword())
+								.build();
+						builder.node(node);
+						final Container parentContainer = ContainerManager.getContainer(containerModel.getParentContainer());
+						if (parentContainer == null) {
+							throw new FaframException("Parent container does not exists.");
+						}
+						builder.parent(parentContainer);
+						container = builder.build();
+						break;
+					}
+					case "child": {
+						final ChildContainer.ChildBuilder builder = ChildContainer.builder().name(returnUniqueName(containerModel));
+						final Container parentContainer = ContainerManager.getContainer(containerModel.getParentContainer());
+						if (parentContainer == null) {
+							throw new FaframException("Parent container does not exists.");
+						}
+						builder.parent(parentContainer);
+						container = builder.build();
+						break;
+					}
+					default:
+						break;
+				}
+
+				if (container != null) {
+					ContainerManager.getContainerList().add(container);
 				}
 			}
+			resetUniqueNameIncrement();
 		}
 	}
 
 	/**
-	 * Parse containers element.
+	 * Set unmarshaled framework properties.
 	 *
-	 * @param containers element which contains containers and some metadata about containers
+	 * @param frameworkConfigurationModel XML configuration mapping object
 	 */
-	private void parseContainers(Element containers) {
-		//TODO(mmelko): finish this
+	public void setFrameworkConfiguration(FrameworkConfigurationModel frameworkConfigurationModel) {
+		//do the magic
 	}
 
 	/**
-	 * Parse.
+	 * Return unique container name for container mapped by containerModel. This method enables multiple instances
+	 * specification in XML configuration. E.g. &lt;container instances=5&gt;&lt;name&gt;xxx&lt;/name&gt;&lt;/container&gt;
+	 * will results into 5 containers named xxx-1,xxx-2,xxx-3,xxx-4,xxx-5.
 	 *
-	 * @param container container xml element
-	 * @param isGlobal if true, container configuration is global and it isn't set to builder
+	 * @param containerModel XML container mapping object
+	 * @return unique name
 	 */
-	private void parseContainer(Element container, boolean isGlobal) {
-		//TODO(mmelko): finish
+	private String returnUniqueName(ContainerModel containerModel) {
+		if (containerModel.getInstances() <= 1) {
+			return containerModel.getName();
+		}
+		uniqueNameIncrement++;
+		return containerModel.getName() + "-" + uniqueNameIncrement;
 	}
 
-	private Map<String, String> parseSimpleElement(Node n) {
-		return null;
+	/**
+	 * Private method reseting uniqueNameIncrement field.
+	 */
+	private void resetUniqueNameIncrement() {
+		uniqueNameIncrement = 0;
 	}
 }
 

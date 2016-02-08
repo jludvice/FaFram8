@@ -151,7 +151,9 @@
 		<!-- Checks the placement of right curly braces ('}') for else, try, catch blocks are on the same line -->
 		<module name="RightCurly"/>
 		<!-- Checks nested blocks, i.e. blocks that are used freely in the code -->
-		<module name="AvoidNestedBlocks"/>
+		<module name="AvoidNestedBlocks">
+			<property name="allowInSwitchCase" value="true"/>
+		</module>
 
 		<!-- Checks for common coding problems -->
 		<!-- http://checkstyle.sf.net/config_coding.html -->

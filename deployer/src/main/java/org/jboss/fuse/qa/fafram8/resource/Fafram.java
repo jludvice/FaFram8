@@ -1,6 +1,5 @@
 package org.jboss.fuse.qa.fafram8.resource;
 
-import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.ArchiveModifier.registerArchiver;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.CommandHistoryModifier.saveCommandHistory;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.FileModifier.moveFile;
@@ -8,29 +7,29 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setDefault
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setJvmOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.RandomModifier.changeRandomSource;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNamesModifier.setRootNames;
 
-import org.jboss.fuse.qa.fafram8.cluster.Container;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerBuilder;
-import org.jboss.fuse.qa.fafram8.cluster.ContainerTypes.RootContainerType;
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
+import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
 import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -39,54 +38,23 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class Fafram extends ExternalResource {
-	//List of containers used in test
-	@Getter
-	private final List<Container> containerList = new LinkedList<>();
-
 	//Provision provider instance in case of remote deployment
 	@Getter
-	private static ProvisionProvider provisionProvider = new StaticProvider();
-
-	@Setter
-	private List<String> commands = new LinkedList<>();
-
-	@Setter
-	private List<String> bundles = new LinkedList<>();
+	private ProvisionProvider provisionProvider = new StaticProvider();
 
 	@SuppressWarnings("FieldCanBeLocal")
-	private ConfigurationParser parser;
+	private ConfigurationParser configurationParser;
 
-	@Getter
-	private ContainerBuilder builder = new ContainerBuilder();
+	// Default root container used for .executeCommand() etc.
+	private Container root;
 
-	@Getter
-	private Container rootContainer;
-
-	private String containerName = "root";
-
+	// Flag if the fafram has already finished the initialization and it's running
+	// Used in .containers method
+	private boolean running = false;
 	/**
 	 * Constructor.
 	 */
 	public Fafram() {
-		builder.setFafram(this);
-	}
-
-	/**
-	 * Create Fafram and set ProvisionProvider implementation for remote deployment on-demmand provisioning.
-	 *
-	 * @param provisionProvider implementation of ProvisionProvider interface.
-	 */
-	public Fafram(ProvisionProvider provisionProvider) {
-		this.provisionProvider = provisionProvider;
-	}
-
-	/**
-	 * Adds container object model to container list.
-	 *
-	 * @param container container specification picked up from configuration file
-	 */
-	public void addContainer(Container container) {
-		containerList.add(container);
 	}
 
 	@Override
@@ -105,132 +73,82 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram setup() {
-		initConfiguration();
-
-		if (SystemProperty.getHost() == null) {
-			log.info("Setting up local deployment");
+		try {
+			initConfiguration();
 			Validator.validate();
-			SystemProperty.set(FaframConstant.HOST, "localhost");
-		} else {
-			Validator.validate();
-		}
-		printLogo();
-		setDefaultModifiers();
-		//prepare container list
+			printLogo();
+			setDefaultModifiers();
+			prepareNodes(provisionProvider);
+			Deployer.deploy();
+			running = true;
+		} catch (Exception ex) {
+			provisionProvider.releaseResources();
+			Deployer.destroy(true);
+			ContainerManager.clearAllLists();
+			SystemProperty.clearAllProperties();
+			ModifierExecutor.clearAllModifiers();
 
-		initRootContainer();
-		prepareNodes(provisionProvider);
-		initContainers();
-		return this;
-	}
-
-	/**
-	 * Init of the root container.
-	 */
-	private void initRootContainer() {
-		this.rootContainer = builder.rootWithMappedProperties().name(containerName).build();
-		if (bundles != null && !bundles.isEmpty()) {
-			((RootContainerType) rootContainer.getContainerType()).setBundles(bundles);
-		}
-
-		if (commands != null && !commands.isEmpty()) {
-			((RootContainerType) rootContainer.getContainerType()).setCommands(commands);
-		}
-		containerList.add(0, rootContainer);
-	}
-
-	/**
-	 * Configuration init.
-	 */
-	public void initConfiguration() {
-		if (!SystemProperty.getConfigPath().contains("none")) {
-			this.parser = new ConfigurationParser(SystemProperty.getConfigPath());
-			this.parser.setContainerBuilder(this.builder);
-
-			try {
-				parser.parseConfigurationFile();
-			} catch (Exception e) {
-				throw new FaframException("Problem with configuration file.");
+			// Rethrow the exception so that we will know what happened
+			if (ex instanceof ValidatorException) {
+				throw ex;
+			} else {
+				ex.printStackTrace();
+				throw new FaframException("Exception thrown while initializing! " + ex);
 			}
 		}
-	}
 
-	/**
-	 * Prints the logo. Feel free to change.
-	 */
-	public void printLogo() {
-		log.info("\n  ___       ___                  _____  \n"
-				+ " / __)     / __)                / ___ \\ \n"
-				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
-				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
-				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
-				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
+		// Save the first root we find - used in .executeCommand() and probably some more methods
+		root = getRoot();
+
+		return this;
 	}
 
 	/**
 	 * Stop method.
 	 */
 	public void tearDown() {
-		// Do nothing if deployer is null - when the validation fails.
-		//TODO(mmelko): cleanup the containers node .. here is the right place
-
-		for (Container c : containerList) {
-			if (!(c.getContainerType() instanceof RootContainerType)) {
-				log.debug("Deleting " + c.getName());
-				c.delete();
-			}
+		try {
+			// There can be a problem with stopping containers
+			Deployer.destroy(false);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			SystemProperty.clearAllProperties();
+			ModifierExecutor.clearAllModifiers();
+			ContainerManager.clearAllLists();
+			running = false;
+			throw new FaframException(ex);
 		}
 
-		if (rootContainer != null) {
-			log.debug("Deleting " + rootContainer.getName());
-			rootContainer.stop();
+		if (!SystemProperty.isKeepOsResources()) {
+			provisionProvider.releaseResources();
 		}
+
+		SystemProperty.clearAllProperties();
+		ModifierExecutor.clearAllModifiers();
+		ContainerManager.clearAllLists();
+		running = false;
 	}
 
 	/**
-	 * Sets the default modifiers common for both local and remote deploy.
+	 * -------------------------------------------- FLUENT METHODS START --------------------------------------------
 	 */
-	private void setDefaultModifiers() {
-		if (!SystemProperty.skipDefaultUser()) {
-			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
-			ModifierExecutor.addModifiers(putProperty("etc/users.properties", SystemProperty.getFuseUser(),
-					SystemProperty.getFusePassword() + ",Administrator"));
-		}
-
-		if (!SystemProperty.skipDefaultJvmOpts()) {
-			ModifierExecutor.addModifiers(setDefaultJvmOpts());
-		}
-
-		ModifierExecutor.addModifiers(
-				setExecutable("bin/karaf", "bin/start", "bin/stop"),
-				setRootNames(),
-				changeRandomSource()
-		);
-
-		ModifierExecutor.addPostModifiers(
-				saveCommandHistory(),
-				registerArchiver()
-		);
-	}
 
 	/**
-	 * Executes a command in node shell.
+	 * Adds container to the container list.
 	 *
-	 * @param command command
-	 * @return command response
+	 * @param containers containers array
+	 * @return this
 	 */
-	public String executeNodeCommand(String command) {
-		return ((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager().getExecutor().executeCommand(command);
-	}
-
-	/**
-	 * Executes a command in root container shell.
-	 *
-	 * @param command command to execute on root container
-	 * @return command response
-	 */
-	public String executeCommand(String command) {
-		return rootContainer.getContainerType().getExecutor().executeCommand(command);
+	public Fafram containers(Container... containers) {
+		ContainerManager.getContainerList().addAll(new ArrayList<>(Arrays.asList(containers)));
+		if (running) {
+			// == if we are adding the containers in the test method, we need to create them
+			// Validate the containers
+			Validator.validate();
+			// deploy method will create only offline containers
+			Deployer.deploy();
+		}
+		return this;
 	}
 
 	/**
@@ -365,6 +283,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Skips waiting for broker.
+	 *
 	 * @return this
 	 */
 	public Fafram skipBrokerWait() {
@@ -373,70 +292,25 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Gets the full product path.
-	 *
-	 * @return product path
-	 */
-	public String getProductPath() {
-		return SystemProperty.getFusePath();
-	}
-
-	/**
-	 * Waits for the container to provision.
-	 *
-	 * @param containerName container name
-	 */
-	public void waitForProvisioning(String containerName) {
-		this.rootContainer.waitForProvision(containerName);
-	}
-
-	/**
-	 * Waits until the defined standalone patch status.
-	 *
-	 * @param patchName patch name
-	 * @param status patch status (true/false)
-	 */
-	public void waitForPatch(String patchName, boolean status) {
-		((RootContainerType) this.rootContainer.getContainerType()).getDeployer().getContainerManager().getExecutor().waitForPatchStatus(patchName,
-				status);
-	}
-
-	/**
-	 * Restarts the container.
-	 */
-	public void restart() {
-		((RootContainerType) rootContainer.getContainerType()).getDeployer().getNodeManager().restart();
-	}
-
-	/**
-	 * Triggers specified provision provider. It will call providers functionality to provision pool of nodes required
-	 * to satisfy needs of test deployment. Provider will create node for every container listed in Fafram
-	 * .containerList.
-	 * When the container is marked as root provider will assign public IP to it. Otherwise local IP will be provided.
-	 * Provider have to implement ProvisionProvider interface.
-	 *
-	 * @param provider provider type name
-	 */
-	public void prepareNodes(ProvisionProvider provider) {
-		provider.createServerPool(containerList);
-		provider.assignAddresses(containerList);
-
-		// TODO(avano): Here is problem with timeout after spawning openstack nodes. Some timeout is needed because login module is not started ->
-		// problem with iptables
-		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
-		// environment
-		provider.loadIPTables(containerList);
-	}
-
-	/**
 	 * Set ProvisionProvider implementation to Fafram.
 	 *
 	 * @param provider Implementation of ProvisionProvider interface
 	 * @return this
 	 */
-	public Fafram provideNodes(ProvisionProvider provider) {
-		provisionProvider = provider;
-		SystemProperty.set(FaframConstant.PROVIDER, provider.getClass().getName());
+	public Fafram provider(FaframProvider provider) {
+		switch (provider) {
+			case STATIC:
+				provisionProvider = new StaticProvider();
+				break;
+			case OPENSTACK:
+				provisionProvider = new OpenStackProvisionProvider();
+				break;
+			default:
+				log.warn("Provider not found! Using default static provider!");
+				provisionProvider = new StaticProvider();
+				break;
+		}
+		SystemProperty.set(FaframConstant.PROVIDER, provisionProvider.getClass().getName());
 		return this;
 	}
 
@@ -491,7 +365,17 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram onlyConnect() {
 		SystemProperty.set(FaframConstant.CLEAN, "false");
+		return this;
+	}
 
+	/**
+	 * Sets the default container name.
+	 *
+	 * @param name name
+	 * @return this
+	 */
+	public Fafram name(String name) {
+		SystemProperty.set(FaframConstant.DEFAULT_ROOT_NAME, name);
 		return this;
 	}
 
@@ -501,69 +385,8 @@ public class Fafram extends ExternalResource {
 	 * @param configPath patch to configuration file
 	 * @return this
 	 */
-	public Fafram setConfigPath(String configPath) {
+	public Fafram config(String configPath) {
 		SystemProperty.set(FaframConstant.CONFIG_PATH, configPath);
-		return this;
-	}
-
-	/**
-	 * Container initialization. If container is already live just skip it.
-	 */
-	//TODO(ecervena): implement parallel container spawn
-	public void initContainers() {
-		try {
-			//TODO(ecervena): implement waiting for
-			final int timeout = 15000;
-			Thread.sleep(timeout);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		for (Container c : containerList) {
-			if (!(c.getContainerType() instanceof RootContainerType) && c.getParentContainer() == null) {
-				c.setParentContainer(this.rootContainer);
-			}
-		}
-
-		String ensembleServers = "";
-
-		for (Container c : containerList) {
-			if (!c.isLive()) {
-				c.create();
-				if (c.isEnsemble()) {
-					ensembleServers += " " + c.getName();
-				}
-			} else {
-				log.debug("Container " + c.getName() + " is already running");
-			}
-		}
-
-		if (!"".equals(ensembleServers)) {
-			executeCommand("ensemble-add --force " + ensembleServers);
-			this.rootContainer.waitForProvision();
-		}
-	}
-
-	/**
-	 * Specifies name of the root container.
-	 *
-	 * @param name root containers name.
-	 * @return this
-	 */
-	public Fafram name(String name) {
-		this.containerName = name;
-
-		return this;
-	}
-
-	/**
-	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
-	 *
-	 * @param commands list of commands
-	 * @return this
-	 */
-	public Fafram command(String... commands) {
-		this.commands.addAll(Arrays.asList(commands));
 		return this;
 	}
 
@@ -603,13 +426,176 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Add bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
+	 *
+	 * @param bundles list of bundles
+	 * @return this
+	 */
+	public Fafram bundle(String... bundles) {
+		ContainerManager.getBundles().addAll(Arrays.asList(bundles));
+		return this;
+	}
+
+	/**
+	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
+	 *
+	 * @param commands list of commands
+	 * @return this
+	 */
+	public Fafram command(String... commands) {
+		ContainerManager.getCommands().addAll(Arrays.asList(commands));
+		return this;
+	}
+
+	/**
+	 * -------------------------------------------- FLUENT METHODS END --------------------------------------------
+	 */
+
+	/**
+	 * Returns the first root container. This root is later used in Fafram.executeCommand(), .waitForPatch, etc.
+	 *
+	 * @return root container
+	 */
+	private Container getRoot() {
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c.isRoot()) {
+				return c;
+			}
+		}
+		// This should never happen
+		return null;
+	}
+
+	/**
+	 * Configuration init.
+	 */
+	public void initConfiguration() {
+		if (SystemProperty.getConfigPath() != null) {
+			this.configurationParser = new ConfigurationParser();
+
+			try {
+				configurationParser.parseConfigurationFile(SystemProperty.getConfigPath());
+			} catch (Exception e) {
+				throw new FaframException("XML configuration parsing error.", e);
+			}
+
+			try {
+				configurationParser.buildContainers();
+			} catch (Exception e) {
+				throw new FaframException("Error while building containers from parsed model.", e);
+			}
+		}
+	}
+
+	/**
+	 * Prints the logo.
+	 */
+	private void printLogo() {
+		log.info("\n  ___       ___                  _____  \n"
+				+ " / __)     / __)                / ___ \\ \n"
+				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
+				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
+				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
+				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
+	}
+
+	/**
+	 * Sets the default modifiers common for both local and remote deploy.
+	 */
+	private void setDefaultModifiers() {
+		if (!SystemProperty.skipDefaultJvmOpts()) {
+			ModifierExecutor.addModifiers(setDefaultJvmOpts());
+		}
+
+		ModifierExecutor.addPostModifiers(
+				saveCommandHistory(),
+				registerArchiver()
+		);
+	}
+
+	/**
+	 * Executes a command in node shell.
+	 *
+	 * @param command command
+	 * @return command response
+	 */
+	public String executeNodeCommand(String command) {
+		return root.getNode().getExecutor().executeCommand(command);
+	}
+
+	/**
+	 * Executes a command in root container.
+	 *
+	 * @param command command to execute on root container
+	 * @return command response
+	 */
+	public String executeCommand(String command) {
+		return root.executeCommand(command);
+	}
+
+	/**
+	 * Gets the full product path.
+	 *
+	 * @return product path
+	 */
+	public String getProductPath() {
+		return SystemProperty.getFusePath();
+	}
+
+	/**
+	 * Waits for the container to provision.
+	 *
+	 * @param containerName container name
+	 */
+	public void waitForProvisioning(String containerName) {
+		root.getExecutor().waitForProvisioning(containerName);
+	}
+
+	/**
+	 * Waits until the defined standalone patch status.
+	 *
+	 * @param patchName patch name
+	 * @param status patch status (true/false)
+	 */
+	public void waitForPatch(String patchName, boolean status) {
+		root.getExecutor().waitForPatchStatus(patchName, status);
+	}
+
+	/**
+	 * Restarts the container.
+	 */
+	public void restart() {
+		root.restart();
+	}
+
+	/**
+	 * Triggers specified provision provider. It will call providers functionality to provision pool of nodes required
+	 * to satisfy needs of test deployment. Provider will create node for every container listed in Fafram
+	 * .containerList.
+	 * When the container is marked as root provider will assign public IP to it. Otherwise local IP will be provided.
+	 * Provider have to implement ProvisionProvider interface.
+	 *
+	 * @param provider provider type name
+	 */
+	public void prepareNodes(ProvisionProvider provider) {
+		// Check if there are nodes with the defined names
+		provider.checkNodes(ContainerManager.getContainerList());
+		provider.createServerPool(ContainerManager.getContainerList());
+		provider.assignAddresses(ContainerManager.getContainerList());
+
+		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
+		// environment
+		//				provider.loadIPTables(ContainerManager.getContainerList());
+	}
+
+	/**
 	 * Return container according specified container name.
 	 *
 	 * @param containerName name of container
-	 * @return Container object
+	 * @return Container object or null when not found.
 	 */
 	public Container getContainer(String containerName) {
-		for (Container c : containerList) {
+		for (Container c : ContainerManager.getContainerList()) {
 			if (c.getName().equals(containerName)) {
 				return c;
 			}
@@ -618,26 +604,11 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Add bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
+	 * Gets the container list.
 	 *
-	 * @param bundles list of bundles
-	 * @return this
+	 * @return container list
 	 */
-	public Fafram bundle(String... bundles) {
-		this.bundles.addAll(Arrays.asList(bundles));
-		return this;
-	}
-
-	/**
-	 * Kills container by given name.
-	 *
-	 * @param containerName name of the container to be killed
-	 */
-	public void killContainer(String containerName) {
-		if ("root".equals(containerName)) {
-			this.rootContainer.killContainer();
-		} else {
-			getContainer(containerName).killContainer();
-		}
+	public List<Container> getContainerList() {
+		return ContainerManager.getContainerList();
 	}
 }

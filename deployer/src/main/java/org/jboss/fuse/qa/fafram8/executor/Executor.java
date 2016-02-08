@@ -2,12 +2,12 @@ package org.jboss.fuse.qa.fafram8.executor;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
-import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
@@ -16,7 +16,7 @@ import org.jboss.fuse.qa.fafram8.util.CommandHistory;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,11 +25,21 @@ import lombok.extern.slf4j.Slf4j;
  * startup, waiting for successful provision, etc.
  * Created by avano on 19.8.15.
  */
-@AllArgsConstructor
 @Slf4j
-@ToString
+@ToString(of = {"client"})
 public class Executor {
+	@Getter
 	private SSHClient client;
+	private int provisionRetries = 0;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param client ssh client instance
+	 */
+	public Executor(SSHClient client) {
+		this.client = client;
+	}
 
 	/**
 	 * Executes a command.
@@ -70,12 +80,11 @@ public class Executor {
 
 	/**
 	 * Connects client to specified remote server.
-	 *
-	 * @throws SSHClientException if something went wrong
 	 */
-	public void connect() throws SSHClientException {
+	public void connect() {
+		log.debug("Connecting: " + this.toString());
 		Boolean connected = false;
-		final int step = 1;
+		final int step = 5;
 		int elapsed = 0;
 		final long timeout = step * 1000L;
 
@@ -89,11 +98,13 @@ public class Executor {
 						+ SystemProperty.getStartWaitTime() + " seconds");
 			}
 			try {
-				client.connect(false);
+				client.connect(true);
 				connected = true;
-				log.info("Connected to remote SSH server (node/fuse)");
+				log.info("Connected to remote SSH server");
 			} catch (VerifyFalseException ex) {
 				log.debug("Remaining time: " + (SystemProperty.getStartWaitTime() - elapsed) + " seconds. ");
+				elapsed += step;
+			} catch (SSHClientException e) {
 				elapsed += step;
 			}
 			sleep(timeout);
@@ -204,13 +215,44 @@ public class Executor {
 	}
 
 	/**
+	 * Waits for the defined status of container.
+	 *
+	 * @param c container
+	 * @param status status
+	 */
+	public void waitForProvisionStatus(Container c, String status) {
+		waitForProvisioning(null, c, status);
+	}
+
+	/**
+	 * Waits for the provisioning of a container.
+	 *
+	 * @param containerName container name
+	 */
+	public void waitForProvisioning(String containerName) {
+		waitForProvisioning(containerName, null, "success");
+	}
+
+	/**
 	 * Waits for container provisioning. It may restart the container if the provision status is "requires full restart"
 	 * or if the provision status contains "NoNodeException"
 	 *
-	 * @param containerName container name
-	 * @param nm NodeManager instance if restart is necessary
+	 * @param c Container instance
 	 */
-	public void waitForProvisioning(String containerName, NodeManager nm) {
+	public void waitForProvisioning(Container c) {
+		waitForProvisioning(null, c, "success");
+	}
+
+	/**
+	 * General wait for provisioning method, called by the others. Waits for provisioning of container/container name.
+	 *
+	 * @param containerName container name
+	 * @param c container
+	 * @param status status to wait on
+	 */
+	public void waitForProvisioning(String containerName, Container c, String status) {
+		final String waitFor = c == null ? containerName : c.getName();
+
 		final int step = 3;
 		final long timeout = step * 1000L;
 		final long startTimeout = 10000L;
@@ -225,16 +267,13 @@ public class Executor {
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			if (retries > SystemProperty.getProvisionWaitTime()) {
-				log.error("Container " + containerName + " failed to provision in time");
-				throw new FaframException("Container " + containerName + " failed to provision in time");
-			}
+			handleProvisionWaitTime(retries, waitFor, status);
 
 			String reason = "";
 
 			try {
-				container = client.executeCommand("container-list | grep " + containerName, true);
-				isSuccessful = container.contains("success");
+				container = client.executeCommand("container-list | grep " + waitFor, true);
+				isSuccessful = container.contains(status);
 
 				// Parse the provision status from the container-list output
 				container = container.replaceAll(" +", " ").trim();
@@ -254,9 +293,10 @@ public class Executor {
 			}
 
 			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
-				|| provisionStatus.contains("Client is not started")) && nm != null) {
+					|| provisionStatus.contains("Client is not started")) && c != null) {
+				handleProvisionRetries(waitFor, status);
 				restarted = true;
-				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
+				log.warn("Container requires restart (provision status: " + provisionStatus + ")! Restarting...");
 				break;
 			}
 
@@ -271,20 +311,50 @@ public class Executor {
 		}
 
 		// If the container was restarted during the provisioning, trigger the provisioning again
-		if (restarted) {
-			nm.restart();
-			waitForBoot();
-			waitForProvisioning(containerName);
+		handleRestart(restarted, c);
+
+		provisionRetries = 0;
+	}
+
+	/**
+	 * Handles the maximal provision retries count. If the retries are > 2, fail because probably the container won't provision.
+	 *
+	 * @param container container
+	 * @param status status to wait for
+	 */
+	private void handleProvisionRetries(String container, String status) {
+		if (provisionRetries > 1) {
+			log.error("Container " + container + " did not provision to state \"" + status + "\" after 3 retries");
+			throw new FaframException("Container " + container + " did not provision to state \"" + status + "\" after 3 retries");
 		}
 	}
 
 	/**
-	 * Waits for the successful container provisioning.
+	 * Handles the maximal provision time. If the time is up, fail because probably the container won't provision.
 	 *
-	 * @param containerName container name
+	 * @param elapsed elapsed time
+	 * @param container container
+	 * @param status status to wait for
 	 */
-	public void waitForProvisioning(String containerName) {
-		waitForProvisioning(containerName, null);
+	private void handleProvisionWaitTime(int elapsed, String container, String status) {
+		if (elapsed > SystemProperty.getProvisionWaitTime()) {
+			log.error("Container " + container + " failed to provision to state \"" + status + "\" in time");
+			throw new FaframException("Container " + container + " failed to provision to state \"" + status + "\" in time");
+		}
+	}
+
+	/**
+	 * Handles the restart. If the flag is set, it will restart the container and trigger the provisioning again.
+	 *
+	 * @param restart restart flag
+	 * @param c container
+	 */
+	private void handleRestart(boolean restart, Container c) {
+		if (restart) {
+			c.restart();
+			provisionRetries++;
+			waitForProvisioning(c);
+		}
 	}
 
 	/**
@@ -369,13 +439,20 @@ public class Executor {
 
 	/**
 	 * Gets all the child containers and returns all their names.
-	 *
+	 * <p/>
 	 * TODO(avano): this could be reworked in the future after the changes to deploying
+	 *
 	 * @return list of child container names
 	 */
 	public List<String> listChildContainers() {
 		// I don't want this to be spammed in the log / added to history, therefore I'm using client instead of the executeCommand method
 		final List<String> childs = new ArrayList<>();
+
+		// Do nothing if we don't use .withFabric()
+		if (!SystemProperty.isFabric()) {
+			return childs;
+		}
+
 		try {
 			final String containerListResponse = client.executeCommand("container-list | grep -v root | grep karaf", true);
 

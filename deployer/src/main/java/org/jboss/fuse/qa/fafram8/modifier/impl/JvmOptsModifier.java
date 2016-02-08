@@ -11,6 +11,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 @Slf4j
 @ToString
+@EqualsAndHashCode
 public final class JvmOptsModifier implements Modifier {
 	private String xms = "768M";
 	private String xmx = "1536M";
@@ -29,6 +32,8 @@ public final class JvmOptsModifier implements Modifier {
 	private String maxPermMem = "1536M";
 	@Setter
 	private Executor executor;
+	@Getter
+	private String host;
 
 	/**
 	 * Private constructor.
@@ -94,15 +99,20 @@ public final class JvmOptsModifier implements Modifier {
 		final List<String> lines = Arrays.asList("JAVA_MIN_MEM=" + xms + "\n", "JAVA_MAX_MEM=" + xmx + "\n",
 				"JAVA_PERM_MEM=" + permMem + "\n", "JAVA_MAX_PERM_MEM=" + maxPermMem);
 		try {
-			if (!setenv.exists()) {
-				setenv.createNewFile();
-			}
 			if (!setenvBat.exists()) {
 				setenvBat.createNewFile();
 			}
-			for (String line : lines) {
-				FileUtils.writeStringToFile(setenv, "export " + line, true);
-				FileUtils.writeStringToFile(setenvBat, "SET " + line, true);
+			if (!setenv.exists()) {
+				setenv.createNewFile();
+			}
+			if ((System.getProperty("os.name").startsWith("Windows"))) {
+				for (String line : lines) {
+					FileUtils.writeStringToFile(setenv, "export " + line, true);
+				}
+			} else {
+				for (String line : lines) {
+					FileUtils.writeStringToFile(setenv, "export " + line, true);
+				}
 			}
 		} catch (Exception ex) {
 			log.error("Exception while modifying files: " + ex);
@@ -115,18 +125,18 @@ public final class JvmOptsModifier implements Modifier {
 	 */
 	private void modifyRemoteJvmOpts() {
 		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
-
-		// Remove original files
-		executor.executeCommand("rm -rf " + path);
-		executor.executeCommand("rm -rf " + path + ".bat");
-
-		// Print content into the files
 		String content = String.format("export JAVA_MIN_MEM=%s%nexport JAVA_MAX_MEM=%s%nexport JAVA_PERM_MEM=%s%nexport JAVA_MAX_PERM_MEM=%s",
 				xms, xmx, permMem, maxPermMem);
-		executor.executeCommand("printf \"" + content + "\" >> " + path);
-
-		// Changes to win
-		content = content.replaceAll("export", "SET");
-		executor.executeCommand("printf \"" + content + "\" >> " + path + ".bat");
+		// Remove original files
+		if ((System.getProperty("os.name").startsWith("Windows"))) {
+			executor.executeCommand("rm -rf " + path + ".bat");
+			// Changes to win
+			content = content.replaceAll("export", "SET");
+			executor.executeCommand("printf \"" + content + "\" >> " + path + ".bat");
+		} else {
+			executor.executeCommand("rm -rf " + path);
+			// Print content into the files
+			executor.executeCommand("printf \"" + content + "\" >> " + path);
+		}
 	}
 }

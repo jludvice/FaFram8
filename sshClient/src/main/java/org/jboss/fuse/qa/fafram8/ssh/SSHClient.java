@@ -13,6 +13,7 @@ import com.jcraft.jsch.Session;
 
 import java.io.IOException;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString(of = {"hostname", "port", "username", "password"})
+@EqualsAndHashCode
 public abstract class SSHClient {
 
 	@Getter

@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +24,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
+@EqualsAndHashCode
 public class ArchiveModifier implements Modifier {
 	@Setter
 	private Executor executor;
+	@Getter
+	private String host;
 	private Path archiveTargetPath = Paths.get(SystemProperty.getArchiveTarget()).toAbsolutePath();
 	private String[] archiveFiles = SystemProperty.getArchivePattern().split(" *, " + "*"); //ignore spaces around comma
 

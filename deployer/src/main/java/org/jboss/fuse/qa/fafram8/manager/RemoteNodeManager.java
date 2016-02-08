@@ -2,12 +2,10 @@ package org.jboss.fuse.qa.fafram8.manager;
 
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.io.File;
 
@@ -40,14 +38,12 @@ public class RemoteNodeManager implements NodeManager {
 	/**
 	 * Constructor.
 	 *
-	 * @param nodeClient sshClient to remote host
-	 * @param fuseClient sshClient to fuse on remote host
-	 * @throws SSHClientException if there is some serious problem with ssh
+	 * @param nodeExecutor node executor
+	 * @param fuseExecutor fuse executor
 	 */
-	public RemoteNodeManager(SSHClient nodeClient, SSHClient fuseClient) throws SSHClientException {
-		this.executor = new Executor(nodeClient);
-		this.fuseExecutor = new Executor(fuseClient);
-		executor.connect();
+	public RemoteNodeManager(Executor nodeExecutor, Executor fuseExecutor) {
+		this.executor = nodeExecutor;
+		this.fuseExecutor = fuseExecutor;
 	}
 
 	@Override
@@ -75,15 +71,15 @@ public class RemoteNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void prepareFuse() {
-		ModifierExecutor.executeModifiers(executor);
+	public void prepareFuse(String host) {
+		ModifierExecutor.executeModifiers(host, executor);
 	}
 
 	@Override
 	public void startFuse() {
 		try {
 			// TODO(rjakubco): add changing java before start
-			log.info("Starting fuse");
+			log.info("Starting container");
 			executor.executeCommand(productPath + SEP + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();
 			// TODO(avano): special usecase for remote standalone starting? maybe not necessary
@@ -103,15 +99,22 @@ public class RemoteNodeManager implements NodeManager {
 		ModifierExecutor.clearAllModifiers();
 	}
 
+	@Override
+	public void stop() {
+		log.info("Stopping container");
+		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
+		fuseExecutor.waitForShutdown();
+	}
+
 	/**
 	 * Stops all karaf instances and removes them.
 	 */
 	public void clean() {
 		// todo(rjakubco): create better cleaning mechanism for Fabric on Windows machines
-		log.info("Killing Fuse ");
-		executor.executeCommand("pkill -9 -f karaf");
+		log.info("Killing container");
+		executor.executeCommand("pkill -9 -f karaf.base");
 
-		log.info("Deleting Fafram folder on  " + SystemProperty.getHost());
+		log.info("Deleting Fafram folder on " + executor.getClient().getHostname());
 		executor.executeCommand("rm -rf " + SystemProperty.getFaframFolder());
 	}
 
@@ -136,5 +139,23 @@ public class RemoteNodeManager implements NodeManager {
 		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
 		fuseExecutor.waitForShutdown();
 		startFuse();
+	}
+
+	@Override
+	public void checkRunningContainer() {
+		if (!executor.executeCommand("ps aux | grep karaf.base | grep -v grep").isEmpty()) {
+			log.error("Port 8101 is not free! Other karaf instance may be running. Shutting down...");
+			throw new FaframException("Port 8101 is not free! Other karaf instance may be running.");
+		}
+	}
+
+	@Override
+	public void detectPlatformAndProduct() {
+		// Do nothing
+	}
+
+	@Override
+	public void kill() {
+		executor.executeCommand("pkill -9 -f karaf");
 	}
 }

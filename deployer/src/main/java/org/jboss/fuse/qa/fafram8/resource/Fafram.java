@@ -48,20 +48,13 @@ public class Fafram extends ExternalResource {
 	// Default root container used for .executeCommand() etc.
 	private Container root;
 
+	// Flag if the fafram has already finished the initialization and it's running
+	// Used in .containers method
+	private boolean running = false;
 	/**
 	 * Constructor.
 	 */
 	public Fafram() {
-	}
-
-	/**
-	 * Adds container object model to container list.
-	 *
-	 * @param container container specification picked up from configuration file
-	 */
-	public void addContainer(Container container) {
-		log.info("Adding container " + container.getName() + " to Fafram container list.");
-		ContainerManager.getContainerList().add(container);
 	}
 
 	@Override
@@ -82,11 +75,12 @@ public class Fafram extends ExternalResource {
 	public Fafram setup() {
 		try {
 			initConfiguration();
+			Validator.validate();
 			printLogo();
 			setDefaultModifiers();
 			prepareNodes(provisionProvider);
-			Validator.validate();
 			Deployer.deploy();
+			running = true;
 		} catch (Exception ex) {
 			provisionProvider.releaseResources();
 			Deployer.destroy(true);
@@ -110,60 +104,9 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Returns the first root container. This root is later used in Fafram.executeCommand(), .waitForPatch, etc.
-	 *
-	 * @return root container
-	 */
-	private Container getRoot() {
-		for (Container c : ContainerManager.getContainerList()) {
-			if (c.isRoot()) {
-				return c;
-			}
-		}
-		// This should never happen
-		return null;
-	}
-
-	/**
-	 * Configuration init.
-	 */
-	public void initConfiguration() {
-		if (SystemProperty.getConfigPath() != null) {
-			this.configurationParser = new ConfigurationParser();
-
-			try {
-				configurationParser.parseConfigurationFile(SystemProperty.getConfigPath());
-			} catch (Exception e) {
-				throw new FaframException("XML configuration parsing error.", e);
-			}
-
-			try {
-				configurationParser.buildContainers();
-			} catch (Exception e) {
-				throw new FaframException("Error while building containers from parsed model.", e);
-			}
-		}
-	}
-
-	/**
-	 * Prints the logo. Feel free to change.
-	 */
-	public void printLogo() {
-		log.info("\n  ___       ___                  _____  \n"
-				+ " / __)     / __)                / ___ \\ \n"
-				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
-				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
-				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
-				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
-	}
-
-	/**
 	 * Stop method.
 	 */
 	public void tearDown() {
-		// Do nothing if deployer is null - when the validation fails.
-		//TODO(mmelko): cleanup the containers node .. here is the right place
-
 		try {
 			// There can be a problem with stopping containers
 			Deployer.destroy(false);
@@ -172,26 +115,23 @@ public class Fafram extends ExternalResource {
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
 			ContainerManager.clearAllLists();
+			running = false;
 			throw new FaframException(ex);
 		}
+
+		if (!SystemProperty.isKeepOsResources()) {
+			provisionProvider.releaseResources();
+		}
+
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
 		ContainerManager.clearAllLists();
+		running = false;
 	}
 
 	/**
-	 * Sets the default modifiers common for both local and remote deploy.
+	 * -------------------------------------------- FLUENT METHODS START --------------------------------------------
 	 */
-	private void setDefaultModifiers() {
-		if (!SystemProperty.skipDefaultJvmOpts()) {
-			ModifierExecutor.addModifiers(setDefaultJvmOpts());
-		}
-
-		ModifierExecutor.addPostModifiers(
-				saveCommandHistory(),
-				registerArchiver()
-		);
-	}
 
 	/**
 	 * Adds container to the container list.
@@ -201,27 +141,14 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram containers(Container... containers) {
 		ContainerManager.getContainerList().addAll(new ArrayList<>(Arrays.asList(containers)));
+		if (running) {
+			// == if we are adding the containers in the test method, we need to create them
+			// Validate the containers
+			Validator.validate();
+			// deploy method will create only offline containers
+			Deployer.deploy();
+		}
 		return this;
-	}
-
-	/**
-	 * Executes a command in node shell.
-	 *
-	 * @param command command
-	 * @return command response
-	 */
-	public String executeNodeCommand(String command) {
-		return root.getNode().getExecutor().executeCommand(command);
-	}
-
-	/**
-	 * Executes a command in root container.
-	 *
-	 * @param command command to execute on root container
-	 * @return command response
-	 */
-	public String executeCommand(String command) {
-		return root.executeCommand(command);
 	}
 
 	/**
@@ -365,59 +292,6 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Gets the full product path.
-	 *
-	 * @return product path
-	 */
-	public String getProductPath() {
-		return SystemProperty.getFusePath();
-	}
-
-	/**
-	 * Waits for the container to provision.
-	 *
-	 * @param containerName container name
-	 */
-	public void waitForProvisioning(String containerName) {
-		root.getExecutor().waitForProvisioning(containerName);
-	}
-
-	/**
-	 * Waits until the defined standalone patch status.
-	 *
-	 * @param patchName patch name
-	 * @param status patch status (true/false)
-	 */
-	public void waitForPatch(String patchName, boolean status) {
-		root.getExecutor().waitForPatchStatus(patchName, status);
-	}
-
-	/**
-	 * Restarts the container.
-	 */
-	public void restart() {
-		root.restart();
-	}
-
-	/**
-	 * Triggers specified provision provider. It will call providers functionality to provision pool of nodes required
-	 * to satisfy needs of test deployment. Provider will create node for every container listed in Fafram
-	 * .containerList.
-	 * When the container is marked as root provider will assign public IP to it. Otherwise local IP will be provided.
-	 * Provider have to implement ProvisionProvider interface.
-	 *
-	 * @param provider provider type name
-	 */
-	public void prepareNodes(ProvisionProvider provider) {
-		provider.createServerPool(ContainerManager.getContainerList());
-		provider.assignAddresses(ContainerManager.getContainerList());
-
-		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
-		// environment
-		//				provider.loadIPTables(ContainerManager.getContainerList());
-	}
-
-	/**
 	 * Set ProvisionProvider implementation to Fafram.
 	 *
 	 * @param provider Implementation of ProvisionProvider interface
@@ -517,30 +391,6 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Return container according specified container name.
-	 *
-	 * @param containerName name of container
-	 * @return Container object or null when not found.
-	 */
-	public Container getContainer(String containerName) {
-		for (Container c : ContainerManager.getContainerList()) {
-			if (c.getName().equals(containerName)) {
-				return c;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Gets the container list.
-	 *
-	 * @return container list
-	 */
-	public List<Container> getContainerList() {
-		return ContainerManager.getContainerList();
-	}
-
-	/**
 	 * Turns environment to offline mode. For this purpose the "iptables-no-internet" configuration file is used which
 	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
 	 * specified in FaFram.
@@ -595,5 +445,170 @@ public class Fafram extends ExternalResource {
 	public Fafram command(String... commands) {
 		ContainerManager.getCommands().addAll(Arrays.asList(commands));
 		return this;
+	}
+
+	/**
+	 * -------------------------------------------- FLUENT METHODS END --------------------------------------------
+	 */
+
+	/**
+	 * Returns the first root container. This root is later used in Fafram.executeCommand(), .waitForPatch, etc.
+	 *
+	 * @return root container
+	 */
+	private Container getRoot() {
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c.isRoot()) {
+				return c;
+			}
+		}
+		// This should never happen
+		return null;
+	}
+
+	/**
+	 * Configuration init.
+	 */
+	public void initConfiguration() {
+		if (SystemProperty.getConfigPath() != null) {
+			this.configurationParser = new ConfigurationParser();
+
+			try {
+				configurationParser.parseConfigurationFile(SystemProperty.getConfigPath());
+			} catch (Exception e) {
+				throw new FaframException("XML configuration parsing error.", e);
+			}
+
+			try {
+				configurationParser.buildContainers();
+			} catch (Exception e) {
+				throw new FaframException("Error while building containers from parsed model.", e);
+			}
+		}
+	}
+
+	/**
+	 * Prints the logo.
+	 */
+	private void printLogo() {
+		log.info("\n  ___       ___                  _____  \n"
+				+ " / __)     / __)                / ___ \\ \n"
+				+ "| |__ ____| |__ ____ ____ ____ ( (   ) )\n"
+				+ "|  __) _  |  __) ___) _  |    \\ > > < < \n"
+				+ "| | ( ( | | | | |  ( ( | | | | ( (___) )\n"
+				+ "|_|  \\_||_|_| |_|   \\_||_|_|_|_|\\_____/ \n\n");
+	}
+
+	/**
+	 * Sets the default modifiers common for both local and remote deploy.
+	 */
+	private void setDefaultModifiers() {
+		if (!SystemProperty.skipDefaultJvmOpts()) {
+			ModifierExecutor.addModifiers(setDefaultJvmOpts());
+		}
+
+		ModifierExecutor.addPostModifiers(
+				saveCommandHistory(),
+				registerArchiver()
+		);
+	}
+
+	/**
+	 * Executes a command in node shell.
+	 *
+	 * @param command command
+	 * @return command response
+	 */
+	public String executeNodeCommand(String command) {
+		return root.getNode().getExecutor().executeCommand(command);
+	}
+
+	/**
+	 * Executes a command in root container.
+	 *
+	 * @param command command to execute on root container
+	 * @return command response
+	 */
+	public String executeCommand(String command) {
+		return root.executeCommand(command);
+	}
+
+	/**
+	 * Gets the full product path.
+	 *
+	 * @return product path
+	 */
+	public String getProductPath() {
+		return SystemProperty.getFusePath();
+	}
+
+	/**
+	 * Waits for the container to provision.
+	 *
+	 * @param containerName container name
+	 */
+	public void waitForProvisioning(String containerName) {
+		root.getExecutor().waitForProvisioning(containerName);
+	}
+
+	/**
+	 * Waits until the defined standalone patch status.
+	 *
+	 * @param patchName patch name
+	 * @param status patch status (true/false)
+	 */
+	public void waitForPatch(String patchName, boolean status) {
+		root.getExecutor().waitForPatchStatus(patchName, status);
+	}
+
+	/**
+	 * Restarts the container.
+	 */
+	public void restart() {
+		root.restart();
+	}
+
+	/**
+	 * Triggers specified provision provider. It will call providers functionality to provision pool of nodes required
+	 * to satisfy needs of test deployment. Provider will create node for every container listed in Fafram
+	 * .containerList.
+	 * When the container is marked as root provider will assign public IP to it. Otherwise local IP will be provided.
+	 * Provider have to implement ProvisionProvider interface.
+	 *
+	 * @param provider provider type name
+	 */
+	public void prepareNodes(ProvisionProvider provider) {
+		// Check if there are nodes with the defined names
+		provider.checkNodes(ContainerManager.getContainerList());
+		provider.createServerPool(ContainerManager.getContainerList());
+		provider.assignAddresses(ContainerManager.getContainerList());
+
+		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
+		// environment
+		//				provider.loadIPTables(ContainerManager.getContainerList());
+	}
+
+	/**
+	 * Return container according specified container name.
+	 *
+	 * @param containerName name of container
+	 * @return Container object or null when not found.
+	 */
+	public Container getContainer(String containerName) {
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c.getName().equals(containerName)) {
+				return c;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the container list.
+	 *
+	 * @return container list
+	 */
+	public List<Container> getContainerList() {
+		return ContainerManager.getContainerList();
 	}
 }

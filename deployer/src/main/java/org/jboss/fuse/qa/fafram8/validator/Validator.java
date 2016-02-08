@@ -63,12 +63,14 @@ public final class Validator {
 	 * @param c root container
 	 */
 	private static void validateRootContainer(Container c) {
-		if ("".equals(c.getName())) {
-			throw new ValidatorException("Root name can't be empty!");
-		}
-
 		if (c.getNode() == null) {
 			throw new ValidatorException("Root container (" + c.getName() + ") node is null!");
+		}
+
+		validateZip(c.getNode().getHost());
+
+		if ("".equals(c.getName())) {
+			throw new ValidatorException("Root name can't be empty!");
 		}
 
 		if (c.getNode().getHost() == null || c.getNode().getPort() == 0 || c.getNode().getUsername() == null
@@ -147,10 +149,9 @@ public final class Validator {
 	 */
 	private static void validateDefaultContainer() {
 		if ("localhost".equals(SystemProperty.getHost())) {
-			validateZip();
+			validateZip(SystemProperty.getHost());
 			validatePatch();
 		} else {
-			validateZip();
 			validateHost();
 		}
 	}
@@ -158,20 +159,20 @@ public final class Validator {
 	/**
 	 * Validates zip property.
 	 */
-	private static void validateZip() {
-		validateNonNullZip();
-		validateNullZip();
+	private static void validateZip(String host) {
+		validateNonNullZip(host);
+		validateNullZip(host);
 	}
 
 	/**
 	 * Validates null zip.
 	 */
-	private static void validateNullZip() {
+	private static void validateNullZip(String host) {
 		final String zipFile = SystemProperty.getFuseZip();
 
 		// Validator is called after the machine is provisioned, so the host property should be set
 		// If we are on remote but not specifying zip
-		if (!"localhost".equals(SystemProperty.getHost()) && zipFile == null) {
+		if (!"localhost".equals(host) && zipFile == null) {
 			throw new ValidatorException(FaframConstant.FUSE_ZIP + " property is not set on remote!");
 		}
 
@@ -185,14 +186,14 @@ public final class Validator {
 	/**
 	 * Validates non null zip.
 	 */
-	private static void validateNonNullZip() {
+	private static void validateNonNullZip(String host) {
 		final String zipFile = SystemProperty.getFuseZip();
 		if ("".equals(zipFile)) {
 			throw new ValidatorException(FaframConstant.FUSE_ZIP + " property is empty!");
 		}
 
 		// If we are on localhost and using custom zip
-		if ("localhost".equals(SystemProperty.getHost()) && (zipFile != null && zipFile.startsWith("file")) && !SystemProperty.getProvider()
+		if ("localhost".equals(host) && (zipFile != null && zipFile.startsWith("file")) && !SystemProperty.getProvider()
 				.contains("OpenStack")) {
 			if (!new File(StringUtils.substringAfter(zipFile, "file://")).exists()) {
 				throw new ValidatorException(String.format("Specified file (%s) does not exist!", zipFile));

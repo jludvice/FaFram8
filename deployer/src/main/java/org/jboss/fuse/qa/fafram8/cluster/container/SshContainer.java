@@ -1,9 +1,10 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
@@ -203,7 +204,18 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder profiles(String... profiles) {
-			container.setProfiles(Arrays.asList(profiles));
+			container.getProfiles().addAll(Arrays.asList(profiles));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param commands commands array
+		 * @return this
+		 */
+		public SshBuilder commands(String... commands) {
+			container.getCommands().addAll(Arrays.asList(commands));
 			return this;
 		}
 
@@ -219,9 +231,17 @@ public class SshContainer extends Container {
 					.password(container.getPassword())
 					.parent(container.getParent())
 					.parentName(container.getParentName())
-					.node(container.getNode())
-					.executor(null)
-					.profiles(container.getProfiles());
+					// We need to create a new instance of the node for the cloning case, otherwise all clones
+					// would have the same object instance
+					.node(Node.builder()
+							.host(container.getNode().getHost())
+							.port(container.getNode().getPort())
+							.username(container.getNode().getUsername())
+							.password(container.getNode().getPassword())
+							.build())
+					// Same as node
+					.commands(new ArrayList<>(container.getCommands()))
+					.profiles(new ArrayList<>(container.getProfiles()));
 		}
 	}
 }

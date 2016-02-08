@@ -1,7 +1,8 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
@@ -26,11 +27,11 @@ public abstract class Container {
 
 	@Getter
 	@Setter
-	private String user;
+	private String user = SystemProperty.getFuseUser();
 
 	@Getter
 	@Setter
-	private String password;
+	private String password = SystemProperty.getFusePassword();
 
 	@Getter
 	@Setter
@@ -69,6 +70,10 @@ public abstract class Container {
 	@Getter
 	@Setter
 	private List<String> profiles = new ArrayList<>();
+
+	@Getter
+	@Setter
+	private String fabricCreateArguments = "";
 
 	/**
 	 * Creates a container.
@@ -163,17 +168,6 @@ public abstract class Container {
 	 */
 	public Container node(Node node) {
 		this.node = node;
-		return this;
-	}
-
-	/**
-	 * Setter.
-	 *
-	 * @param executor container executor
-	 * @return this
-	 */
-	public Container executor(Executor executor) {
-		this.executor = executor;
 		return this;
 	}
 

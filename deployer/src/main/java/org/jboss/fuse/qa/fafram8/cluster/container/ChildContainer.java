@@ -167,7 +167,18 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder profiles(String... profiles) {
-			container.setProfiles(Arrays.asList(profiles));
+			container.getProfiles().addAll(Arrays.asList(profiles));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param commands commands array
+		 * @return this
+		 */
+		public ChildBuilder commands(String... commands) {
+			container.getCommands().addAll(Arrays.asList(commands));
 			return this;
 		}
 
@@ -184,8 +195,8 @@ public class ChildContainer extends Container {
 					.parent(null)
 					.parentName(container.getParentName())
 					.profiles(container.getProfiles())
-					.node(null)
-					.executor(null);
+					.commands(container.getCommands())
+					.node(null);
 		}
 	}
 }

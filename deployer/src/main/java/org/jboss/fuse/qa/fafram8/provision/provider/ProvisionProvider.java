@@ -44,4 +44,10 @@ public interface ProvisionProvider {
 	 * @param containerList list of containers
 	 */
 	void loadIPTables(List<Container> containerList);
+
+	/**
+	 * Checks if there are already nodes with the same name defined (for Openstack only).
+	 * @param containerList container list
+	 */
+	void checkNodes(List<Container> containerList);
 }

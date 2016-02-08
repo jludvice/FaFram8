@@ -461,8 +461,8 @@ public class SystemProperty {
 	 * @return openstack wait time
 	 */
 	public static boolean isKeepContainers() {
-		return System.getProperty(FaframConstant.KEEP_CONTAINERS) == null ?
-				false : Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
+		return System.getProperty(FaframConstant.KEEP_CONTAINERS) == null
+				? false : Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
 	}
 
 	/**

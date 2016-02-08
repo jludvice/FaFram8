@@ -5,7 +5,7 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +34,8 @@ public class ModifierExecutor {
 	public static ModifierExecutor getInstance() {
 		if (instance == null) {
 			instance = new ModifierExecutor();
-			modifiers = new HashSet<>();
-			postModifiers = new HashSet<>();
+			modifiers = new LinkedHashSet<>();
+			postModifiers = new LinkedHashSet<>();
 		}
 
 		return instance;
@@ -140,6 +140,9 @@ public class ModifierExecutor {
 	 * Clears the modifiers.
 	 */
 	public static void clearAllModifiers() {
+		// Force the initialization
+		getInstance();
+
 		// Clear all the modifiers at the end so that they will not stay here when executing multiple tests
 		modifiers.clear();
 		postModifiers.clear();

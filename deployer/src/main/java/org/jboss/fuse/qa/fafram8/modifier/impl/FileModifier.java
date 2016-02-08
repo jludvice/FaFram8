@@ -10,6 +10,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
+@EqualsAndHashCode(exclude = {"executor"})
 public final class FileModifier implements Modifier {
 	private String fileToReplace;
 	private String fileToUse;

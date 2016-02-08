@@ -21,6 +21,9 @@ public class ServerInvokerPool {
 	// Number of threads
 	private static final int POOL_SIZE = 5;
 
+	// Log wait time
+	private static final int LOG_WAIT_TIME = 5;
+
 	/**
 	 * Calling this method will spawn thread workers to create OpenStack nodes in parallel.
 	 *
@@ -38,7 +41,7 @@ public class ServerInvokerPool {
 		executor.shutdown();
 		log.info("Waiting for ServerInvoker threads to finish a job.");
 		try {
-			while (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
+			while (!executor.awaitTermination(LOG_WAIT_TIME, TimeUnit.SECONDS)) {
 				log.debug("Waiting for ServerInvoker threads to finish a job.");
 			}
 		} catch (InterruptedException ie) {

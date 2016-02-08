@@ -100,7 +100,7 @@ public class Executor {
 			try {
 				client.connect(true);
 				connected = true;
-				log.info("Connected to remote SSH server (node/fuse)");
+				log.info("Connected to remote SSH server");
 			} catch (VerifyFalseException ex) {
 				log.debug("Remaining time: " + (SystemProperty.getStartWaitTime() - elapsed) + " seconds. ");
 				elapsed += step;
@@ -248,14 +248,10 @@ public class Executor {
 	 *
 	 * @param containerName container name
 	 * @param c container
+	 * @param status status to wait on
 	 */
 	public void waitForProvisioning(String containerName, Container c, String status) {
 		final String waitFor = c == null ? containerName : c.getName();
-
-		if (provisionRetries > 2) {
-			log.error("Container " + waitFor + " did not provision to state \"" + status + "\" after 3 retries");
-			throw new FaframException("Container " + waitFor + " did not provision to state \"" + status + "\" after 3 retries");
-		}
 
 		final int step = 3;
 		final long timeout = step * 1000L;
@@ -271,10 +267,7 @@ public class Executor {
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			if (retries > SystemProperty.getProvisionWaitTime()) {
-				log.error("Container " + waitFor + " failed to provision to state \"" + status + "\" in time");
-				throw new FaframException("Container " + waitFor + " failed to provision to state \"" + status + "\" in time");
-			}
+			handleProvisionWaitTime(retries, waitFor, status);
 
 			String reason = "";
 
@@ -301,8 +294,9 @@ public class Executor {
 
 			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
 					|| provisionStatus.contains("Client is not started")) && c != null) {
+				handleProvisionRetries(waitFor, status);
 				restarted = true;
-				log.info("Container requires restart (provision status: " + provisionStatus + ")! Restarting ...");
+				log.warn("Container requires restart (provision status: " + provisionStatus + ")! Restarting...");
 				break;
 			}
 
@@ -317,13 +311,50 @@ public class Executor {
 		}
 
 		// If the container was restarted during the provisioning, trigger the provisioning again
-		if (restarted) {
+		handleRestart(restarted, c);
+
+		provisionRetries = 0;
+	}
+
+	/**
+	 * Handles the maximal provision retries count. If the retries are > 2, fail because probably the container won't provision.
+	 *
+	 * @param container container
+	 * @param status status to wait for
+	 */
+	private void handleProvisionRetries(String container, String status) {
+		if (provisionRetries > 1) {
+			log.error("Container " + container + " did not provision to state \"" + status + "\" after 3 retries");
+			throw new FaframException("Container " + container + " did not provision to state \"" + status + "\" after 3 retries");
+		}
+	}
+
+	/**
+	 * Handles the maximal provision time. If the time is up, fail because probably the container won't provision.
+	 *
+	 * @param elapsed elapsed time
+	 * @param container container
+	 * @param status status to wait for
+	 */
+	private void handleProvisionWaitTime(int elapsed, String container, String status) {
+		if (elapsed > SystemProperty.getProvisionWaitTime()) {
+			log.error("Container " + container + " failed to provision to state \"" + status + "\" in time");
+			throw new FaframException("Container " + container + " failed to provision to state \"" + status + "\" in time");
+		}
+	}
+
+	/**
+	 * Handles the restart. If the flag is set, it will restart the container and trigger the provisioning again.
+	 *
+	 * @param restart restart flag
+	 * @param c container
+	 */
+	private void handleRestart(boolean restart, Container c) {
+		if (restart) {
 			c.restart();
 			provisionRetries++;
 			waitForProvisioning(c);
 		}
-
-		provisionRetries = 0;
 	}
 
 	/**
@@ -416,6 +447,12 @@ public class Executor {
 	public List<String> listChildContainers() {
 		// I don't want this to be spammed in the log / added to history, therefore I'm using client instead of the executeCommand method
 		final List<String> childs = new ArrayList<>();
+
+		// Do nothing if we don't use .withFabric()
+		if (!SystemProperty.isFabric()) {
+			return childs;
+		}
+
 		try {
 			final String containerListResponse = client.executeCommand("container-list | grep -v root | grep karaf", true);
 

@@ -31,13 +31,14 @@ public final class Deployer {
 		if (ContainerManager.getContainerList().isEmpty()) {
 			final Container c = RootContainer.builder().defaultRoot().build();
 			log.info("Creating default root container");
-			log.debug("" + c);
 			ContainerManager.getContainerList().add(c);
 		}
 
 		for (Container c : ContainerManager.getContainerList()) {
-			log.info("Creating container " + c);
-			c.create();
+			if (!c.isOnline()) {
+				log.info("Creating container " + c);
+				c.create();
+			}
 		}
 	}
 

@@ -1,10 +1,10 @@
 package org.jboss.fuse.qa.fafram8.configuration;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.cluster.xml.ClusterModel;
 import org.jboss.fuse.qa.fafram8.cluster.xml.ContainerModel;
 import org.jboss.fuse.qa.fafram8.cluster.xml.FrameworkConfigurationModel;

@@ -1,6 +1,6 @@
 package org.jboss.fuse.qa.fafram8.test.common;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
@@ -19,7 +19,7 @@ public class ContainerValidatorTest {
 	@Test(expected = ValidatorException.class)
 	public void rootNoNodeTest() {
 		fafram = new Fafram();
-		fafram.containers(RootContainer.builder().name("noName").build());
+		fafram.containers(RootContainer.builder().name("noNode").build());
 		fafram.setup();
 	}
 

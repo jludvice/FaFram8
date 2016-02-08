@@ -1,4 +1,4 @@
-package org.jboss.fuse.qa.fafram8.cluster.brokers;
+package org.jboss.fuse.qa.fafram8.cluster.broker;
 
 import org.apache.commons.lang3.tuple.Pair;
 

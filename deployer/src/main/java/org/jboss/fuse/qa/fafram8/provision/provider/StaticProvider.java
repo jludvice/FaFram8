@@ -34,9 +34,9 @@ public class StaticProvider implements ProvisionProvider {
 		log.info("Assuming static test infrastructure. Dynamic server provision is skipped.");
 		if (SystemProperty.isClean()) {
 			log.info("Cleaning resources");
-			for (Container c : containerList) {
+//			for (Container c : containerList) {
 				//TODO(mmelko): Finish containers cleaning.
-			}
+//			}
 		}
 	}
 
@@ -113,5 +113,10 @@ public class StaticProvider implements ProvisionProvider {
 				throw new OfflineEnvironmentException(e);
 			}
 		}
+	}
+
+	@Override
+	public void checkNodes(List<Container> containerList) {
+		// Do nothing
 	}
 }

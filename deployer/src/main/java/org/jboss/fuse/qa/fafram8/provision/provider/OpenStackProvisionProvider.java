@@ -2,11 +2,12 @@ package org.jboss.fuse.qa.fafram8.provision.provider;
 
 import org.apache.commons.lang3.StringUtils;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.exception.InstanceAlreadyExistsException;
 import org.jboss.fuse.qa.fafram8.exception.NoIPAddressException;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
@@ -26,6 +27,7 @@ import org.openstack4j.model.compute.ServerCreate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -98,7 +100,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 *
 	 * @param serverName name of the new node
 	 */
-	//TODO(ecervena): Make getExternalProperty reading SystemProperty first. issue #49
 	public void spawnNewServer(String serverName) {
 		log.info("Spawning new server: "
 				+ SystemProperty.getOpenstackServerNamePrefix()
@@ -133,34 +134,46 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * @param serverName name of the node
 	 * @return Server representation of openstack node object
 	 */
-	//TODO(ecervena): resolve BUG
 	public Server getServerByName(String serverName) {
+		final List<Server> equalsList = getServers(serverName);
+		if (equalsList.size() != 1) {
+			for (Object obj : equalsList) {
+				log.error("Server with not unique name detected: ", obj.toString());
+			}
+			throw new UniqueServerNameException(
+					"Server name is not unique. More than 1 (" + equalsList.size() + ") server with specified name: " + serverName + " detected");
+		} else {
+			return equalsList.get(0);
+		}
+	}
+
+	/**
+	 * Gets the count of the servers with name (prefix + "name"). Used to check if there are already some servers with defined name.
+	 *
+	 * @param name container name
+	 * @return list of servers with given name
+	 */
+	public List<Server> getServers(String name) {
 		final Map<String, String> filter = new HashMap<>();
-		filter.put("name", serverName);
+		if (!name.startsWith(SystemProperty.getOpenstackServerNamePrefix())) {
+			name = SystemProperty.getOpenstackServerNamePrefix() + "-" + name;
+		}
+
+		filter.put("name", name);
+
 		final List<? extends Server> serverList = os
 				.compute()
 				.servers()
 				.list(filter);
-		//BUG: os.list(filter) is implemented with .contains(paramValue) insted of .equals(paramValue)
-		//So when filtering name field e.g. "fafram-ecervena-1" all servers "fafram-ecervena-1*" is returned
-		//Therefor iteration and equality check is needed.
-		/*List<Server> equalsList =  new LinkedList<>();
-		for (Server server: serverList) {
-			System.out.println(serverName);
-			System.out.println(server.getName());
-			if (serverName.equals(server.getName())) {
+		final List<Server> equalsList = new ArrayList<>();
+
+		for (Server server : serverList) {
+			if (name.equals(server.getName())) {
 				equalsList.add(server);
 			}
-		}*/
-		if (serverList.size() != 1) {
-			for (Object obj : serverList) {
-				log.error("Server with not unique name detected: ", obj.toString());
-			}
-			throw new UniqueServerNameException(
-					"Server name is not unique. More than 1 (" + serverList.size() + ") server with specified name: " + serverName + " detected");
-		} else {
-			return serverList.get(0);
 		}
+
+		return equalsList;
 	}
 
 	/**
@@ -196,7 +209,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
 				container.getNode().setHost(ip);
 				container.getNode().setExecutor(container.getNode().createExecutor());
-				container.setExecutor(container.createExecutor());
 				removeServerFromPool(server);
 			} else {
 				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
@@ -337,6 +349,16 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			} catch (Exception e) {
 				throw new FaframException("There was problem setting iptables on node: "
 						+ c.getNode().getHost(), e);
+			}
+		}
+	}
+
+	@Override
+	public void checkNodes(List<Container> containerList) {
+		for (Container c : containerList) {
+			if (getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
+				throw new InstanceAlreadyExistsException("Instance " + SystemProperty.getOpenstackServerNamePrefix()
+						+ "-" + c.getName() + " already exists!");
 			}
 		}
 	}

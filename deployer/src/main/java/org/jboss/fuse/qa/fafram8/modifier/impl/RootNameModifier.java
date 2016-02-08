@@ -33,18 +33,20 @@ public final class RootNameModifier implements Modifier {
 	/**
 	 * Private constructor.
 	 */
-	private RootNameModifier(Container container) {
+	private RootNameModifier(Container container, String host) {
 		this.container = container;
+		this.host = host;
 	}
 
 	/**
 	 * Factory method.
 	 *
 	 * @param container container to execute on
+	 * @param host current host when the modifier is executed
 	 * @return random modifier instance
 	 */
-	public static RootNameModifier setRootName(Container container) {
-		return new RootNameModifier(container);
+	public static RootNameModifier setRootName(Container container, String host) {
+		return new RootNameModifier(container, host);
 	}
 
 	@Override

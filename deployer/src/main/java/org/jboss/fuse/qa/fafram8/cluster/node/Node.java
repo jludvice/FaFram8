@@ -1,6 +1,7 @@
-package org.jboss.fuse.qa.fafram8.cluster;
+package org.jboss.fuse.qa.fafram8.cluster.node;
 
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
@@ -32,15 +33,15 @@ public class Node {
 
 	@Getter
 	@Setter
-	private int port;
+	private int port = SystemProperty.getHostPort();
 
 	@Getter
 	@Setter
-	private String username;
+	private String username = SystemProperty.getHostUser();
 
 	@Getter
 	@Setter
-	private String password;
+	private String password = SystemProperty.getHostPassword();
 
 	@Getter
 	@Setter

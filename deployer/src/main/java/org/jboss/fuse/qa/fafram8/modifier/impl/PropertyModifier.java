@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode(of = {"filePath", "key"})
+@EqualsAndHashCode(exclude = {"executor"})
 public final class PropertyModifier implements Modifier {
 	private String filePath;
 	private String key;
@@ -127,8 +127,8 @@ public final class PropertyModifier implements Modifier {
 		}
 		// load property file if it exists
 		if (Files.exists(path)) {
-			try (InputStream ignored = Files.newInputStream(path)) {
-				p.load(Files.newInputStream(path));
+			try (InputStream is = Files.newInputStream(path)) {
+				p.load(is);
 			} catch (IOException e) {
 				log.error("Can't load property file {}.", filePath, e);
 				throw new FaframException("Can't load property file " + filePath + ".", e);

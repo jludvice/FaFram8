@@ -129,14 +129,15 @@ public class ContainerManager {
 	 * Sets up fabric on specified container.
 	 *
 	 * @param c container
+	 * @param fabricString fabric create arguments
 	 */
-	public static void setupFabric(Container c) {
-		c.executeCommand("fabric:create " + SystemProperty.getFabric());
+	public static void setupFabric(Container c, String fabricString) {
+		c.executeCommand("fabric:create" + (fabricString.startsWith(" ") ? "" : " ") + fabricString);
 		try {
 			c.getExecutor().waitForProvisioning(c);
 		} catch (FaframException ex) {
 			// Container is not provisioned in time
-			throw new FaframException("Container " + c.getName() + "did not provision in time");
+			throw new FaframException("Container " + c.getName() + " did not provision in time");
 		}
 		uploadBundles(c);
 		executeStartupCommands(c);

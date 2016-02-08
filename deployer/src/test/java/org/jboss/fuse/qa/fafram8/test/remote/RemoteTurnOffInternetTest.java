@@ -2,22 +2,16 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 
 import static org.junit.Assert.assertTrue;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
-import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
-import org.jboss.fuse.qa.fafram8.resource.Fafram;
-import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 
 /**

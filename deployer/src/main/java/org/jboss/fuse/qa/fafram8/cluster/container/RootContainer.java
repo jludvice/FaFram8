@@ -5,16 +5,16 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProper
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RandomModifier.changeRandomSource;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootName;
 
-import org.jboss.fuse.qa.fafram8.cluster.Node;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import lombok.extern.slf4j.Slf4j;
@@ -75,7 +75,7 @@ public class RootContainer extends Container {
 		} else {
 			// Connect the node executor
 			super.getNode().getExecutor().connect();
-			nodeManager = new RemoteNodeManager(getNode().getExecutor(), getExecutor());
+			nodeManager = new RemoteNodeManager(super.getNode().getExecutor(), super.getExecutor());
 		}
 
 		// Add the modifiers
@@ -87,7 +87,7 @@ public class RootContainer extends Container {
 
 		ModifierExecutor.addModifiers(
 				setExecutable("bin/karaf", "bin/start", "bin/stop"),
-				setRootName(this),
+				setRootName(this, super.getNode().getHost()),
 				changeRandomSource()
 		);
 
@@ -105,16 +105,15 @@ public class RootContainer extends Container {
 				nodeManager.startFuse();
 				ContainerManager.patchStandaloneBeforeFabric(this);
 				if (SystemProperty.isFabric()) {
+					// Construct the fabric create arguments from fabric property and profiles
+					final String fabricString = SystemProperty.getFabric();
 					String profilesString = "";
 
 					for (String profile : super.getProfiles()) {
 						profilesString += " --profile " + profile;
 					}
 
-					// Add the profiles to the fabric command
-					SystemProperty.forceSet(FaframConstant.FABRIC, SystemProperty.getFabric() + profilesString);
-
-					ContainerManager.setupFabric(this);
+					ContainerManager.setupFabric(this, fabricString + profilesString);
 				}
 				ContainerManager.patchFuse(this);
 				super.setOnline(true);
@@ -235,7 +234,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder commands(String... commands) {
-			container.setCommands(Arrays.asList(commands));
+			container.getCommands().addAll(Arrays.asList(commands));
 			return this;
 		}
 
@@ -246,7 +245,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder bundles(String... bundles) {
-			container.setBundles(Arrays.asList(bundles));
+			container.getBundles().addAll(Arrays.asList(bundles));
 			return this;
 		}
 
@@ -257,7 +256,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder profiles(String... profiles) {
-			container.setProfiles(Arrays.asList(profiles));
+			container.getProfiles().addAll(Arrays.asList(profiles));
 			return this;
 		}
 
@@ -287,18 +286,30 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
+			Node node = null;
+			if (container.getNode() != null) {
+				node = Node.builder()
+						.host(container.getNode().getHost())
+						.port(container.getNode().getPort())
+						.username(container.getNode().getUsername())
+						.password(container.getNode().getPassword())
+						.build();
+			}
+			// fuse executor is set when the container is being created
 			return new RootContainer()
 					.name(container.getName())
 					.user(container.getUser())
 					.password(container.getPassword())
-					.executor(null) // fuse executor is set when the container is being created
 					.root(true)
-					.node(container.getNode())
+					// We need to create a new instance of the node for the cloning case, otherwise all clones
+					// would have the same object instance
+					.node(node)
 					.parent(null)
 					.parentName(null)
-					.commands(container.getCommands())
-					.bundles(container.getBundles())
-					.profiles(container.getProfiles());
+					// The same as node
+					.commands(new ArrayList<>(container.getCommands()))
+					.bundles(new ArrayList<>(container.getBundles()))
+					.profiles(new ArrayList<>(container.getProfiles()));
 		}
 	}
 }

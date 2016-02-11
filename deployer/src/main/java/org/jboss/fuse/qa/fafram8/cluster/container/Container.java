@@ -120,7 +120,7 @@ public abstract class Container {
 	 */
 	public Executor createExecutor() {
 		final SSHClient fuseClient = new FuseSSHClient()
-				.hostname(this.getNode().getHost())
+				.host(this.getNode().getHost())
 				.fuseSSHPort()
 				.username(this.getUser())
 				.password(this.getPassword());

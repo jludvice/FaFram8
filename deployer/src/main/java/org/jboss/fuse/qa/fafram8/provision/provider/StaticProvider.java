@@ -24,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class StaticProvider implements ProvisionProvider {
+
+	private static final String SAVED_IPTABLES = "ipTablesSaved";
+
 	/**
 	 * Does nothing.
 	 *
@@ -35,7 +38,7 @@ public class StaticProvider implements ProvisionProvider {
 		if (SystemProperty.isClean()) {
 			log.info("Cleaning resources");
 //			for (Container c : containerList) {
-				//TODO(mmelko): Finish containers cleaning.
+			//TODO(mmelko): Finish containers cleaning.
 //			}
 		}
 	}
@@ -57,10 +60,11 @@ public class StaticProvider implements ProvisionProvider {
 	}
 
 	/**
-	 * //TODO(rjakubco): Create and think on how to clean and return iptables back to normal
-	 * This is experimental method for StaticProvider. It should work but after test or failure in setup environment there
-	 * is no cleaning method for now for restoring iptables back to default. This will be added late because there is serious
-	 * need for refactor.
+	 * This is experimental method for StaticProvider. It saves default iptables configuration to special file before
+	 * executing specified custom iptables configuration. Iptables are restored back to default after the test or if there
+	 * was a exception in FaFram setup.
+	 * <p/>
+	 * USE ONLY ON YOUR OWN RISK!!!
 	 *
 	 * @param containerList list of containers
 	 */
@@ -75,18 +79,19 @@ public class StaticProvider implements ProvisionProvider {
 		log.info("Loading iptables configuration files.");
 		SSHClient sshClient;
 		Executor executor;
+		String remoteFilePath = "";
 
 		for (Container c : containerList) {
 			if (c instanceof ChildContainer) {
-				//				 If the child container is child then skip. The file will be copied and executed for all ssh containers
-				//				 and root. It doesn't make sense to do also for child containers.
+				//If the child container is child then skip. The file will be copied and executed for all ssh containers
+				//and root. It doesn't make sense to do also for child containers.
 				continue;
 			}
 
-			sshClient = new NodeSSHClient().defaultSSHPort().hostname(c.getNode().getHost())
+			sshClient = new NodeSSHClient().defaultSSHPort().host(c.getNode().getHost())
 					.username(c.getNode().getUsername()).password(c.getNode().getPassword());
 			executor = new Executor(sshClient);
-			log.debug("Loading on iptables on node: " + executor);
+			log.debug("Loading iptables on node {}.", executor);
 			try {
 				executor.connect();
 
@@ -94,7 +99,7 @@ public class StaticProvider implements ProvisionProvider {
 						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
 
 				// Path to copied iptables file on remote nodes
-				final String remoteFilePath =
+				remoteFilePath =
 						directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
 
 				// Copy iptables configuration file from local to all remote nodes
@@ -107,16 +112,65 @@ public class StaticProvider implements ProvisionProvider {
 							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
 							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));
 				}
+				log.debug("Saving default iptables configuration on node {}.", executor);
+				executor.executeCommand("sudo iptables-save > " + SAVED_IPTABLES);
 
 				executor.executeCommand("sudo iptables-restore " + SystemProperty.getIptablesConfFilePath());
+				log.debug("Iptables successfully configured on node {}.", executor);
 			} catch (Exception e) {
 				throw new OfflineEnvironmentException(e);
 			}
 		}
+
+		log.info("IPTables configuration files successfully loaded on all nodes! Environment configured according to {} file."
+				, remoteFilePath);
 	}
 
 	@Override
 	public void checkNodes(List<Container> containerList) {
 		// Do nothing
+	}
+
+	/**
+	 * Experimental method for cleaning iptables configuration on all nodes. This method restore iptables back to default
+	 * using the "sudo iptables-restore savedFile" command.
+	 * <p/>
+	 * USE ONLY ON YOUR OWN RISK!!!
+	 *
+	 * @param containerList list of containers
+	 */
+	@Override
+	public void cleanIpTables(List<Container> containerList) {
+		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
+		if (SystemProperty.getIptablesConfFilePath().isEmpty()) {
+			// There was no iptables configuration file set so the user doesn't want to change environment.
+			return;
+		}
+		log.info("Cleaning iptables configuration to default one.");
+		SSHClient sshClient;
+		Executor executor;
+
+		for (Container c : containerList) {
+			if (c instanceof ChildContainer) {
+				//If the child container is child then skip. The file will be copied and executed for all ssh containers
+				//and root. It doesn't make sense to do also for child containers.
+				continue;
+			}
+
+			sshClient = new NodeSSHClient().defaultSSHPort().host(c.getNode().getHost())
+					.username(c.getNode().getUsername()).password(c.getNode().getPassword());
+			executor = new Executor(sshClient);
+			log.debug("Restoring iptables on node {} back to default.", executor);
+			try {
+				executor.connect();
+
+				executor.executeCommand("sudo iptables-restore " + SAVED_IPTABLES);
+				log.debug("Iptables restored on node {}.", executor);
+			} catch (Exception e) {
+				throw new OfflineEnvironmentException(e);
+			}
+		}
+
+		log.info("IPTables configuration files successfully restored on all nodes. Set the environment configuration back to default.");
 	}
 }

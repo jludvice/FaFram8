@@ -82,6 +82,7 @@ public class Fafram extends ExternalResource {
 			Deployer.deploy();
 			running = true;
 		} catch (Exception ex) {
+			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 			provisionProvider.releaseResources();
 			Deployer.destroy(true);
 			ContainerManager.clearAllLists();
@@ -112,6 +113,12 @@ public class Fafram extends ExternalResource {
 			Deployer.destroy(false);
 		} catch (Exception ex) {
 			ex.printStackTrace();
+			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
+
+			if (!SystemProperty.isKeepOsResources()) {
+				provisionProvider.releaseResources();
+			}
+
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
 			ContainerManager.clearAllLists();
@@ -582,6 +589,7 @@ public class Fafram extends ExternalResource {
 		provider.checkNodes(ContainerManager.getContainerList());
 		provider.createServerPool(ContainerManager.getContainerList());
 		provider.assignAddresses(ContainerManager.getContainerList());
+		provider.loadIPTables(ContainerManager.getContainerList());
 
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
 		// environment

@@ -67,6 +67,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 	private static final String OFFLINE_IPTABLES_FILE = "iptables-no-internet";
 
+	private String ipTablesFilePath;
+
 	/**
 	 * Register server to OpenStackProvisionProvider's "register".
 	 *
@@ -271,88 +273,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}
 	}
 
-	// TODO(rjakubco): refactor loadIptables and offline method
-	@Override
-	public void loadIPTables(List<Container> containerList) {
-		// This is special case when you want to use default offline configuration.
-		if (SystemProperty.isOffline()) {
-			offline(containerList);
-			return;
-		}
-		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
-		if (SystemProperty.getIptablesConfFilePath().isEmpty()) {
-			// There was no iptables configuration file set so the user doesn't want to change environment.
-			return;
-		}
-
-		log.info("Loading iptables configuration files.");
-		SSHClient sshClient;
-		Executor executor;
-
-		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
-		final Node rootNode = containerList.get(0).getNode();
-
-		for (Container c : containerList) {
-			if (c instanceof ChildContainer) {
-				// If the child container is child then skip. The file will be copied and executed for all ssh containers
-				// and root. It doesn't make sense to do also for child containers.
-				continue;
-			}
-
-			String preCommand = "";
-			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
-					.username(rootNode.getUsername()).password(rootNode.getPassword());
-			executor = new Executor(sshClient);
-
-			try {
-				executor.connect();
-				final String directory = ("".equals(SystemProperty.getWorkingDirectory()))
-						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
-
-				// Path to copied iptables file on remote nodes
-				final String remoteFilePath =
-						directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
-
-				log.debug("Copying iptables configuration file on node: " + sshClient.toString());
-
-				if (c.isRoot()) {
-					try {
-						// Copy file from localhost to root node. The root node is always the fist entry in containerList.
-						// This means this copying will be executed before other nodes.
-						((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
-					} catch (CopyFileException e) {
-						throw new FaframException("Problem with copying iptables configuration file to node: " + c.getNode().getHost() + ".", e);
-					}
-				} else {
-					// This is needed for executing commands on nodes without publicip on openstack.
-					// For this purpose we create this string to simulate to connecting to node from root container to which
-					// we are connected via the SSHClient.
-					// If the container is root this string is empty and the commands are executed only on root.
-					// TODO(rjakubco): maybe do it in nicer way?
-					preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
-
-					// Copy iptables file already on root node to other nodes via the scp command (hack for nodes without public ip)
-					executor.executeCommand("scp -o StrictHostKeyChecking=no " + remoteFilePath + " " + c.getNode().getHost() + ":"
-							+ remoteFilePath);
-				}
-
-				log.debug("Executing iptables configuration file on node: " + executor.toString());
-
-				final String response = executor.executeCommand(preCommand + "sudo cat " + remoteFilePath);
-
-				if (response.contains("No such file or directory")) {
-					throw new OfflineEnvironmentException("Configuration file for iptables"
-							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
-							new FileNotFoundException("File " + remoteFilePath + " doesn't exists."));
-				}
-				executor.executeCommand(preCommand + "sudo iptables-restore " + remoteFilePath);
-			} catch (Exception e) {
-				throw new FaframException("There was problem setting iptables on node: "
-						+ c.getNode().getHost(), e);
-			}
-		}
-	}
-
 	@Override
 	public void checkNodes(List<Container> containerList) {
 		for (Container c : containerList) {
@@ -363,69 +283,139 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}
 	}
 
-	/**
-	 * Turning off the internet using the default iptables configuration file that exists in ecervena snapshots on
-	 * all nodes specified in provided list. The configuration file used for turning off the internet
-	 * is named "iptables-no-internet".
-	 * <p/>
-	 * The methods also checks that internet is not available on all nodes meaning that that the environment is truly
-	 * offline. If there is problem with setting the environment to offline correctly then the runtime exception is thrown.
-	 *
-	 * @param containerList list of containers
-	 */
-	private void offline(List<Container> containerList) {
-		log.info("Turning off internet in the environment.");
-		SSHClient sshClient;
-		Executor executor;
+	@Override
+	public void loadIPTables(List<Container> containerList) {
+		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
+		if (SystemProperty.getIptablesConfFilePath().isEmpty() && !SystemProperty.isOffline()) {
+			// There was no iptables configuration file set so the user doesn't want to change environment.
+			return;
+		}
 
-		// TODO(rjakubco): this in case that root container is always first in the list -> it not very nice
-		final Node rootNode = containerList.get(0).getNode();
+		log.info("Loading iptables configuration files.");
 
+		final Executor executor = createExecutor(containerList);
+
+		setCorrectIpTablesFilePath(executor);
+
+		// If the environment should be configured by custom iptables configuration file from localhost then copy the file to remote root node
+		if (!SystemProperty.isOffline()) {
+			try {
+				log.debug("Copying iptables configuration file on node: " + executor.getClient().toString());
+				((NodeSSHClient) executor.getClient()).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), this.ipTablesFilePath);
+			} catch (CopyFileException e) {
+				throw new FaframException("Problem with copying iptables configuration file to node: " + executor.getClient().getHost() + ".", e);
+			}
+		}
+
+		// For each container in container list execute and set a correct iptables configuration file
 		for (Container c : containerList) {
 			if (c instanceof ChildContainer) {
 				// If the child container is child then skip. The file will be copied and executed for all ssh containers
 				// and root. It doesn't make sense to do also for child containers.
 				continue;
 			}
+			executeIpTables(executor, c);
+		}
 
-			String preCommand = "";
-			if (!c.isRoot()) {
+		log.info("IPTables configuration files successfully loaded on all nodes! Environment configuration according to {} file."
+				, this.ipTablesFilePath);
+	}
+
+	@Override
+	public void cleanIpTables(List<Container> containerList) {
+		// Do nothing
+	}
+
+	/**
+	 * Creates and connects executor to node with root container. Node of the root container has always assinged public IP.
+	 *
+	 * @param containerList list of containers
+	 * @return connected executor
+	 */
+	private Executor createExecutor(List<Container> containerList) {
+		Node rootNode = null;
+		for (Container c : containerList) {
+			if (c.isRoot()) {
+				rootNode = c.getNode();
+				break;
+			}
+		}
+
+		if (rootNode == null) {
+			throw new FaframException("There was no root container in container list when loading IP tables!");
+		}
+
+		final SSHClient sshClient = new NodeSSHClient().defaultSSHPort().host(rootNode.getHost())
+				.username(rootNode.getUsername()).password(rootNode.getPassword());
+		final Executor executor = new Executor(sshClient);
+		executor.connect();
+
+		return executor;
+	}
+
+	/**
+	 * Sets correct path and name to iptables configuration file depending on the type of environment.
+	 *
+	 * @param executor connected executor to root node
+	 */
+	private void setCorrectIpTablesFilePath(Executor executor) {
+		// This is special case when you want to use default offline configuration.
+		if (SystemProperty.isOffline()) {
+			// setting path to default iptablec configuration file in home folder of user
+			this.ipTablesFilePath = OFFLINE_IPTABLES_FILE;
+		} else {
+			// Otherwise you want to copy iptables configuration file from local machine to remote node -> create path to file on remote node
+			final String directory = ("".equals(SystemProperty.getWorkingDirectory()))
+					? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
+
+			// Path to copied iptables file on remote nodes
+			this.ipTablesFilePath =
+					directory + File.separator + StringUtils.substringAfterLast(SystemProperty.getIptablesConfFilePath(), File.separator);
+		}
+		log.info("Setting iptables configuration in environment to {}.", this.ipTablesFilePath);
+	}
+
+	/**
+	 * Executes command line commands on node to successfully load and configure iptables on provided container. If the
+	 * custom iptables configuration file is used then this methods also copies cofniguration file to specified node of
+	 * container.
+	 *
+	 * @param executor connected executor to root node
+	 * @param container container on which the iptables should be configured
+	 */
+	private void executeIpTables(Executor executor, Container container) {
+		String preCommand = "";
+
+		try {
+			if (!container.isRoot()) {
 				// This is needed for executing commands on nodes without publicip on openstack.
 				// For this purpose we create this string to simulate to connecting to node from root container to which
-				// we are connected via the SSHClient. If the container is root this string is empty and the commands are
-				// executed only on root.
-				// TODO(rjakubco): maybe do it in nicer way?
-				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
+				// we are connected via the SSHClient.
+				// If the container is root this string is empty and the commands are executed only on root.
+				preCommand = "ssh -o StrictHostKeyChecking=no " + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
 			}
 
-			sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
-					.username(rootNode.getUsername()).password(rootNode.getPassword());
-			executor = new Executor(sshClient);
-
-			log.debug("Turning off internet on node: " + executor.toString());
-
-			try {
-				executor.connect();
-				String response = executor.executeCommand(preCommand + "sudo cat " + OFFLINE_IPTABLES_FILE);
-
-				if (response.contains("No such file or directory")) {
-					throw new OfflineEnvironmentException("Configuration file for iptables"
-							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
-							new FileNotFoundException("File " + OFFLINE_IPTABLES_FILE + " doesn't exists."));
-				}
-
-				executor.executeCommand(preCommand + "sudo iptables-restore " + OFFLINE_IPTABLES_FILE);
-
-				response = executor.executeCommand(preCommand + "curl www.google.com");
-				if (!response.contains("Failed to connect") || !response.contains("Network is unreachable")) {
-					throw new OfflineEnvironmentException("Internet connection wasn't turn off successfully on node: "
-							+ c.getNode().getHost() + ". Check " + OFFLINE_IPTABLES_FILE
-							+ " file on the node.");
-				}
-			} catch (Exception e) {
-				throw new OfflineEnvironmentException("There was problem with turning off the internet on node: "
-						+ c.getNode().getHost(), e);
+			// if offline environment then skip this. The iptables configuration should be present in the image itself.
+			if (!SystemProperty.isOffline()) {
+				// Copy iptables file already on root node to other nodes via the scp command (hack for nodes without public ip)
+				executor.executeCommand("scp -o StrictHostKeyChecking=no " + this.ipTablesFilePath + " " + container.getNode().getHost() + ":"
+						+ this.ipTablesFilePath);
 			}
+
+			log.debug("Executing iptables configuration file on node: " + executor.toString());
+
+			final String response = executor.executeCommand(preCommand + "sudo cat " + this.ipTablesFilePath);
+
+			if (response.contains("No such file or directory")) {
+				throw new OfflineEnvironmentException("Configuration file for iptables"
+						+ " doesn't exists on node: " + container.getNode().getHost() + ".",
+						new FileNotFoundException("File " + this.ipTablesFilePath + " doesn't exists."));
+			}
+			executor.executeCommand(preCommand + "sudo iptables-restore " + this.ipTablesFilePath);
+			log.debug("Iptables successfully configured on node {}.", executor);
+		} catch (Exception e) {
+			throw new FaframException("There was problem setting iptables on node: "
+					+ container.getNode().getHost(), e);
 		}
 	}
 }

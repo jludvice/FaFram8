@@ -20,7 +20,7 @@ public class FuseSSHClientTest {
 	@Test
 	public void testFuseSSHFluent() throws Exception {
 		Assert.fail("TODO rjakubco");
-		final SSHClient client = new FuseSSHClient().hostname(HOST).fuseSSHPort().username("admin")
+		final SSHClient client = new FuseSSHClient().host(HOST).fuseSSHPort().username("admin")
 				.password("admin");
 		client.connect(false);
 		final String response = client.executeCommand("ff", false);

@@ -25,13 +25,13 @@ import lombok.extern.slf4j.Slf4j;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 @Slf4j
-@ToString(of = {"hostname", "port", "username", "password"})
+@ToString(of = {"host", "port", "username", "password"})
 @EqualsAndHashCode
 public abstract class SSHClient {
 
 	@Getter
 	@Setter
-	protected String hostname = "localhost";
+	protected String host = "localhost";
 
 	@Getter
 	@Setter
@@ -97,7 +97,7 @@ public abstract class SSHClient {
 				}
 			}
 
-			session = ssh.getSession(username, hostname, port);
+			session = ssh.getSession(username, host, port);
 
 			session.setConfig("StrictHostKeyChecking", "no");
 			session.setPassword(password);
@@ -163,13 +163,13 @@ public abstract class SSHClient {
 	}
 
 	/**
-	 * Sets the hostname.
+	 * Sets the host.
 	 *
-	 * @param host hostname
+	 * @param host host
 	 * @return this
 	 */
-	public SSHClient hostname(String host) {
-		this.hostname = host;
+	public SSHClient host(String host) {
+		this.host = host;
 		return this;
 	}
 

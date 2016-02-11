@@ -2,29 +2,38 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 
 import static org.junit.Assert.assertTrue;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
+import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exceptions.KarafSessionDownException;
 import org.jboss.fuse.qa.fafram8.exceptions.SSHClientException;
 import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
-import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
-import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
+import org.jboss.fuse.qa.fafram8.property.FaframProvider;
+import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Test for setting up offline environment when using OpenStack provision.
  *
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
+@Slf4j
 public class RemoteTurnOffInternetTest {
-	private ProvisionProvider provider = new OpenStackProvisionProvider();
+	private Container root = RootContainer.builder().name("offline-root").node(Node.builder().host("openstack").build()).build();
 
-//	@Rule
-//	public Fafram fafram = new Fafram().name("internet-test").provider(provider).withFabric();//.getContainerBuilder().ssh("ssh-internet")
-	//.nodeSsh("openstack", "fuse", "fuse").addToFafram().getFafram().offline();
+	private Container ssh = SshContainer.builder().name("offline-ssh").parentName("offline-root").node(
+			Node.builder().host("openstack").build()).build();
+
+	@Rule
+	public Fafram fafram = new Fafram().withFabric().provider(FaframProvider.OPENSTACK).containers(root, ssh).offline().suppressStart();
 
 	@BeforeClass
 	public static void before() {
@@ -33,29 +42,16 @@ public class RemoteTurnOffInternetTest {
 
 	@AfterClass
 	public static void clean() {
-//		Fafram.getProvisionProvider().releaseResources();
 		System.clearProperty(FaframConstant.FUSE_ZIP);
 	}
 
-	//TODO(rjakubco): uncomment this when OpenStack is more stable and fafram was refactored
 	@Test
-	@Ignore
 	public void testInternet() throws VerifyFalseException, SSHClientException, KarafSessionDownException {
-//		Node rootNode = fafram.getContainerList().get(0).getNode();
-//		for (Container c : fafram.getContainerList()) {
-//			String preCommand = "";
-//			if (!c.isRoot()) {
-//				preCommand = "ssh -o StrictHostKeyChecking=no " + c.getNode().getUsername() + "@" + c.getNode().getHost() + " ";
-//			}
-//
-//			SSHClient sshClient = new NodeSSHClient().defaultSSHPort().hostname(rootNode.getHost())
-//					.username(rootNode.getUsername()).password(rootNode.getPassword());
-//
-//			sshClient.connect(true);
-//
-//			String response = sshClient.executeCommand(preCommand + "curl www.google.com", true);
-//
-//			assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
-//		}
+		String response = root.getNode().getExecutor().executeCommand("curl -vs google.com 2>&1");
+		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
+
+		response = root.getNode().getExecutor().executeCommand(
+				"ssh fuse@" + ssh.getNode().getHost() + " curl -vs google.com 2>&1");
+		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 	}
 }

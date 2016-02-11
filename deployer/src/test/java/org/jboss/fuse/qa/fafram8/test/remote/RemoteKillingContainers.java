@@ -56,7 +56,7 @@ public class RemoteKillingContainers {
 		String response = fafram.executeCommand("exec ps aux | grep " + childName);
 		assertFalse(response.contains("karaf.base"));
 
-		SSHClient nodeSSHClient = new NodeSSHClient().hostname(ipSsh).username("fuse").password("fuse").defaultSSHPort();
+		SSHClient nodeSSHClient = new NodeSSHClient().host(ipSsh).username("fuse").password("fuse").defaultSSHPort();
 		nodeSSHClient.connect(true);
 
 		nodeSSHClient.executeCommand("pkill -9 -f karaf", false);

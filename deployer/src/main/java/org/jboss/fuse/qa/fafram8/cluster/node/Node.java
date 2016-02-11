@@ -61,7 +61,7 @@ public class Node {
 	 */
 	public Executor createExecutor() {
 		final SSHClient nodeClient = new NodeSSHClient()
-				.hostname(this.getHost())
+				.host(this.getHost())
 				.port(this.getPort())
 				.username(this.getUsername())
 				.password(this.getPassword());

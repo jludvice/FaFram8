@@ -72,7 +72,7 @@ public final class RootNameModifier implements Modifier {
 	private void modifyRemoteRootName() {
 		final int defaultPort = 22;
 		final SSHClient c = new NodeSSHClient();
-		c.setHostname(container.getNode().getHost());
+		c.setHost(container.getNode().getHost());
 		c.setPort(container.getNode().getPort());
 		c.setUsername(container.getNode().getUsername());
 		c.setPassword(container.getNode().getPassword());

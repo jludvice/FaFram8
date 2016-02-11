@@ -59,7 +59,12 @@ public class RemoteNodeManager implements NodeManager {
 		log.info("Unzipping fuse from " + productZipPath);
 
 		// Jar can't unzip to specified directory, so we need to change the dir first
-		log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
+		if (productZipPath.contains(getFolder())) {
+			log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
+		} else {
+			log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf " + productZipPath));
+		}
+
 		// Problem if WORKING_DIRECTORY is set because then the first command doesn't work
 
 		productPath = "".equals(SystemProperty.getWorkingDirectory())
@@ -114,7 +119,7 @@ public class RemoteNodeManager implements NodeManager {
 		log.info("Killing container");
 		executor.executeCommand("pkill -9 -f karaf.base");
 
-		log.info("Deleting Fafram folder on " + executor.getClient().getHostname());
+		log.info("Deleting Fafram folder on " + executor.getClient().getHost());
 		executor.executeCommand("rm -rf " + SystemProperty.getFaframFolder());
 	}
 

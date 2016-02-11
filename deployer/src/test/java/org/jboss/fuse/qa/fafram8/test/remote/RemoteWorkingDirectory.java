@@ -27,7 +27,7 @@ public class RemoteWorkingDirectory {
 
 	@Test
 	public void testBasicRemote() throws Exception {
-		SSHClient nodeSSHClient = new NodeSSHClient().hostname(SystemProperty.getHost()).port(SystemProperty.getHostPort())
+		SSHClient nodeSSHClient = new NodeSSHClient().host(SystemProperty.getHost()).port(SystemProperty.getHostPort())
 				.username(SystemProperty.getHostUser()).password(SystemProperty.getHostPassword());
 		nodeSSHClient.connect(true);
 		nodeSSHClient.executeCommand("mkdir -p " + DIR, true);

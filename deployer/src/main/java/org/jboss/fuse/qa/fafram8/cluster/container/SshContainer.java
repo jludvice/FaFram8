@@ -3,6 +3,7 @@ package org.jboss.fuse.qa.fafram8.cluster.container;
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +63,10 @@ public class SshContainer extends Container {
 			}
 			super.setParent(parent);
 		}
+		if (SystemProperty.suppressStart()) {
+			return;
+		}
+
 		String profilesString = "";
 
 		for (String profile : super.getProfiles()) {
@@ -76,6 +81,9 @@ public class SshContainer extends Container {
 
 	@Override
 	public void destroy() {
+		if (SystemProperty.suppressStart()) {
+			return;
+		}
 		log.info("Destroying container " + super.getName());
 		super.getParent().getExecutor().executeCommand("container-delete " + super.getName());
 	}

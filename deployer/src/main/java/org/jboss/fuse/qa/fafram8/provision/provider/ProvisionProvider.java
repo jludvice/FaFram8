@@ -41,6 +41,10 @@ public interface ProvisionProvider {
 	 * looks for default iptables-no-internet file in user's home folder(present in ecervena snapshots). This
 	 * configuration turns off internet completely.
 	 *
+	 * For static provider it is in experimental stage. Default iptables configuration is saved to newly created file on
+	 * all nodes. After the test or when there is a exception in FaFram setup then the iptables are restored back to normal
+	 * using the created file.
+	 *
 	 * @param containerList list of containers
 	 */
 	void loadIPTables(List<Container> containerList);
@@ -50,4 +54,14 @@ public interface ProvisionProvider {
 	 * @param containerList container list
 	 */
 	void checkNodes(List<Container> containerList);
+
+	/**
+	 * Experimental method for cleaning iptables configuration on all nodes. This method restore iptables back to default
+	 * using the "sudo iptables-restore savedFile" command.
+	 * <p/>
+	 * USE ONLY ON YOUR OWN RISK!!!
+	 *
+	 * @param containerList list of containers
+	 */
+	void cleanIpTables(List<Container> containerList);
 }

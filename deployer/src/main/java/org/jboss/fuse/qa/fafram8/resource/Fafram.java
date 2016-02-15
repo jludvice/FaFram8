@@ -569,6 +569,14 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Gets the "root" container (first root container found in the container list, see getRoot() method).
+	 * @return container
+	 */
+	public Container getRootContainer() {
+		return root;
+	}
+
+	/**
 	 * Restarts the container.
 	 */
 	public void restart() {

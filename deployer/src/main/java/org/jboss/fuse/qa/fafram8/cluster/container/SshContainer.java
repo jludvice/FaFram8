@@ -186,6 +186,58 @@ public class SshContainer extends Container {
 		/**
 		 * Setter.
 		 *
+		 * @param host host
+		 * @return this
+		 */
+		public SshBuilder node(String host) {
+			container.setNode(Node.builder().host(host).build());
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param host host
+		 * @param user user
+		 * @param password password
+		 * @return this
+		 */
+		public SshBuilder node(String host, String user, String password) {
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.username(user)
+							.password(password)
+							.		build()
+			);
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param host host
+		 * @param port port
+		 * @param user user
+		 * @param password password
+		 * @return this
+		 */
+		public SshBuilder node(String host, int port, String user, String password) {
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.port(port)
+							.username(user)
+							.password(password)
+							.		build()
+			);
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
 		 * @param parentName parent name
 		 * @return this
 		 */

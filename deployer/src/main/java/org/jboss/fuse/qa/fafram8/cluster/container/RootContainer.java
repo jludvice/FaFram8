@@ -230,6 +230,58 @@ public class RootContainer extends Container {
 		/**
 		 * Setter.
 		 *
+		 * @param host host
+		 * @return this
+		 */
+		public RootBuilder node(String host) {
+			container.setNode(Node.builder().host(host).build());
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param host host
+		 * @param user user
+		 * @param password password
+		 * @return this
+		 */
+		public RootBuilder node(String host, String user, String password) {
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.username(user)
+							.password(password)
+					.		build()
+			);
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param host host
+		 * @param port port
+		 * @param user user
+		 * @param password password
+		 * @return this
+		 */
+		public RootBuilder node(String host, int port, String user, String password) {
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.port(port)
+							.username(user)
+							.password(password)
+							.		build()
+			);
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
 		 * @param commands commands array
 		 * @return this
 		 */

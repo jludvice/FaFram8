@@ -73,6 +73,10 @@ public abstract class Container {
 
 	@Getter
 	@Setter
+	private boolean fabric;
+
+	@Getter
+	@Setter
 	private String fabricCreateArguments = "";
 
 	/**
@@ -234,6 +238,16 @@ public abstract class Container {
 	 */
 	public Container profiles(List<String> profiles) {
 		this.profiles = profiles;
+		return this;
+	}
+
+	public Container fabric(boolean fabric) {
+		this.fabric = fabric;
+		return this;
+	}
+
+	public Container fabricCreateArguments(String fabricCreateArguments) {
+		this.fabricCreateArguments = fabricCreateArguments;
 		return this;
 	}
 }

@@ -129,10 +129,21 @@ public class ContainerManager {
 	 * Sets up fabric on specified container.
 	 *
 	 * @param c container
-	 * @param fabricString fabric create arguments
 	 */
-	public static void setupFabric(Container c, String fabricString) {
-		c.executeCommand("fabric:create" + (fabricString.startsWith(" ") ? "" : " ") + fabricString);
+	public static void setupFabric(Container c) {
+		if (!c.isFabric()) {
+			return;
+		}
+
+		String fabricArguments = c.getFabricCreateArguments();
+		// Construct the fabric create arguments from fabric property and profiles
+		String profilesString = "";
+
+		for (String profile : c.getProfiles()) {
+			profilesString += " --profile " + profile;
+		}
+
+		c.executeCommand("fabric:create" + (fabricArguments.startsWith(" ") ? "" : " ") + profilesString);
 		try {
 			c.getExecutor().waitForProvisioning(c);
 		} catch (FaframException ex) {
@@ -164,8 +175,8 @@ public class ContainerManager {
 	public static void uploadBundles(Container c) {
 		if (c.getBundles() != null && !c.getBundles().isEmpty()) {
 			for (String bundle : c.getBundles()) {
-				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle, "http://" + c.getUser()
-						+ ":" + c.getPassword() + "@" + c.getNode().getHost() + ":8181/maven/upload");
+				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle,
+						"http://" + c.getUser() + ":" + c.getPassword() + "@" + c.getNode().getHost() + ":8181/maven/upload");
 				try {
 					bundleInstaller.installFile();
 				} catch (URISyntaxException | MavenInvocationException e) {
@@ -226,15 +237,17 @@ public class ContainerManager {
 		// We need to check if the are using old or new patching mechanism
 		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
 			for (String s : Patcher.getPatches()) {
-				c.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
-						.getFusePassword() + " --version " + version + " " + s);
+				c.executeCommand(
+						"patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() + " --version " + version + "" +
+								" " +
+								s);
 			}
 		} else {
 			// 6.2.1 onwards
 			for (String s : Patcher.getPatches()) {
 				final String patchName = getPatchName(c.executeCommand("patch:add " + s));
-				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty
-						.getFusePassword() + " --upload --version " + version + " " + patchName);
+				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() +
+						" --upload --version " + version + " " + patchName);
 			}
 		}
 

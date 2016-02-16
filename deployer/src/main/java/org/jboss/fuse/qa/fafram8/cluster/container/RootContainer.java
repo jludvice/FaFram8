@@ -66,6 +66,15 @@ public class RootContainer extends Container {
 
 	@Override
 	public void create() {
+		// Check if we should create fabric - if the fabricArgument attribute is null, then the container.withFabric
+		// was not called - therefore we need check the system property (set by Fafram.withFabric())
+		if (super.getFabricCreateArguments() == null) {
+			if (SystemProperty.isFabric()) {
+				super.setFabric(true);
+				super.setFabricCreateArguments(SystemProperty.getFabric());
+			}
+		}
+
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
 
@@ -81,15 +90,12 @@ public class RootContainer extends Container {
 		// Add the modifiers
 		if (!SystemProperty.skipDefaultUser()) {
 			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
-			ModifierExecutor.addModifiers(putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(),
-					super.getPassword() + ",Administrator"));
+			ModifierExecutor.addModifiers(
+					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator"));
 		}
 
-		ModifierExecutor.addModifiers(
-				setExecutable("bin/karaf", "bin/start", "bin/stop"),
-				setRootName(this, super.getNode().getHost()),
-				changeRandomSource()
-		);
+		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop"), setRootName(this, super.getNode().getHost()),
+				changeRandomSource());
 
 		if (!SystemProperty.isClean()) {
 			nodeManager.clean();
@@ -104,17 +110,9 @@ public class RootContainer extends Container {
 			if (!SystemProperty.suppressStart()) {
 				nodeManager.startFuse();
 				ContainerManager.patchStandaloneBeforeFabric(this);
-				if (SystemProperty.isFabric()) {
-					// Construct the fabric create arguments from fabric property and profiles
-					final String fabricString = SystemProperty.getFabric();
-					String profilesString = "";
 
-					for (String profile : super.getProfiles()) {
-						profilesString += " --profile " + profile;
-					}
+				ContainerManager.setupFabric(this);
 
-					ContainerManager.setupFabric(this, fabricString + profilesString);
-				}
 				ContainerManager.patchFuse(this);
 				super.setOnline(true);
 			}
@@ -241,25 +239,21 @@ public class RootContainer extends Container {
 
 		/**
 		 * Setter.
+		 *
 		 * @param host host
 		 * @param user user
 		 * @param password password
 		 * @return this
 		 */
 		public RootBuilder node(String host, String user, String password) {
-			container.setNode(
-					Node.builder()
-							.host(host)
-							.username(user)
-							.password(password)
-					.		build()
-			);
+			container.setNode(Node.builder().host(host).username(user).password(password).build());
 
 			return this;
 		}
 
 		/**
 		 * Setter.
+		 *
 		 * @param host host
 		 * @param port port
 		 * @param user user
@@ -267,14 +261,32 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder node(String host, int port, String user, String password) {
-			container.setNode(
-					Node.builder()
-							.host(host)
-							.port(port)
-							.username(user)
-							.password(password)
-							.		build()
-			);
+			container.setNode(Node.builder().host(host).port(port).username(user).password(password).build());
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @return this
+		 */
+		public RootBuilder withFabric() {
+			container.setFabric(true);
+			container.setFabricCreateArguments("");
+
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param args fabric create arguments
+		 * @return this
+		 */
+		public RootBuilder withFabric(String args) {
+			container.setFabric(true);
+			container.setFabricCreateArguments(args);
 
 			return this;
 		}
@@ -321,12 +333,8 @@ public class RootContainer extends Container {
 			container.setName(SystemProperty.getDefaultRootName());
 			container.setUser(SystemProperty.getFuseUser());
 			container.setPassword(SystemProperty.getFusePassword());
-			container.setNode(Node.builder()
-					.host(SystemProperty.getHost())
-					.port(SystemProperty.getHostPort())
-					.username(SystemProperty.getHostUser())
-					.password(SystemProperty.getHostPassword())
-					.build());
+			container.setNode(Node.builder().host(SystemProperty.getHost()).port(SystemProperty.getHostPort()).username(SystemProperty.getHostUser())
+					.password(SystemProperty.getHostPassword()).build());
 			container.setCommands(ContainerManager.getCommands());
 			container.setBundles(ContainerManager.getBundles());
 			return this;
@@ -338,14 +346,16 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
+			// Check if we should add the fabric attributes
+			if (SystemProperty.isFabric()) {
+				container.setFabric(true);
+				container.setFabricCreateArguments(SystemProperty.getFabric());
+			}
+
 			Node node = null;
 			if (container.getNode() != null) {
-				node = Node.builder()
-						.host(container.getNode().getHost())
-						.port(container.getNode().getPort())
-						.username(container.getNode().getUsername())
-						.password(container.getNode().getPassword())
-						.build();
+				node = Node.builder().host(container.getNode().getHost()).port(container.getNode().getPort())
+						.username(container.getNode().getUsername()).password(container.getNode().getPassword()).build();
 			}
 			// fuse executor is set when the container is being created
 			return new RootContainer()
@@ -358,9 +368,10 @@ public class RootContainer extends Container {
 					.node(node)
 					.parent(null)
 					.parentName(null)
+					.fabric(container.isFabric())
+					.fabricCreateArguments(container.getFabricCreateArguments())
 					// The same as node
-					.commands(new ArrayList<>(container.getCommands()))
-					.bundles(new ArrayList<>(container.getBundles()))
+					.commands(new ArrayList<>(container.getCommands())).bundles(new ArrayList<>(container.getBundles()))
 					.profiles(new ArrayList<>(container.getProfiles()));
 		}
 	}

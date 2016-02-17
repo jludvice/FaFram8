@@ -34,7 +34,7 @@ public class RemoteKillingContainers {
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
-	private Container root = RootContainer.builder().defaultRoot().build();
+	private Container root = RootContainer.builder().defaultRoot().withFabric().build();
 	private Container child = ChildContainer.builder().name(childName).parentName("root").build();
 
 	@BeforeClass

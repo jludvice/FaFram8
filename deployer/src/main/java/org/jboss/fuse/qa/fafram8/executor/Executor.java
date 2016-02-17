@@ -112,6 +112,21 @@ public class Executor {
 	}
 
 	/**
+	 * Checks if the executor (client) is connected.
+	 * @return connected
+	 */
+	public boolean isConnected() {
+		return client.isConnected();
+	}
+
+	/**
+	 * Disconnects the client.
+	 */
+	public void disconnect() {
+		client.disconnect();
+	}
+
+	/**
 	 * Waits for the container to boot.
 	 */
 	public void waitForBoot() {

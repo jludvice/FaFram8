@@ -66,15 +66,6 @@ public class RootContainer extends Container {
 
 	@Override
 	public void create() {
-		// Check if we should create fabric - if the fabricArgument attribute is null, then the container.withFabric
-		// was not called - therefore we need check the system property (set by Fafram.withFabric())
-		if (super.getFabricCreateArguments() == null) {
-			if (SystemProperty.isFabric()) {
-				super.setFabric(true);
-				super.setFabricCreateArguments(SystemProperty.getFabric());
-			}
-		}
-
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
 
@@ -126,11 +117,14 @@ public class RootContainer extends Container {
 	@Override
 	public void destroy() {
 		ModifierExecutor.executePostModifiers();
-
 		log.info("Destroying container " + super.getName());
 
 		if (super.isOnline()) {
 			nodeManager.stopAndClean(false);
+			super.getExecutor().disconnect();
+			if (super.getNode().getExecutor() != null && super.getNode().getExecutor().isConnected()) {
+				super.getNode().getExecutor().disconnect();
+			}
 		}
 	}
 
@@ -154,6 +148,16 @@ public class RootContainer extends Container {
 	@Override
 	public void kill() {
 		nodeManager.kill();
+	}
+
+	@Override
+	public void waitForProvisioning() {
+		waitForProvisionStatus("success");
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status) {
+		super.getExecutor().waitForProvisionStatus(this, status);
 	}
 
 	@Override
@@ -246,7 +250,13 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder node(String host, String user, String password) {
-			container.setNode(Node.builder().host(host).username(user).password(password).build());
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.username(user)
+							.password(password)
+							.build()
+			);
 
 			return this;
 		}
@@ -261,7 +271,14 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder node(String host, int port, String user, String password) {
-			container.setNode(Node.builder().host(host).port(port).username(user).password(password).build());
+			container.setNode(
+					Node.builder()
+							.host(host)
+							.port(port)
+							.username(user)
+							.password(password)
+							.build()
+			);
 
 			return this;
 		}
@@ -330,11 +347,23 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder defaultRoot() {
+			// Check if we should add the fabric attributes
+			if (SystemProperty.isFabric() && !container.isFabric()) {
+				container.setFabric(true);
+				container.setFabricCreateArguments(SystemProperty.getFabric());
+			}
+
 			container.setName(SystemProperty.getDefaultRootName());
 			container.setUser(SystemProperty.getFuseUser());
 			container.setPassword(SystemProperty.getFusePassword());
-			container.setNode(Node.builder().host(SystemProperty.getHost()).port(SystemProperty.getHostPort()).username(SystemProperty.getHostUser())
-					.password(SystemProperty.getHostPassword()).build());
+			container.setNode(
+					Node.builder()
+							.host(SystemProperty.getHost())
+							.port(SystemProperty.getHostPort())
+							.username(SystemProperty.getHostUser())
+							.password(SystemProperty.getHostPassword())
+							.build()
+			);
 			container.setCommands(ContainerManager.getCommands());
 			container.setBundles(ContainerManager.getBundles());
 			return this;
@@ -346,16 +375,14 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
-			// Check if we should add the fabric attributes
-			if (SystemProperty.isFabric()) {
-				container.setFabric(true);
-				container.setFabricCreateArguments(SystemProperty.getFabric());
-			}
-
 			Node node = null;
 			if (container.getNode() != null) {
-				node = Node.builder().host(container.getNode().getHost()).port(container.getNode().getPort())
-						.username(container.getNode().getUsername()).password(container.getNode().getPassword()).build();
+				node = Node.builder()
+						.host(container.getNode().getHost())
+						.port(container.getNode().getPort())
+						.username(container.getNode().getUsername())
+						.password(container.getNode().getPassword())
+						.build();
 			}
 			// fuse executor is set when the container is being created
 			return new RootContainer()
@@ -371,7 +398,8 @@ public class RootContainer extends Container {
 					.fabric(container.isFabric())
 					.fabricCreateArguments(container.getFabricCreateArguments())
 					// The same as node
-					.commands(new ArrayList<>(container.getCommands())).bundles(new ArrayList<>(container.getBundles()))
+					.commands(new ArrayList<>(container.getCommands()))
+					.bundles(new ArrayList<>(container.getBundles()))
 					.profiles(new ArrayList<>(container.getProfiles()));
 		}
 	}

@@ -18,7 +18,7 @@ public class FabricTest {
 
 	@Test
 	public void faframWithFabricDefaultContainerTest() {
-		fafram = new Fafram().withFabric().suppressStart();
+		fafram = new Fafram().withFabric("something").suppressStart();
 		fafram.setup();
 
 		assertTrue("Container does not have the fabric flag", ContainerManager.getContainer("root").isFabric());
@@ -39,9 +39,9 @@ public class FabricTest {
 
 	@Test
 	public void faframWithFabricTwoContainersTest() {
-		fafram = new Fafram().withFabric("something").containers(
-				RootContainer.builder().defaultRoot().build(),
-				RootContainer.builder().defaultRoot().name("root2").build()
+		fafram = new Fafram().containers(
+				RootContainer.builder().withFabric("something").defaultRoot().build(),
+				RootContainer.builder().withFabric("something2").defaultRoot().name("root2").build()
 		).suppressStart();
 
 		fafram.setup();
@@ -49,7 +49,7 @@ public class FabricTest {
 		assertTrue("Container root does not have the fabric flag", ContainerManager.getContainer("root").isFabric());
 		assertTrue("Container root2 does not have the fabric flag", ContainerManager.getContainer("root2").isFabric());
 		assertEquals("Fabric arguments root", "something", ContainerManager.getContainer("root").getFabricCreateArguments());
-		assertEquals("Fabric arguments root2", "something", ContainerManager.getContainer("root").getFabricCreateArguments());
+		assertEquals("Fabric arguments root2", "something2", ContainerManager.getContainer("root2").getFabricCreateArguments());
 	}
 
 	@After

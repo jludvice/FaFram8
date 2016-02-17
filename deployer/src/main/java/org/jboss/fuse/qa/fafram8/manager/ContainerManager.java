@@ -135,7 +135,7 @@ public class ContainerManager {
 			return;
 		}
 
-		String fabricArguments = c.getFabricCreateArguments();
+		final String fabricArguments = c.getFabricCreateArguments();
 		// Construct the fabric create arguments from fabric property and profiles
 		String profilesString = "";
 
@@ -237,17 +237,15 @@ public class ContainerManager {
 		// We need to check if the are using old or new patching mechanism
 		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
 			for (String s : Patcher.getPatches()) {
-				c.executeCommand(
-						"patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() + " --version " + version + "" +
-								" " +
-								s);
+				c.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p "
+						+ SystemProperty.getFusePassword() + " --version " + version + " " + s);
 			}
 		} else {
 			// 6.2.1 onwards
 			for (String s : Patcher.getPatches()) {
 				final String patchName = getPatchName(c.executeCommand("patch:add " + s));
-				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() +
-						" --upload --version " + version + " " + patchName);
+				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p "
+						+ SystemProperty.getFusePassword() + " --upload --version " + version + " " + patchName);
 			}
 		}
 

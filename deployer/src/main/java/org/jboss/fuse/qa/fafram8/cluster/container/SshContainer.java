@@ -67,14 +67,18 @@ public class SshContainer extends Container {
 			return;
 		}
 
-		String profilesString = "";
+		String arguments = "";
 
 		for (String profile : super.getProfiles()) {
-			profilesString += " --profile " + profile;
+			arguments += " --profile " + profile;
+		}
+
+		if (super.getVersion() != null) {
+			arguments += " --version " + super.getVersion();
 		}
 
 		super.getParent().getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s%s %s",
-				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), profilesString, super.getName()));
+				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), arguments, super.getName()));
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 	}
@@ -110,11 +114,22 @@ public class SshContainer extends Container {
 
 	@Override
 	public void kill() {
+		// Use the ssh hack here because ssh container does not have public ip
 	}
 
 	@Override
 	public String executeCommand(String command) {
 		return super.getParent().getExecutor().executeCommand(command);
+	}
+
+	@Override
+	public void waitForProvisioning() {
+		waitForProvisionStatus("success");
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status) {
+		super.getParent().getExecutor().waitForProvisionStatus(this, status);
 	}
 
 	/**
@@ -208,7 +223,7 @@ public class SshContainer extends Container {
 							.host(host)
 							.username(user)
 							.password(password)
-							.		build()
+							.build()
 			);
 
 			return this;
@@ -229,7 +244,7 @@ public class SshContainer extends Container {
 							.port(port)
 							.username(user)
 							.password(password)
-							.		build()
+							.build()
 			);
 
 			return this;
@@ -280,6 +295,16 @@ public class SshContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 * @param version version
+		 * @return this
+		 */
+		public SshBuilder version(String version) {
+			container.setVersion(version);
+			return this;
+		}
+
+		/**
 		 * Builds the instance.
 		 *
 		 * @return sshcontainer instance
@@ -301,7 +326,8 @@ public class SshContainer extends Container {
 							.build())
 					// Same as node
 					.commands(new ArrayList<>(container.getCommands()))
-					.profiles(new ArrayList<>(container.getProfiles()));
+					.profiles(new ArrayList<>(container.getProfiles()))
+					.version(container.getVersion());
 		}
 	}
 }

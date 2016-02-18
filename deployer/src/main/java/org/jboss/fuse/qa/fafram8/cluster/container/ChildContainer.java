@@ -66,13 +66,17 @@ public class ChildContainer extends Container {
 			return;
 		}
 
-		String profilesString = "";
+		String arguments = "";
 
 		for (String profile : super.getProfiles()) {
-			profilesString += " --profile " + profile;
+			arguments += " --profile " + profile;
 		}
 
-		super.getParent().getExecutor().executeCommand("container-create-child" + profilesString + " " + super.getParent().getName()
+		if (super.getVersion() != null) {
+			arguments += " --version " + super.getVersion();
+		}
+
+		super.getParent().getExecutor().executeCommand("container-create-child" + arguments + " " + super.getParent().getName()
 				+ " " + super.getName());
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
@@ -114,6 +118,16 @@ public class ChildContainer extends Container {
 	@Override
 	public String executeCommand(String command) {
 		return super.getParent().getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+	}
+
+	@Override
+	public void waitForProvisioning() {
+		waitForProvisionStatus("success");
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status) {
+		super.getParent().getExecutor().waitForProvisionStatus(this, status);
 	}
 
 	/**
@@ -192,6 +206,16 @@ public class ChildContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 * @param version version
+		 * @return this
+		 */
+		public ChildBuilder version(String version) {
+			container.setVersion(version);
+			return this;
+		}
+
+		/**
 		 * Builds the container.
 		 *
 		 * @return childcontainer instance
@@ -201,10 +225,11 @@ public class ChildContainer extends Container {
 					.name(container.getName())
 					.user(container.getUser())
 					.password(container.getPassword())
-					.parent(null)
+					.parent(container.getParent())
 					.parentName(container.getParentName())
 					.profiles(container.getProfiles())
 					.commands(container.getCommands())
+					.version(container.getVersion())
 					.node(null);
 		}
 	}

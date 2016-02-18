@@ -12,6 +12,7 @@ import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -21,8 +22,9 @@ import org.junit.Test;
  * Created by ecervena on 25.9.15.
  */
 public class OpenstackXmlProvisionTest {
-	@Rule
-	//TODO(ecervena): implement enhancement to add timestamp to container name 
+	//@Rule
+	//TODO(ecervena): implement enhancement to add timestamp to container name
+	//TODO(ecervena): withFabric is now working only with default container, so you need to add fabric flag to the parser
 	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK)
 			.withFabric().config("src/test/resources/OpenStackProvisionTestConfig.xml");
 
@@ -42,6 +44,7 @@ public class OpenstackXmlProvisionTest {
 	
 
 	@Test
+	@Ignore
 	public void fabricTest() {
 		assertTrue(fafram.executeCommand("container-list | grep ecervena-root123").contains("success"));
 		assertTrue(fafram.executeCommand("container-list | grep ecervena-node1123").contains("success"));

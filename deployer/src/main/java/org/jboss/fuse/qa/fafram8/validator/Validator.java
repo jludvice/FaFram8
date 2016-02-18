@@ -90,11 +90,6 @@ public final class Validator {
 	 * @param c child container
 	 */
 	private static void validateChildContainer(Container c) {
-		// If there is no fabric flag, you can't have child containers
-		if (!SystemProperty.isFabric()) {
-			throw new ValidatorException("Fabric flag is not set! Did you forget to use .withFabric()?");
-		}
-
 		if ("".equals(c.getName())) {
 			throw new ValidatorException("Child name can't be empty!");
 		}
@@ -116,11 +111,6 @@ public final class Validator {
 	 * @param c container
 	 */
 	private static void validateSshContainer(Container c) {
-		// If there is no fabric flag, you can't have ssh containers
-		if (!SystemProperty.isFabric()) {
-			throw new ValidatorException("Fabric flag is not set! Did you forget to use .withFabric()?");
-		}
-
 		if ("".equals(c.getName())) {
 			throw new ValidatorException("SSH container name can't be empty!");
 		}

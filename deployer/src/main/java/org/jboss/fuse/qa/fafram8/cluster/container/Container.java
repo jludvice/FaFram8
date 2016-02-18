@@ -73,7 +73,15 @@ public abstract class Container {
 
 	@Getter
 	@Setter
+	private boolean fabric;
+
+	@Getter
+	@Setter
 	private String fabricCreateArguments = "";
+
+	@Getter
+	@Setter
+	private String version;
 
 	/**
 	 * Creates a container.
@@ -104,6 +112,18 @@ public abstract class Container {
 	 * Kills a container.
 	 */
 	public abstract void kill();
+
+	/**
+	 * Waits for success provision state.
+	 */
+	public abstract void waitForProvisioning();
+
+	/**
+	 * Waits for defined provision status.
+	 *
+	 * @param status status
+	 */
+	public abstract void waitForProvisionStatus(String status);
 
 	/**
 	 * Executes a command in container.
@@ -234,6 +254,39 @@ public abstract class Container {
 	 */
 	public Container profiles(List<String> profiles) {
 		this.profiles = profiles;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param fabric fabric flag
+	 * @return this
+	 */
+	public Container fabric(boolean fabric) {
+		this.fabric = fabric;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param fabricCreateArguments fabric create arguments
+	 * @return this
+	 */
+	public Container fabricCreateArguments(String fabricCreateArguments) {
+		this.fabricCreateArguments = fabricCreateArguments;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param version version
+	 * @return this
+	 */
+	public Container version(String version) {
+		this.version = version;
 		return this;
 	}
 }

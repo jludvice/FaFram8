@@ -1,5 +1,7 @@
 package org.jboss.fuse.qa.fafram8.property;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -8,6 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -173,6 +177,15 @@ public class SystemProperty {
 	 * @return product version
 	 */
 	public static String getFuseVersion() {
+		// First try to parse the fuse version from the zip (with standard naming)
+		if (getFuseZip() != null && (getFuseZip().contains("jboss-fuse-full") || getFuseZip().contains("jboss-a-mq"))) {
+			final String fileName = StringUtils.substringAfterLast(getFuseZip(), "/");
+			final Pattern regex = Pattern.compile("[0-9]\\.[0-9]\\.[0-9]\\.redhat\\-[0-9][0-9][0-9]");
+			final Matcher matcher = regex.matcher(fileName);
+			if (matcher.find()) {
+				return matcher.group();
+			}
+		}
 		return System.getProperty(FaframConstant.FUSE_VERSION);
 	}
 

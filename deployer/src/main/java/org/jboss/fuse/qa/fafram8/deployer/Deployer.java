@@ -64,6 +64,7 @@ public final class Deployer {
 					set.remove(c);
 				}
 			} catch (Exception ex) {
+				ex.printStackTrace();
 				if (!force) {
 					throw new FaframException("Error while destroying child/ssh container! " + ex);
 				}
@@ -74,6 +75,7 @@ public final class Deployer {
 			try {
 				c.destroy();
 			} catch (Exception ex) {
+				ex.printStackTrace();
 				if (!force) {
 					throw new FaframException("Error while destroying root container! " + ex);
 				}

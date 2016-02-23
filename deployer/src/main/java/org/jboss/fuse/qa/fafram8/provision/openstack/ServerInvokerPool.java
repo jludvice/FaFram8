@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.provision.openstack;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.InvokerPoolInterruptedException;
 
@@ -34,9 +35,11 @@ public class ServerInvokerPool {
 		//TODO(ecervena): 5 threads in pool is only for proof of concept purposes. Figure out something smarter.
 		final ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
 		for (Container container : containers) {
-			log.info("Spawning invoker thread for container: " + container.getName());
-			final Runnable serverInvoker = new ServerInvoker(container.getName());
-			executor.execute(serverInvoker);
+			if (!(container instanceof ChildContainer)) {
+				log.info("Spawning invoker thread for container: " + container.getName());
+				final Runnable serverInvoker = new ServerInvoker(container.getName());
+				executor.execute(serverInvoker);
+			}
 		}
 		executor.shutdown();
 		log.info("Waiting for ServerInvoker threads to finish a job.");

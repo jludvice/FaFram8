@@ -119,11 +119,12 @@ public class RootContainer extends Container {
 
 	@Override
 	public void destroy() {
+		ModifierExecutor.executePostModifiers();
+
 		if (!super.isCreated()) {
 			return;
 		}
 
-		ModifierExecutor.executePostModifiers();
 		log.info("Destroying container " + super.getName());
 
 		if (super.isOnline()) {

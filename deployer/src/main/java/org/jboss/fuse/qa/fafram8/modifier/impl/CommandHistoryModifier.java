@@ -2,7 +2,6 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 
 import org.apache.commons.io.FileUtils;
 
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.util.CommandHistory;
@@ -14,8 +13,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,12 +22,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode
-public final class CommandHistoryModifier implements Modifier {
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
+@EqualsAndHashCode(callSuper = true)
+public final class CommandHistoryModifier extends Modifier {
 	/**
 	 * Private constructor.
 	 */

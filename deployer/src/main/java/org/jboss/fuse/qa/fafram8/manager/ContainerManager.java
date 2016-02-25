@@ -137,13 +137,14 @@ public class ContainerManager {
 
 		final String fabricArguments = c.getFabricCreateArguments();
 		// Construct the fabric create arguments from fabric property and profiles
-		String profilesString = "";
+		String fabricString = c.getFabricCreateArguments();
 
 		for (String profile : c.getProfiles()) {
-			profilesString += " --profile " + profile;
+			fabricString += " --profile " + profile;
 		}
 
-		c.executeCommand("fabric:create" + (fabricArguments.startsWith(" ") ? "" : " ") + profilesString);
+		c.executeCommand("fabric:create" + (fabricString.startsWith(" ") ? StringUtils.EMPTY : " ") + fabricString);
+
 		try {
 			c.getExecutor().waitForProvisioning(c);
 		} catch (FaframException ex) {

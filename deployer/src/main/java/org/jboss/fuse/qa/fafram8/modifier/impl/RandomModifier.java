@@ -2,7 +2,6 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 
 import org.apache.commons.io.IOUtils;
 
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
@@ -11,8 +10,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,12 +20,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode(of = {"host"})
-public final class RandomModifier implements Modifier {
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
+@EqualsAndHashCode(callSuper = true, of = {"host"})
+public final class RandomModifier extends Modifier {
 	/**
 	 * Private constructor.
 	 */
@@ -46,7 +39,7 @@ public final class RandomModifier implements Modifier {
 
 	@Override
 	public void execute() {
-		if (executor == null) {
+		if (super.getExecutor() == null) {
 			localExecute();
 		} else {
 			remoteExecute();
@@ -81,7 +74,7 @@ public final class RandomModifier implements Modifier {
 	public void remoteExecute() {
 		final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
 
-		final String response = executor.executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
+		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
 				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom\\\" \" >> " + filePath);
 		if (!response.isEmpty()) {
 			log.error("Setting property on remote host failed. Response should be empty but was: {}.", response);

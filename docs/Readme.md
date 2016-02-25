@@ -95,51 +95,64 @@ Bundles are uploaded to fabric maven proxy before execution of commands specifie
 ### System properties
 The workflow or properties can be modified using system properties. Full list of system properties is
 
-	host - Host IP address
-	host.port - Host port
-	host.user - Host SSH login
-	host.password - Host SSH password
-	fuse.user - Fuse user
-	fuse.password - Fuse password
-	fuse.group - Fuse artifact maven group id
-	fuse.id - Fuse artifact maven artifact id
-	fuse.version - Fuse version, for example 6.2.0.redhat-133
-	fuse.zip - Fuse zip location
-	start.wait.time - Karaf start wait time
-	stop.wait.time - Karaf stop wait time
-	provision.wait.time - Fabric provision wait time
-	patch.wait.time - Patch install wait time
-	keepFolder - Flag if the folder should be kept after the execution
-	fafram.folder - Name of the working folder on remote host
-	patch - Patch location
-	fafram.working.directory - Special working directory on remote machine
-	fafram.patch.dir - Patch directory location
-	fafram.skip.default.user - Skip default user add
-	fafram.patch.standalone - Patch standalone - useful only together with .withFabric() method
-	fafram.skip.default.jvm.opts - Skip adding default JVM opts (xms=768M, xmx=1536M, permMem=768M, maxPermMem=1536M) 
-	fafram.suppress.start - Testing purposes only - do not start fuse for the tests that do not need it
-	fafram.archive.target - Target dir where the archived artifacts will be stored
-	fafram.archive.pattern - Archive pattern equal to the jenkins archive pattern
-	fafram.base.dir - base dir of the project - on localhost it's "" and on jenkins it's System.getenv("WORKSPACE")
-	keep.os.resources - If "true" OpenStackProvisionManager will not release OS nodes after test
-	broker.start.wait.time - broker start wait time
-	fafram.skip.broker.wait - skips the initial waiting for the broker
+* host - Host IP address
+* host.port - Host port
+* host.user - Host SSH login
+* host.password - Host SSH password
+* fuse.user - Fuse user
+* fuse.password - Fuse password
+* fuse.group - Fuse artifact maven group id
+* fuse.id - Fuse artifact maven artifact id
+* fuse.version - Fuse version, for example 6.2.0.redhat-133
+* fuse.zip - Fuse zip location
+* start.wait.time - Karaf start wait time
+* stop.wait.time - Karaf stop wait time
+* provision.wait.time - Fabric provision wait time
+* patch.wait.time - Patch install wait time
+* keepFolder - Flag if the folder should be kept after the execution
+* fafram.folder - Name of the working folder on remote host
+* patch - Patch location
+* fafram.working.directory - Special working directory on remote machine
+* fafram.patch.dir - Patch directory location
+* fafram.skip.default.user - Skip default user add
+* fafram.patch.standalone - Patch standalone - useful only together with .withFabric() method
+* fafram.skip.default.jvm.opts - Skip adding default JVM opts (xms=768M, xmx=1536M, permMem=768M, maxPermMem=1536M)
+* fafram.suppress.start - Testing purposes only - do not start fuse for the tests that do not need it
+* fafram.archive.target - Target dir where the archived artifacts will be stored
+* fafram.archive.pattern - Archive pattern equal to the jenkins archive pattern
+* fafram.base.dir - base dir of the project - on localhost it's "" and on jenkins it's System.getenv("WORKSPACE")
+* keep.os.resources - If "true" OpenStackProvisionManager will not release OS nodes after test
+* broker.start.wait.time - broker start wait time
+* fafram.skip.broker.wait - skips the initial waiting for the broker
+* jira.url - JIRA url
+* jira.user - JIRA user
+* jira.password - JIRA password
+* openstack.url - openstack URL
+* openstack.tenant - openstack tenant
+* openstack.user - openstack user
+* openstack.password - openstack password
+* openstack.image - openstack image uuid
+* openstack.flavor - openstack flavor
+* openstack.keypair - openstack keypair
+* openstack.addressType - openstack address type
+* fafram.offline - flag for offline environment
+* iptables.conf.file.path - path to iptables file that should be applied before starting fuse
+* fafram.default.root.name - default container name (defaults to root)
+* keepContainers - flag if the containers should be kept running
 
 ### Patches
 
 Patcher class is used to prepare the patch zips to be installed. Currently the **patch** property accepts four ways how you can define the patch:
 
-	-Dpatch=r2 - scans the <fafram.patch.dir> recursively for the patch zip name that contains the string "r2" and returns the first occurance.
+* -Dpatch=r2 - scans the <fafram.patch.dir> recursively for the patch zip name that contains the string "r2" and returns the first occurance.
 	The patches are (hopefully) always sorted lexicographically, so r2 patch zip should be found sooner than r2p4 for example. It is possible 
 	to use the string "r2,r2p4" where both patch zips will be returned and installed. At the same time it checks if the patch version matches
 	the current version set by the fuse.version property.
+* -Dpatch=latest - scans the <fafram.patch.dir>/latest folder and returns all the files in the folder. Again, they should be sorted so the right
+ order should be preserved.
+* -Dpatch=file:///home/file.zip - returns the zip file location
+* -Dpatch=http://www.example.com/file.zip - returns the zip file location
 
-	-Dpatch=latest - scans the <fafram.patch.dir>/latest folder and returns all the files in the folder. Again, they should be sorted so the right order should be preserved.
-	
-	-Dpatch=file:///home/file.zip - returns the zip file location
-	
-	-Dpatch=http://www.example.com/file.zip - returns the zip file location
-	
 ### Container zip location
 
 By default the FaFram8 framework gets the container zip from the local maven repository. First of all, 
@@ -149,10 +162,8 @@ container zip file using the **fuse.group**, **fuse.id** and **fuse.version** pr
 
 This default behavior can be overriden with setting the **fuse.zip** property in this way:
 
-	-Dfuse.zip=file:///home/file.zip - unzips the file directly from this location
-	
-	-Dfuse.zip=http://www.example.com/file.zip - downloads the file to the machine and then unzips it
-	
+* -Dfuse.zip=file:///home/file.zip - unzips the file directly from this location
+* -Dfuse.zip=http://www.example.com/file.zip - downloads the file to the machine and then unzips it
 
 ### Fafram8 JUnit Test runner
 
@@ -252,6 +263,8 @@ later used to construct the full path to your local repository artifact path. Us
 and even between the Fuse and A-MQ distributions.
 
 There is no need to use this approach, because you can still use some other (previously downloaded) zip file and pass it to FaFram using the **fuse.zip** property.
+
+You can find more examples in [Examples.md](Examples.md) file.
 
 ## Checkstyle
 

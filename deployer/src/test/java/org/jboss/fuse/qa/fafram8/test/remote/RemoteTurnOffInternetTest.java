@@ -27,9 +27,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteTurnOffInternetTest {
-	private Container root = RootContainer.builder().name("offline-root").node(Node.builder().host("openstack").build()).build();
+	private Container root = RootContainer.builder().name("build-offline-root").node(Node.builder().host("openstack").build()).build();
 
-	private Container ssh = SshContainer.builder().name("offline-ssh").parentName("offline-root").node(
+	private Container ssh = SshContainer.builder().name("build-offline-ssh").parentName("build-offline-root").node(
 			Node.builder().host("openstack").build()).build();
 
 	@Rule

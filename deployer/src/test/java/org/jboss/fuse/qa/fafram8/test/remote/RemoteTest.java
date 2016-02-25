@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 })
 @Slf4j
 public class RemoteTest {
-	public static final String SERVER_NAME = "FaframRemoteTestNode" + new Date().getTime();
+	public static final String SERVER_NAME = "build-FaframRemoteTestNode" + new Date().getTime();
 
 	// associated floating IP address in Openstack
 	public static String ipAddress;

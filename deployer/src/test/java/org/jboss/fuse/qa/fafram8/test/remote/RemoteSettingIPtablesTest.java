@@ -24,9 +24,9 @@ import org.junit.Test;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 public class RemoteSettingIPtablesTest {
-	private Container root = RootContainer.builder().name("load-ip-root").node(
+	private Container root = RootContainer.builder().name("build-load-ip-root").node(
 			Node.builder().host("openstack").build()).build();
-	private Container ssh = SshContainer.builder().name("load-ip-ssh").parentName("load-ip-root").node(
+	private Container ssh = SshContainer.builder().name("build-load-ip-ssh").parentName("build-load-ip-root").node(
 			Node.builder().host("openstack").build()).build();
 
 	@Rule

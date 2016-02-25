@@ -48,7 +48,7 @@ public abstract class Container {
 	@Getter
 	@Setter
 	// Because when using .containers(Root, Child), the child is spawned before the root is in the list,
-	// so we just save it's name and assign the actual container object in the create method
+	// so we just save it's name and assign the actual container object later
 	private String parentName;
 
 	@Getter
@@ -58,6 +58,12 @@ public abstract class Container {
 	@Getter
 	@Setter
 	private boolean online;
+
+	@Getter
+	@Setter
+	// Flag if the container was really created - for example suppressStart does not create the containers and then the destroy methods
+	// were causing problems
+	private boolean created;
 
 	@Getter
 	@Setter

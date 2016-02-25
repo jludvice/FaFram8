@@ -69,6 +69,8 @@ public class RootContainer extends Container {
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
 
+		log.info("Creating container " + this);
+
 		// Instantiate the node manager based on node.getHost()
 		if ("localhost".equals(super.getNode().getHost())) {
 			nodeManager = new LocalNodeManager(getExecutor());
@@ -106,6 +108,7 @@ public class RootContainer extends Container {
 
 				ContainerManager.patchFuse(this);
 				super.setOnline(true);
+				super.setCreated(true);
 			}
 		} catch (FaframException ex) {
 			ex.printStackTrace();
@@ -117,6 +120,11 @@ public class RootContainer extends Container {
 	@Override
 	public void destroy() {
 		ModifierExecutor.executePostModifiers();
+
+		if (!super.isCreated()) {
+			return;
+		}
+
 		log.info("Destroying container " + super.getName());
 
 		if (super.isOnline()) {
@@ -126,6 +134,7 @@ public class RootContainer extends Container {
 				super.getNode().getExecutor().disconnect();
 			}
 		}
+		super.setCreated(false);
 	}
 
 	@Override

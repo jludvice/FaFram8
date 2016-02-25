@@ -8,6 +8,7 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setJvmOpts
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 import org.jboss.fuse.qa.fafram8.deployer.Deployer;
@@ -593,11 +594,19 @@ public class Fafram extends ExternalResource {
 	 * @param provider provider type name
 	 */
 	public void prepareNodes(ProvisionProvider provider) {
+		// Create a temp list without child containers
+		final List<Container> temp = new ArrayList<>();
+		for (Container c : ContainerManager.getContainerList()) {
+			if (!(c instanceof ChildContainer)) {
+				temp.add(c);
+			}
+		}
+
 		// Check if there are nodes with the defined names
-		provider.checkNodes(ContainerManager.getContainerList());
-		provider.createServerPool(ContainerManager.getContainerList());
-		provider.assignAddresses(ContainerManager.getContainerList());
-		provider.loadIPTables(ContainerManager.getContainerList());
+		provider.checkNodes(temp);
+		provider.createServerPool(temp);
+		provider.assignAddresses(temp);
+		provider.loadIPTables(temp);
 
 		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
 		// environment

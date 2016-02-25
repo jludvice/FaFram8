@@ -36,7 +36,6 @@ public final class Deployer {
 
 		for (Container c : ContainerManager.getContainerList()) {
 			if (!c.isOnline()) {
-				log.info("Creating container " + c);
 				c.create();
 			}
 		}

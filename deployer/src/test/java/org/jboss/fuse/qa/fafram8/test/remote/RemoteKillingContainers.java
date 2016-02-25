@@ -29,13 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoteKillingContainers {
 	public static final String SSH_NAME = "KillingTest";
 	public static String ipSsh = "";
-	public static String childName = "child-container";
-	public static String sshName = "ssh-container";
+	public static String childName = "build-child-container";
+	public static String sshName = "build-ssh-container";
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
-	private Container root = RootContainer.builder().defaultRoot().withFabric().build();
-	private Container child = ChildContainer.builder().name(childName).parentName("root").build();
+	private Container root = RootContainer.builder().defaultRoot().name("build-root").withFabric().build();
+	private Container child = ChildContainer.builder().name(childName).parentName("build-root").build();
 
 	@BeforeClass
 	public static void before() throws InterruptedException {

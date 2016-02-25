@@ -89,9 +89,11 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 			return true;
 		}
 
+		final String currentShortVersion = StringUtils.substringBefore(SystemProperty.getFuseVersion(), ".redhat");
+
 		for (Version v : fixVersions) {
 			final String versionShort = StringUtils.substringAfterLast(v.toString(), "-");
-			if (SystemProperty.getFuseVersion().contains(versionShort)) {
+			if (currentShortVersion.compareTo(versionShort) >= 0) {
 				return true;
 			}
 		}

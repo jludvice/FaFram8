@@ -20,9 +20,10 @@ public class TwoRootsTest {
 			.node("openstack")
 			.profiles("gateway-mq")
 			.commands("profile-create template")
+			.withFabric()
 			.build();
-	private Container root1 = RootContainer.builder(TEMPLATE).withFabric().name("root").commands("profile-create root1").build();
-	private Container root2 = RootContainer.builder(TEMPLATE).withFabric().name("root2").profiles("gateway-http").build();
+	private Container root1 = RootContainer.builder(TEMPLATE).name("root").commands("profile-create root1").build();
+	private Container root2 = RootContainer.builder(TEMPLATE).name("root2").profiles("gateway-http").build();
 	@Rule
 	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_URL).provider(FaframProvider.OPENSTACK)
 			.containers(root1, root2);

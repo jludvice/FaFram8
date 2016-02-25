@@ -1,6 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
@@ -76,19 +77,24 @@ public class ChildContainer extends Container {
 			arguments += " --version " + super.getVersion();
 		}
 
-		super.getParent().getExecutor().executeCommand("container-create-child" + arguments + " " + super.getParent().getName()
+		log.info("Creating container " + this);
+
+		getExecutor().executeCommand("container-create-child" + arguments + " " + super.getParent().getName()
 				+ " " + super.getName());
-		super.getParent().getExecutor().waitForProvisioning(this);
+		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
+		super.setCreated(true);
 	}
 
 	@Override
 	public void destroy() {
-		if (SystemProperty.suppressStart()) {
+		if (SystemProperty.suppressStart() || !super.isOnline() || !super.isCreated()) {
 			return;
 		}
+
 		log.info("Destroying container " + super.getName());
-		super.getParent().getExecutor().executeCommand("container-delete " + super.getName());
+		getExecutor().executeCommand("container-delete " + super.getName());
+		super.setCreated(false);
 	}
 
 	@Override
@@ -99,14 +105,14 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void start() {
-		super.getParent().getExecutor().executeCommand("container-start " + super.getName());
-		super.getParent().getExecutor().waitForProvisioning(this);
+		getExecutor().executeCommand("container-start " + super.getName());
+		getExecutor().waitForProvisioning(this);
 	}
 
 	@Override
 	public void stop() {
-		super.getParent().getExecutor().executeCommand("container-stop " + super.getName());
-		super.getParent().getExecutor().waitForProvisionStatus(this, "stopped");
+		getExecutor().executeCommand("container-stop " + super.getName());
+		getExecutor().waitForProvisionStatus(this, "stopped");
 		super.setOnline(false);
 	}
 
@@ -117,7 +123,7 @@ public class ChildContainer extends Container {
 
 	@Override
 	public String executeCommand(String command) {
-		return super.getParent().getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
 	}
 
 	@Override
@@ -127,7 +133,12 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void waitForProvisionStatus(String status) {
-		super.getParent().getExecutor().waitForProvisionStatus(this, status);
+		getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public Executor getExecutor() {
+		return super.getParent().getExecutor();
 	}
 
 	/**

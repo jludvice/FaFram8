@@ -1,14 +1,11 @@
 package org.jboss.fuse.qa.fafram8.modifier.impl;
 
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -16,13 +13,8 @@ import lombok.ToString;
  * Created by avano on 20.8.15.
  */
 @ToString
-@EqualsAndHashCode(exclude = {"executor"})
-public final class AccessRightsModifier implements Modifier {
-	@Setter
-	private Executor executor;
-
-	@Getter
-	private String host;
+@EqualsAndHashCode(callSuper = true, exclude = {"executor"})
+public final class AccessRightsModifier extends Modifier {
 	@SuppressWarnings("MismatchedReadAndWriteOfArray")
 	private String[] paths;
 
@@ -47,17 +39,17 @@ public final class AccessRightsModifier implements Modifier {
 
 	@Override
 	public void execute() {
-		if (executor == null) {
+		if (super.getExecutor() == null) {
 			localExecute();
 		} else {
 			remoteExecute();
 		}
 	}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	/**
 	 * Executes the modifier on localhost.
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private void localExecute() {
 		for (String path : paths) {
 			new File(SystemProperty.getFusePath() + File.separator + path).setExecutable(true);
@@ -69,7 +61,7 @@ public final class AccessRightsModifier implements Modifier {
 	 */
 	private void remoteExecute() {
 		for (String path : paths) {
-			executor.executeCommand("chmod +x " + SystemProperty.getFusePath() + path);
+			super.getExecutor().executeCommand("chmod +x " + SystemProperty.getFusePath() + path);
 		}
 	}
 }

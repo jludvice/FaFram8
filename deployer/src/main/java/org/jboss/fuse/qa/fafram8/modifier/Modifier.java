@@ -2,26 +2,25 @@ package org.jboss.fuse.qa.fafram8.modifier;
 
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Modifier interface.
  * Created by jludvice on 4.8.15.
  */
-public interface Modifier {
+@EqualsAndHashCode
+public abstract class Modifier {
+	@Getter
+	@Setter
+	private Executor executor;
+	@Getter
+	@Setter
+	private String host;
+
 	/**
 	 * This method will be called before fuse is started.
 	 */
-	void execute();
-
-	/**
-	 * Executor setter for remote modifications.
-	 *
-	 * @param executor executor
-	 */
-	void setExecutor(Executor executor);
-
-	/**
-	 * Gets the host associated with the modifier.
-	 * @return host
-	 */
-	String getHost();
+	public abstract void execute();
 }

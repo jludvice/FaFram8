@@ -1,7 +1,6 @@
 package org.jboss.fuse.qa.fafram8.modifier.impl;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
@@ -17,8 +16,6 @@ import java.nio.file.Paths;
 import java.util.Properties;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,18 +25,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode(exclude = {"executor"})
-public final class PropertyModifier implements Modifier {
+@EqualsAndHashCode(callSuper = true, exclude = {"executor"})
+public final class PropertyModifier extends Modifier {
 	private String filePath;
 	private String key;
 	private String value;
 	private boolean extend;
-
-	@Getter
-	private String host;
-
-	@Setter
-	private Executor executor;
 
 	/**
 	 * Private constructor.
@@ -63,7 +54,7 @@ public final class PropertyModifier implements Modifier {
 	 * @param extend extend
 	 */
 	private PropertyModifier(String ip, String filePath, String key, String value, boolean extend) {
-		this.host = ip;
+		super.setHost(ip);
 		this.filePath = filePath;
 		this.key = key;
 		this.value = value;
@@ -108,7 +99,7 @@ public final class PropertyModifier implements Modifier {
 
 	@Override
 	public void execute() {
-		if (executor == null) {
+		if (super.getExecutor() == null) {
 			localExecute();
 		} else {
 			remoteExecute();
@@ -157,7 +148,7 @@ public final class PropertyModifier implements Modifier {
 	private void remoteExecute() {
 		final String path = SystemProperty.getFusePath() + File.separator + filePath;
 
-		final String response = executor.executeCommand("(grep -v '[#]' " + path + " | grep -q '" + key + "' ) && sed"
+		final String response = super.getExecutor().executeCommand("(grep -v '[#]' " + path + " | grep -q '" + key + "' ) && sed"
 				+ " -i \"s/^\\s*\\(" + StringUtils.replace(key, ".", "\\.") + "\\).*\\$/\\1=" + value + "/\" " + path
 				+ " || echo '\n" + key + "=" + value + "' >> " + path);
 		if (!response.isEmpty()) {

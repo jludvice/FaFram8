@@ -37,4 +37,22 @@ public class TestRunnerTest {
 	public void shouldRunSecurityIssue() {
 
 	}
+
+	@Test
+	@Jira("ENTESB-3530")
+	public void shouldRunSameVersion() {
+
+	}
+
+	@Test
+	@Jira("ENTESB-2930")
+	public void shouldRunOlderVersion() {
+
+	}
+
+	@Test
+	@Jira("ENTESB-4894")
+	public void shouldntRunNewerVersion() {
+		fail("Test shouldn't be run when the issue has higher fix version than current version");
+	}
 }

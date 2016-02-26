@@ -86,6 +86,9 @@ public class ConfigurationParser {
 						if (containerModel.getPassword() != null) {
 							builder.password(containerModel.getPassword());
 						}
+						if (containerModel.isFabric()) {
+							builder.withFabric();
+						}
 
 						final Node node = Node.builder().host(containerModel.getNode().getHost())
 								.username(containerModel.getNode().getUsername())

@@ -5,7 +5,7 @@
 
 	<framework></framework>
 
-	<container type="root" instances="1">
+	<container type="root" fabric="true" instances="1">
 		<!-- Note the root container name is always "root" -->
 		<name>ecervena-root123</name>
 		<username>fafram</username>

@@ -35,6 +35,11 @@ public class ContainerModel {
 
 	@Getter
 	@Setter
+	@XmlAttribute
+	private boolean fabric;
+
+	@Getter
+	@Setter
 	@XmlElement(namespace = "org.jboss.fuse.qa")
 	private String name;
 

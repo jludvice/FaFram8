@@ -13,7 +13,7 @@ import org.junit.Test;
  */
 public class RemoteBundleUpload {
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml");
+	public Fafram fafram = new Fafram().withFabric().bundles("src/test/resources/blank-project/pom.xml");
 
 	@Test
 	public void testUploadBundle() {

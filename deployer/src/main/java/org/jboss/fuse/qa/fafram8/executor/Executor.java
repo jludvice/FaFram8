@@ -342,7 +342,6 @@ public class Executor {
 				container = client.executeCommand("container-list | grep " + waitFor, true);
 				isSuccessful = container.contains(status);
 
-//				provisionStatus = StringUtils.substringAfter(container, ":").trim();
 				// Parse the provision status from the container-list output
 				container = container.replaceAll(" +", " ").trim();
 				final String[] content = container.split(" ", maxLength);
@@ -350,7 +349,7 @@ public class Executor {
 					provisionStatus = content[maxLength - 1];
 				}
 
-				containerInfoStatus = StringUtils.substringAfter(client.executeCommand("container-info " + waitFor + " | grep \"Provision Status:\"", true), ":");
+				containerInfoStatus = StringUtils.substringAfter(client.executeCommand("container-info " + waitFor, true), "Provision Status:").trim();
 			} catch (Exception e) {
 				// Get the reason
 				reason = e.getMessage();
@@ -370,10 +369,10 @@ public class Executor {
 				break;
 			}
 
-//			log.error("status: {} \n provisionStatus {}\n", status, provisionStatus);
-			// If we are waiting for provision status success and status is error then terminate waitForProvision with exception
-			if (!status.equals(provisionStatus) && "success".equals(status) && provisionStatus.contains("error")) {
-				log.error("Container {} did not provision to state \"{}\" but ended in error: \"{}\"", waitFor, status, provisionStatus);
+			// If we are waiting for certain provision status and status is either error/success(opposite to wanted status) then terminate waitForProvision with exception
+			log.trace("Status: {} , ProvisionStatus: {}", status, provisionStatus);
+			if (!status.equals(provisionStatus) && (provisionStatus.contains("error") || provisionStatus.contains("success"))) {
+				log.error("Container {} did not provision to state \"{}\" but ended in state: \"{}\"", waitFor, status, containerInfoStatus);
 				throw new FaframException("Container " + waitFor + " failed to provision to state \"success\" and ended in provision status \"" + containerInfoStatus + "\"");
 			}
 

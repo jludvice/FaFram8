@@ -30,6 +30,7 @@
 								</xs:complexType>
 							</xs:element>
 						</xs:all>
+						<xs:attribute name="fabric" type="xs:boolean"/>
 						<xs:attribute name="instances" type="xs:int"/>
 						<xs:attribute name="type" type="containerType"/>
 					</xs:complexType>

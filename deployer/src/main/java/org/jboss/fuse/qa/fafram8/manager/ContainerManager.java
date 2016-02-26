@@ -59,9 +59,9 @@ public class ContainerManager {
 	}
 
 	/**
-	 * Gets the bundle list.
+	 * Gets the bundles list.
 	 *
-	 * @return bundle list
+	 * @return bundles list
 	 */
 	public static List<String> getBundles() {
 		// Force the initialization

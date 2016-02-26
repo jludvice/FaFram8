@@ -70,7 +70,62 @@ run) and the whole workflow looks like this:
 	
 ### Remote deployment
 
-Remote deployment todo rjakubco
+Remote deployment can be used for running Fuse/A-MQ instance on remote host. It functionality is almost similar to local deployment with some small differences. The first one is that it doesn't get distribution zip file from maven local repository and it is required to specify **fuse.zip** property. This property should be either path to distribution zip present on the remote host or URL for downloading the distribution zip from the net. Last difference is that the distribution zip is unzipped to _fafram/${FUSE_NAME}_ folder in the user's home directory on specified machine. The whole workflow for remote deployment looks like this:
+
+	Get zip file from specified fuse.zip property(file or download)
+	Unzip into fafram folder that is created on the remote machine
+	Modify the container
+	Start the container
+	Create fabric if specified
+	Patch the distribution if specified
+	Create specified containers
+	<your test>
+	Stop the container
+	Delete the all containers if it's desired
+
+#### Providers
+Remote deployment has one more special feature that is a concept of providers. Providers tell FaFram how the remote deployment should be handled. For now FaFram supports 2 types of remote deployment(a.k.a two different providers):
+* Static deployment with provided IP address (**StaticProvider**)
+* Openstack deployment that spawns machines on Openstack (**OpenstackProvider**)
+
+
+##### Static provider
+Static provider is the default provider for FaFram and its remote deployment. It is used when user already have running machines for deployment with static IP addresses or hostnames. In this case you just specify IP addresses to the machines. There is also possibility to explicit define static provider with _provider(FaframProvider.STATIC)_ by it is not required by default.
+
+
+This is basic example of static provider or default behavior of Fafram for spawning 1 root container on host "1.2.3.4" and the SSH container on address "5.6.7.8".
+```
+public Fafram fafram = new Fafram().fuseZip("http://path/to/fuse.zip").containers(
+			RootContainer.builder().name("myroot").withFabric().node(
+					host("1.2.3.4")
+							.port(22)
+							.username("myuser")
+							.password("mypassword")
+							.build()
+			).build(),
+			SshContainer.builder().name("ssh").node("5.6.7.8", 22, "nextUser", "nextPassword")
+			.parentName("myroot").build()
+	);
+```
+
+##### Openstack provider
+Openstack provider is on the other hand used for dynamic provisioning of machines on Openstack. This is not the default behavior of FaFram8 so user needs to specify it using the _provider()_ method on _Fafram_ class. FaFram provides static enum _FaframProvider.OPENSTACK_ for defining that Openstack provider should be used. Afterwards it is necessary to specify for each container that it should use the provided IP address by Openstack specifying _node("openstack")_ on it.
+
+Full example of using the dynamic provisioning of machines using the Openstack provider.
+```
+private Container root = RootContainer.builder().name("offline-cluster-root").node("openstack").withFabric().build();
+private Container sshContainer = SshContainer.builder().name("ssh1-offline").parent(root).profiles("gateway-mq").node("openstack").build();
+private Container sshContainer2 = SshContainer.builder().name("ssh2-offline").parent(root).profiles("feature-camel", "complex-create").node("openstack").build();
+private static Container sshChild = ChildContainer.builder().name("child-ssh-offline1").parent(sshContainer).build();
+
+@Rule
+public static Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).containers(root, sshContainer, sshContainer2, sshChild);
+```
+This example spawns 3 machines on the Openstack and creates:
+* root container
+* ssh container with name ssh1-offline
+* ssh container with ssh2-offline
+* child container on machine of ssh container with name ssh1-offline
 
 #### Uploading bundles to remote Fabric
 Fafram8 supports uploading bundles from local machine to remote deployment of Fuse. This functionality is provided by _MavenPomInvoker_ class which invokes Maven project and uploads built bundle to fabric maven proxy on remote root container.
@@ -91,6 +146,17 @@ When the project is configured correctly then you need to add path to _pom.xml_ 
     	public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml", "test/project/pom.xml");
 
 Bundles are uploaded to fabric maven proxy before execution of commands specified by _command(String... commands)_ method. This can be leverage for example when editing profiles and adding your custom bundles.
+
+### Loading iptables and offline mode
+**This is experimental feature and it requires that you know what are you doing and also that you are prepared to bear the consequences!**
+
+FaFram provides feature for modifying iptables on remote machines using the _loadIPtablesConfigurationFile("local/path/to/file")_. This feature works for both the Static provider and Openstack provider. It requires that the ssh user used for connecting to machines is member of sudoers and _sudo_ command can be executed without password. FaFram will copy the specified file to all machines and set the _iptables_ on each machine to reflect configuration specified in specified configuration file. Meaning that the whole environment will became in state defined by the user.
+
+If Static provider is used then old _iptables_ configuration is saved to temp file with name **ipTablesSaved** on each machine. This configuration is always restored after test is done or if there was problem with the test. When using Openstack provider then iptables are never cleaned.
+
+FaFram also provide special option _offline()_ that works only if iptables configuration file with name **iptables-no-internet** is present on all nodes in user home directory. If you are using the Openstack provider then this file is present in all ecervena snapshosts by default. Using offline flag with dynamic provisioning with Fuse-QA Openstack is the most stable and the most supported use case for this feature.
+
+For basic examples and usage check [OfflineTest](../deployer/src/test/java/org/jboss/fuse/qa/fafram8/test/remote/RemoteTurnOffInternetTest.java) and [CustomIPTablesTest](../deployer/src/test/java/org/jboss/fuse/qa/fafram8/test/remote/RemoteSettingIPtablesTest.java).
 
 ### System properties
 The workflow or properties can be modified using system properties. Full list of system properties is

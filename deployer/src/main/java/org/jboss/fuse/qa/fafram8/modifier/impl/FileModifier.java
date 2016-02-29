@@ -11,8 +11,6 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import java.io.File;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,18 +20,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode(exclude = {"executor"})
-public final class FileModifier implements Modifier {
+@EqualsAndHashCode(callSuper = true, exclude = {"executor"})
+public final class FileModifier extends Modifier {
 	private String fileToReplace;
 	private String fileToUse;
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
 	private FileModifier(String fileToReplace, String fileToUse, Executor executor) {
 		this.fileToReplace = fileToReplace;
 		this.fileToUse = fileToUse;
-		this.executor = executor;
+		super.setExecutor(executor);
 	}
 
 	/**
@@ -62,7 +56,7 @@ public final class FileModifier implements Modifier {
 
 	@Override
 	public void execute() {
-		if (executor == null) {
+		if (super.getExecutor() == null) {
 			moveLocalFile();
 		} else {
 			moveRemoteFile();
@@ -102,7 +96,7 @@ public final class FileModifier implements Modifier {
 
 		try {
 			log.debug("Copying file: {} to remote location: {}", fileToUse, path);
-			executor.copyFileToRemote(fileToUse, path);
+			super.getExecutor().copyFileToRemote(fileToUse, path);
 		} catch (CopyFileException ex) {
 			log.error("Could not copy file to remote location: ", ex);
 			throw new FaframException("Could not copy file to remote location: ", ex);

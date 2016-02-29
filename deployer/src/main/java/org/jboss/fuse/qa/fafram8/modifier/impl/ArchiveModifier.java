@@ -3,7 +3,6 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
@@ -13,8 +12,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,12 +21,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-@EqualsAndHashCode
-public class ArchiveModifier implements Modifier {
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
+@EqualsAndHashCode(callSuper = true)
+public class ArchiveModifier extends Modifier {
 	private Path archiveTargetPath = Paths.get(SystemProperty.getArchiveTarget()).toAbsolutePath();
 	private String[] archiveFiles = SystemProperty.getArchivePattern().split(" *, " + "*"); //ignore spaces around comma
 
@@ -40,7 +33,7 @@ public class ArchiveModifier implements Modifier {
 			return;
 		}
 
-		if (executor != null) {
+		if (super.getExecutor() != null) {
 			archiveRemoteFiles();
 		} else {
 			archiveLocalFiles();
@@ -71,8 +64,8 @@ public class ArchiveModifier implements Modifier {
 				log.debug("Archiving file {}", fileName);
 				//create target directory structure
 				final Path target = Paths.get(archiveTargetPath.toString(), StringUtils.substringBetween(
-						Paths.get(SystemProperty.getFusePath(), fileName).toAbsolutePath().toString(), SystemProperty.getBaseDir(), fileName)
-						, fileName).toAbsolutePath();
+						Paths.get(SystemProperty.getFusePath(), fileName).toAbsolutePath().toString(), SystemProperty.getBaseDir(), fileName),
+						fileName).toAbsolutePath();
 				Files.createDirectories(target.getParent());
 				// for instance copy
 				// from: $FUSE_HOME/data/log/fuse.log

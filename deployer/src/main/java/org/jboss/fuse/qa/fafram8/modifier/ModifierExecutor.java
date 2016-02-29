@@ -19,6 +19,7 @@ public class ModifierExecutor {
 	private static ModifierExecutor instance = null;
 	private static Set<Modifier> modifiers = null;
 	private static Set<Modifier> postModifiers = null;
+	private static Set<Modifier> customModifiers = null;
 
 	/**
 	 * Constructor.
@@ -36,6 +37,7 @@ public class ModifierExecutor {
 			instance = new ModifierExecutor();
 			modifiers = new LinkedHashSet<>();
 			postModifiers = new LinkedHashSet<>();
+			customModifiers = new LinkedHashSet<>();
 		}
 
 		return instance;
@@ -63,6 +65,16 @@ public class ModifierExecutor {
 		ModifierExecutor.getInstance();
 
 		addModifiersToCollection(postModifiers, modifier);
+	}
+
+	/**
+	 * Adds modifiers to custom modifierse.
+	 * @param modifier modifiers
+	 */
+	public static void addCustomModifiers(Modifier... modifier) {
+		ModifierExecutor.getInstance();
+
+		addModifiersToCollection(customModifiers, modifier);
 	}
 
 	/**
@@ -111,6 +123,22 @@ public class ModifierExecutor {
 	}
 
 	/**
+	 * Executes the custom modifiers.
+	 */
+	public static void executeCustomModifiers() {
+		executeCustomModifiers(null);
+	}
+
+	/**
+	 * Executes the custom modifiers on remote.
+	 *
+	 * @param executor executor
+	 */
+	public static void executeCustomModifiers(Executor executor) {
+		executeModifiersFromCollection(null, executor, customModifiers);
+	}
+
+	/**
 	 * Executes the modifiers from the given collection.
 	 *
 	 * @param executor executor
@@ -128,6 +156,11 @@ public class ModifierExecutor {
 					}
 					log.debug("Executing modifier {}.", c);
 					c.execute();
+
+					// Unset the executor so that we will not have multiple instances of one modifier in the collection
+					if (executor != null) {
+						c.setExecutor(null);
+					}
 				}
 			} catch (Exception e) {
 				log.error("Failed to execute modifiers.", e);
@@ -146,5 +179,6 @@ public class ModifierExecutor {
 		// Clear all the modifiers at the end so that they will not stay here when executing multiple tests
 		modifiers.clear();
 		postModifiers.clear();
+		customModifiers.clear();
 	}
 }

@@ -3,7 +3,6 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
@@ -12,8 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,16 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 @Slf4j
 @ToString
-@EqualsAndHashCode
-public final class JvmOptsModifier implements Modifier {
+@EqualsAndHashCode(callSuper = true)
+public final class JvmOptsModifier extends Modifier {
 	private String xms = "768M";
 	private String xmx = "1536M";
 	private String permMem = "768M";
 	private String maxPermMem = "1536M";
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
 
 	/**
 	 * Private constructor.
@@ -58,7 +51,7 @@ public final class JvmOptsModifier implements Modifier {
 
 	@Override
 	public void execute() {
-		if (executor != null) {
+		if (super.getExecutor() != null) {
 			modifyRemoteJvmOpts();
 		} else {
 			modifyLocalJvmOpts();
@@ -129,14 +122,14 @@ public final class JvmOptsModifier implements Modifier {
 				xms, xmx, permMem, maxPermMem);
 		// Remove original files
 		if ((System.getProperty("os.name").startsWith("Windows"))) {
-			executor.executeCommand("rm -rf " + path + ".bat");
+			super.getExecutor().executeCommand("rm -rf " + path + ".bat");
 			// Changes to win
 			content = content.replaceAll("export", "SET");
-			executor.executeCommand("printf \"" + content + "\" >> " + path + ".bat");
+			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path + ".bat");
 		} else {
-			executor.executeCommand("rm -rf " + path);
+			super.getExecutor().executeCommand("rm -rf " + path);
 			// Print content into the files
-			executor.executeCommand("printf \"" + content + "\" >> " + path);
+			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path);
 		}
 	}
 }

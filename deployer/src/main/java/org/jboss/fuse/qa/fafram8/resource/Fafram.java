@@ -15,6 +15,7 @@ import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
+import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
@@ -81,7 +82,6 @@ public class Fafram extends ExternalResource {
 			setDefaultModifiers();
 			prepareNodes(provisionProvider);
 			Deployer.deploy();
-			running = true;
 		} catch (Exception ex) {
 			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 			provisionProvider.releaseResources();
@@ -102,6 +102,8 @@ public class Fafram extends ExternalResource {
 		// Save the first root we find - used in .executeCommand() and probably some more methods
 		root = getRoot();
 
+		running = true;
+
 		return this;
 	}
 
@@ -116,9 +118,7 @@ public class Fafram extends ExternalResource {
 			ex.printStackTrace();
 			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 
-			if (!SystemProperty.isKeepOsResources()) {
-				provisionProvider.releaseResources();
-			}
+			provisionProvider.releaseResources();
 
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
@@ -127,9 +127,7 @@ public class Fafram extends ExternalResource {
 			throw new FaframException(ex);
 		}
 
-		if (!SystemProperty.isKeepOsResources()) {
-			provisionProvider.releaseResources();
-		}
+		provisionProvider.releaseResources();
 
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
@@ -155,6 +153,22 @@ public class Fafram extends ExternalResource {
 			Validator.validate();
 			// deploy method will create only offline containers
 			Deployer.deploy();
+		}
+		return this;
+	}
+
+	/**
+	 * Adds modifiers to the custom modifiers collection.
+	 * @param modifiers custom modifiers
+	 * @return this
+	 */
+	public Fafram modifiers(Modifier... modifiers) {
+		ModifierExecutor.addCustomModifiers(modifiers);
+		if (running) {
+			// If we are running modifiers in the test, execute them directly
+			for (Modifier mod: modifiers) {
+				mod.execute();
+			}
 		}
 		return this;
 	}
@@ -607,10 +621,6 @@ public class Fafram extends ExternalResource {
 		provider.createServerPool(temp);
 		provider.assignAddresses(temp);
 		provider.loadIPTables(temp);
-
-		// TODO(rjakubco): For now load iptables(kill internet) here. All nodes should be already spawned and it makes sense to create the proper
-		// environment
-		//				provider.loadIPTables(ContainerManager.getContainerList());
 	}
 
 	/**

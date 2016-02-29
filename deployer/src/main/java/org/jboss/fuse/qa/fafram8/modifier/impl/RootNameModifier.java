@@ -4,7 +4,6 @@ import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
@@ -13,8 +12,6 @@ import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 import java.io.File;
 import java.io.IOException;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -23,11 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by avano on 11.1.16.
  */
 @Slf4j
-public final class RootNameModifier implements Modifier {
-	@Setter
-	private Executor executor;
-	@Getter
-	private String host;
+public final class RootNameModifier extends Modifier {
 	private Container container;
 
 	/**
@@ -35,7 +28,7 @@ public final class RootNameModifier implements Modifier {
 	 */
 	private RootNameModifier(Container container, String host) {
 		this.container = container;
-		this.host = host;
+		super.setHost(host);
 	}
 
 	/**

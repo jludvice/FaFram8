@@ -115,6 +115,7 @@ public class LocalNodeManager implements NodeManager {
 	@Override
 	public void prepareFuse(String host) {
 		ModifierExecutor.executeModifiers(host);
+		ModifierExecutor.executeCustomModifiers();
 	}
 
 	@Override

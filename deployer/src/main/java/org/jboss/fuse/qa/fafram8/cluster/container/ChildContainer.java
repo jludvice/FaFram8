@@ -6,6 +6,7 @@ import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.Arrays;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -124,6 +125,11 @@ public class ChildContainer extends Container {
 	@Override
 	public String executeCommand(String command) {
 		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+	}
+
+	@Override
+	public List<String> executeCommands(String... commands) {
+		return getExecutor().executeCommands(commands);
 	}
 
 	@Override

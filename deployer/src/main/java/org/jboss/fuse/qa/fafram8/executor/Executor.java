@@ -63,6 +63,19 @@ public class Executor {
 	}
 
 	/**
+	 * Executes multiple commands.
+	 * @param commands commands array
+	 * @return list of command responses
+	 */
+	public List<String> executeCommands(String... commands) {
+		final List<String> responses = new ArrayList<>();
+		for (String command : commands) {
+			responses.add(executeCommand(command));
+		}
+		return responses;
+	}
+
+	/**
 	 * Checks if the client can connect.
 	 *
 	 * @return true/false if can/couldn't connect

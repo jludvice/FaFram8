@@ -16,6 +16,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -172,6 +173,11 @@ public class RootContainer extends Container {
 	@Override
 	public String executeCommand(String command) {
 		return super.getExecutor().executeCommand(command);
+	}
+
+	@Override
+	public List<String> executeCommands(String... commands) {
+		return super.getExecutor().executeCommands(commands);
 	}
 
 	/**

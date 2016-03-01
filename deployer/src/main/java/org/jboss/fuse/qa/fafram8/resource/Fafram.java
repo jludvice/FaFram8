@@ -546,6 +546,15 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Executes multiple commands in node shell.
+	 * @param commands commands array to execute
+	 * @return list of commands responses
+	 */
+	public List<String> executeNodeCommands(String... commands) {
+		return root.getNode().getExecutor().executeCommands(commands);
+	}
+
+	/**
 	 * Executes a command in root container.
 	 *
 	 * @param command command to execute on root container
@@ -553,6 +562,15 @@ public class Fafram extends ExternalResource {
 	 */
 	public String executeCommand(String command) {
 		return root.executeCommand(command);
+	}
+
+	/**
+	 * Executes multiple commands in root container.
+	 * @param commands commands array to execute
+	 * @return list of commands responses
+	 */
+	public List<String> executeCommands(String... commands) {
+		return root.executeCommands(commands);
 	}
 
 	/**

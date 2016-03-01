@@ -140,6 +140,13 @@ public abstract class Container {
 	public abstract String executeCommand(String command);
 
 	/**
+	 * Executes multiple commands in container.
+	 * @param commands commands array to execute
+	 * @return list of commands responses
+	 */
+
+	public abstract List<String> executeCommands(String... commands);
+	/**
 	 * Creates the executor from the specified attributes. It is used in builder and in OpenstackProvisionProvider.
 	 *
 	 * @return executor instance

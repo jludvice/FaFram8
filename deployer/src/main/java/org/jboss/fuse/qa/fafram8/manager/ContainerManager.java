@@ -166,6 +166,7 @@ public class ContainerManager {
 				c.executeCommand(command);
 			}
 		}
+		c.waitForProvisioning();
 	}
 
 	/**

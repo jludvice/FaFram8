@@ -399,6 +399,9 @@ public class RootContainer extends Container {
 						.password(container.getNode().getPassword())
 						.build();
 			}
+			// Add zookeeper commands because child/ssh container.stop() need them
+			final List<String> cmds = new ArrayList<>(container.getCommands());
+			cmds.add("fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default");
 			// fuse executor is set when the container is being created
 			return new RootContainer()
 					.name(container.getName())
@@ -413,7 +416,7 @@ public class RootContainer extends Container {
 					.fabric(container.isFabric())
 					.fabricCreateArguments(container.getFabricCreateArguments())
 					// The same as node
-					.commands(new ArrayList<>(container.getCommands()))
+					.commands(cmds)
 					.bundles(new ArrayList<>(container.getBundles()))
 					.profiles(new ArrayList<>(container.getProfiles()));
 		}

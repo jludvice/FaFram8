@@ -85,7 +85,7 @@ public class RemoteNodeManager implements NodeManager {
 		try {
 			// TODO(rjakubco): add changing java before start
 			log.info("Starting container");
-			executor.executeCommand(productPath + SEP + "bin" + SEP + "start");
+			executor.executeCommand(productPath + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();
 			// TODO(avano): special usecase for remote standalone starting? maybe not necessary
 			if (!SystemProperty.isFabric() && !SystemProperty.skipBrokerWait()) {
@@ -107,7 +107,7 @@ public class RemoteNodeManager implements NodeManager {
 	@Override
 	public void stop() {
 		log.info("Stopping container");
-		executor.executeCommand(productPath + SEP + "bin" + SEP + "stop");
+		executor.executeCommand(productPath + "bin" + SEP + "stop");
 		fuseExecutor.waitForShutdown();
 	}
 

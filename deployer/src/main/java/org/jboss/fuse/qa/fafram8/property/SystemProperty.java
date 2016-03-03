@@ -213,7 +213,7 @@ public class SystemProperty {
 	 * @return karaf stop wait time
 	 */
 	public static int getStopWaitTime() {
-		return Integer.parseInt(System.getProperty(FaframConstant.STOP_WAIT_TIME, "30"));
+		return Integer.parseInt(System.getProperty(FaframConstant.STOP_WAIT_TIME, "60"));
 	}
 
 	/**

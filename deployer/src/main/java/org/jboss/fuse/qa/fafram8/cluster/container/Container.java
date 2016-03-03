@@ -89,6 +89,18 @@ public abstract class Container {
 	@Setter
 	private String version;
 
+	@Getter
+	@Setter
+	private List<String> envs = new ArrayList<>();
+
+	@Getter
+	@Setter
+	private List<String> jvmOpts = new ArrayList<>();
+
+	@Getter
+	@Setter
+	private List<String> jvmMemOpts = new ArrayList<>();
+
 	/**
 	 * Creates a container.
 	 */
@@ -300,6 +312,39 @@ public abstract class Container {
 	 */
 	public Container version(String version) {
 		this.version = version;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param envs environment variables
+	 * @return this
+	 */
+	public Container env(List<String> envs) {
+		this.envs = envs;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param jvmOpts JVM options
+	 * @return this
+	 */
+	public Container jvmOpts(List<String> jvmOpts) {
+		this.jvmOpts = jvmOpts;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param jvmMemOpts JVM memory options
+	 * @return this
+	 */
+	public Container jvmMemOpts(List<String> jvmMemOpts) {
+		this.jvmMemOpts = jvmMemOpts;
 		return this;
 	}
 }

@@ -23,13 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 @ToString
 @EqualsAndHashCode(callSuper = true, of = {"host"})
 public final class JvmOptsModifier extends Modifier {
-	private String jvmOptsForRoot = "";
+	private String additionalJvmOpts = "";
 
 	/**
 	 * Private constructor.
 	 */
-	private JvmOptsModifier(String jvmOptsForRoot) {
-		this.jvmOptsForRoot = jvmOptsForRoot;
+	private JvmOptsModifier(String additionalJvmOpts) {
+		this.additionalJvmOpts = additionalJvmOpts;
 	}
 
 	/**
@@ -71,7 +71,7 @@ public final class JvmOptsModifier extends Modifier {
 	}
 
 	/**
-	 * Adds random modifier to bin/karaf on localhost.
+	 * Adds random modifier to bin/setenv on localhost.
 	 */
 	public void localExecute() {
 		try {
@@ -81,7 +81,7 @@ public final class JvmOptsModifier extends Modifier {
 
 			// Default java opts from karaf + randomness location
 			content += "\nexport JAVA_OPTS=\"-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava"
-					+ ".security.egd=file:/dev/./urandom " + jvmOptsForRoot + "\"\n";
+					+ ".security.egd=file:/dev/./urandom " + additionalJvmOpts + "\"\n";
 			final FileOutputStream fos = new FileOutputStream(filePath, false);
 			IOUtils.write(content, fos);
 
@@ -93,13 +93,13 @@ public final class JvmOptsModifier extends Modifier {
 	}
 
 	/**
-	 * Adds random modifier to bin/karaf on remote host.
+	 * Adds random modifier to bin/setenv on remote host.
 	 */
 	public void remoteExecute() {
 		final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
 
 		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
-				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom" + jvmOptsForRoot + "\\\" \" >> " + filePath);
+				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom" + additionalJvmOpts + "\\\" \" >> " + filePath);
 		if (!response.isEmpty()) {
 			log.error("Setting property on remote host failed. Response should be empty but was: {}.", response);
 		}

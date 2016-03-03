@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
+@ToString(of = {"jvmMemOpts"})
 public final class JvmMemoryModifier extends Modifier {
 	private String xms = "768M";
 	private String xmx = "1536M";
@@ -92,11 +94,11 @@ public final class JvmMemoryModifier extends Modifier {
 			}
 			if ((System.getProperty("os.name").startsWith("Windows"))) {
 				for (String line : jvmMemOpts) {
-					FileUtils.writeStringToFile(setenvBat, "export " + line, true);
+					FileUtils.writeStringToFile(setenvBat, "SET " + line + "\n", true);
 				}
 			} else {
 				for (String line : jvmMemOpts) {
-					FileUtils.writeStringToFile(setenv, "export " + line, true);
+					FileUtils.writeStringToFile(setenv, "export " + line + "\n", true);
 				}
 			}
 		} catch (Exception ex) {
@@ -112,7 +114,7 @@ public final class JvmMemoryModifier extends Modifier {
 		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
 		final StringBuilder builder = new StringBuilder();
 		for (String line : jvmMemOpts) {
-			builder.append(String.format("export %s%n", line));
+			builder.append("export " + line + "\n");
 		}
 		String content = builder.toString();
 		// Remove original files
@@ -124,9 +126,5 @@ public final class JvmMemoryModifier extends Modifier {
 			// Print content into the files
 			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path);
 		}
-	}
-
-	public String toString() {
-		return "org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier(jvmMemoryOpts=" + this.jvmMemOpts + ")";
 	}
 }

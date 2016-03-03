@@ -248,6 +248,7 @@ public class Executor {
 
 	/**
 	 * Waits for the (remote) container stop.
+	 *
 	 * @param c container
 	 */
 	public void waitForContainerStop(Container c) {
@@ -334,7 +335,7 @@ public class Executor {
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			handleProvisionWaitTime(retries, waitFor, containerInfoStatus);
+			handleProvisionWaitTime(retries, waitFor, status, containerInfoStatus);
 
 			String reason = "";
 
@@ -412,10 +413,11 @@ public class Executor {
 	 * @param container container
 	 * @param status status to wait for
 	 */
-	private void handleProvisionWaitTime(int elapsed, String container, String status) {
+	private void handleProvisionWaitTime(int elapsed, String container, String status, String containerActualStatus) {
 		if (elapsed > SystemProperty.getProvisionWaitTime()) {
-			log.error("Container " + container + " failed to provision to state \"" + status + "\" in time");
-			throw new FaframException("Container " + container + " failed to provision to state \"" + status + "\" in time");
+			log.error("Container " + container + " failed to provision to state \"" + status + "\" in time and ended in status:" + containerActualStatus);
+			throw new FaframException("Container " + container + " failed to provision to state \"" + status + "\" in time and ended in status:"
+					+ containerActualStatus);
 		}
 	}
 

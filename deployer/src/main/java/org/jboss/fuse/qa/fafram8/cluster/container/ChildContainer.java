@@ -113,7 +113,7 @@ public class ChildContainer extends Container {
 	@Override
 	public void stop() {
 		getExecutor().executeCommand("container-stop " + super.getName());
-		getExecutor().waitForProvisionStatus(this, "stopped");
+		getExecutor().waitForContainerStop(this);
 		super.setOnline(false);
 	}
 

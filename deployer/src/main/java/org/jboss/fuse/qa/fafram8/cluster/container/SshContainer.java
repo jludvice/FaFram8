@@ -115,7 +115,7 @@ public class SshContainer extends Container {
 	@Override
 	public void stop() {
 		getExecutor().executeCommand("container-stop " + super.getName());
-		getExecutor().waitForProvisionStatus(this, "stopped");
+		getExecutor().waitForContainerStop(this);
 		super.setOnline(false);
 	}
 
@@ -127,7 +127,7 @@ public class SshContainer extends Container {
 
 	@Override
 	public String executeCommand(String command) {
-		return getExecutor().executeCommand(command);
+		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
 	}
 
 	@Override

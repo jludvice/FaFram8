@@ -64,6 +64,7 @@ public class Executor {
 
 	/**
 	 * Executes multiple commands.
+	 *
 	 * @param commands commands array
 	 * @return list of command responses
 	 */
@@ -126,6 +127,7 @@ public class Executor {
 
 	/**
 	 * Checks if the executor (client) is connected.
+	 *
 	 * @return connected
 	 */
 	public boolean isConnected() {
@@ -221,6 +223,8 @@ public class Executor {
 
 		int elapsed = 0;
 
+		log.info("Waiting for shutdown");
+
 		while (online) {
 			// Check if the time is up
 			if (elapsed > SystemProperty.getStopWaitTime()) {
@@ -232,6 +236,40 @@ public class Executor {
 			try {
 				// Check if we are still connected
 				online = client.isConnected();
+				log.debug("Remaining time: " + (SystemProperty.getStopWaitTime() - elapsed) + " seconds. ");
+				elapsed += step;
+			} catch (Exception ex) {
+				online = false;
+			}
+
+			sleep(timeout);
+		}
+	}
+
+	/**
+	 * Waits for the (remote) container stop.
+	 * @param c container
+	 */
+	public void waitForContainerStop(Container c) {
+		final int step = 5;
+		final long timeout = (step * 1000L);
+		boolean online = true;
+
+		int elapsed = 0;
+
+		log.info("Waiting for container " + c.getName() + " to shutdown");
+
+		while (online) {
+			// Check if the time is up
+			if (elapsed > SystemProperty.getStopWaitTime()) {
+				log.error("PID was still found after " + SystemProperty.getStopWaitTime() + " seconds");
+				throw new FaframException(
+						"PID was still found after after " + SystemProperty.getStopWaitTime() + " seconds");
+			}
+
+			try {
+				// If the response contains NoNodeException, then the container is stopped definitely and the node disappears
+				online = !client.executeCommand("zk:get /fabric/registry/containers/status/" + c.getName() + "/pid", true).contains("NoNode");
 				log.debug("Remaining time: " + (SystemProperty.getStopWaitTime() - elapsed) + " seconds. ");
 				elapsed += step;
 			} catch (Exception ex) {

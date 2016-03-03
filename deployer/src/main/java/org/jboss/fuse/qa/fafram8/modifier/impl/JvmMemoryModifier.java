@@ -26,28 +26,33 @@ public final class JvmMemoryModifier extends Modifier {
 	private String permMem = "768M";
 	private String maxPermMem = "1536M";
 
-	private List<String> jvmOpts = new ArrayList<>();
+	private List<String> jvmMemOpts = new ArrayList<>();
 
 	/**
 	 * Private constructor.
 	 */
 	private JvmMemoryModifier() {
-		jvmOpts.add("JAVA_MIN_MEM=" + xms);
-		jvmOpts.add("JAVA_MAX_MEM=" + xmx);
-		jvmOpts.add("JAVA_PERM_MEM=" + permMem);
-		jvmOpts.add("JAVA_MAX_PERM_MEM=" + maxPermMem);
+		jvmMemOpts.add("JAVA_MIN_MEM=" + xms);
+		jvmMemOpts.add("JAVA_MAX_MEM=" + xmx);
+		jvmMemOpts.add("JAVA_PERM_MEM=" + permMem);
+		jvmMemOpts.add("JAVA_MAX_PERM_MEM=" + maxPermMem);
 	}
 
+	/**
+	 * Private constructor.
+	 *
+	 * @param jvmOpts JVM options
+	 */
 	private JvmMemoryModifier(List<String> jvmOpts) {
-		this.jvmOpts.addAll(jvmOpts);
+		this.jvmMemOpts.addAll(jvmOpts);
 	}
 
 	@Override
 	public void execute() {
 		if (super.getExecutor() != null) {
-			modifyRemoteJvmOpts();
+			modifyRemoteJvmMemOpts();
 		} else {
-			modifyLocalJvmOpts();
+			modifyLocalJvmMemOpts();
 		}
 	}
 
@@ -56,18 +61,24 @@ public final class JvmMemoryModifier extends Modifier {
 	 *
 	 * @return jvm options modifier
 	 */
-	public static JvmMemoryModifier setDefaultJvmOpts() {
+	public static JvmMemoryModifier setDefaultJvmMemOpts() {
 		return new JvmMemoryModifier();
 	}
 
-	public static JvmMemoryModifier setJvmOpts(List<String> jvmOpts) {
-		return new JvmMemoryModifier(jvmOpts);
+	/**
+	 * Sets specified JVM memory opts.
+	 *
+	 * @param jvmMemOpts jvm memory opts for setting
+	 * @return jvm options modifier
+	 */
+	public static JvmMemoryModifier setJvmMemOpts(List<String> jvmMemOpts) {
+		return new JvmMemoryModifier(jvmMemOpts);
 	}
 
 	/**
 	 * Modifies JVM Opts on localhost.
 	 */
-	private void modifyLocalJvmOpts() {
+	private void modifyLocalJvmMemOpts() {
 		// Files locations
 		final File setenv = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv");
 		final File setenvBat = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
@@ -80,11 +91,11 @@ public final class JvmMemoryModifier extends Modifier {
 				setenv.createNewFile();
 			}
 			if ((System.getProperty("os.name").startsWith("Windows"))) {
-				for (String line : jvmOpts) {
+				for (String line : jvmMemOpts) {
 					FileUtils.writeStringToFile(setenvBat, "export " + line, true);
 				}
 			} else {
-				for (String line : jvmOpts) {
+				for (String line : jvmMemOpts) {
 					FileUtils.writeStringToFile(setenv, "export " + line, true);
 				}
 			}
@@ -95,12 +106,12 @@ public final class JvmMemoryModifier extends Modifier {
 	}
 
 	/**
-	 * Modifies JVM opts on remote.
+	 * Modifies JVM memory opts on remote.
 	 */
-	private void modifyRemoteJvmOpts() {
+	private void modifyRemoteJvmMemOpts() {
 		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
 		final StringBuilder builder = new StringBuilder();
-		for (String line : jvmOpts) {
+		for (String line : jvmMemOpts) {
 			builder.append(String.format("export %s%n", line));
 		}
 		String content = builder.toString();
@@ -116,6 +127,6 @@ public final class JvmMemoryModifier extends Modifier {
 	}
 
 	public String toString() {
-		return "org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier(jvmOpts=" + this.jvmOpts + ")";
+		return "org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier(jvmMemoryOpts=" + this.jvmMemOpts + ")";
 	}
 }

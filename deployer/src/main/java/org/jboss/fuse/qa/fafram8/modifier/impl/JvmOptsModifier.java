@@ -8,6 +8,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -43,8 +44,12 @@ public final class JvmOptsModifier extends Modifier {
 	 * @param jvmOptsForRoot additional jvm-opts for random modifier
 	 * @return random modifier instance
 	 */
-	public static JvmOptsModifier changeRandomSource(String jvmOptsForRoot) {
-		return new JvmOptsModifier(jvmOptsForRoot);
+	public static JvmOptsModifier addJvmOptsAndRandomSource(List<String> jvmOptsForRoot) {
+		final StringBuilder builder = new StringBuilder("");
+		for (String opt : jvmOptsForRoot) {
+			builder.append(" " + opt);
+		}
+		return new JvmOptsModifier(builder.toString());
 	}
 
 	/**
@@ -52,7 +57,7 @@ public final class JvmOptsModifier extends Modifier {
 	 *
 	 * @return random modifier instance
 	 */
-	public static JvmOptsModifier changeRandomSource() {
+	public static JvmOptsModifier addJvmOptsAndRandomSource() {
 		return new JvmOptsModifier();
 	}
 
@@ -94,7 +99,7 @@ public final class JvmOptsModifier extends Modifier {
 		final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
 
 		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
-				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom\\\" \" >> " + filePath);
+				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom" + jvmOptsForRoot + "\\\" \" >> " + filePath);
 		if (!response.isEmpty()) {
 			log.error("Setting property on remote host failed. Response should be empty but was: {}.", response);
 		}

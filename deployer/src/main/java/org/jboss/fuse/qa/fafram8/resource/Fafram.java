@@ -3,8 +3,9 @@ package org.jboss.fuse.qa.fafram8.resource;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.ArchiveModifier.registerArchiver;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.CommandHistoryModifier.saveCommandHistory;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.FileModifier.moveFile;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setDefaultJvmOpts;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.setJvmOpts;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JavaHomeModifier.setJavaHome;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setDefaultJvmMemOpts;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setJvmMemOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 
@@ -19,6 +20,7 @@ import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
+import org.jboss.fuse.qa.fafram8.property.Openstack;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
@@ -164,6 +166,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Adds modifiers to the custom modifiers collection.
+	 *
 	 * @param modifiers custom modifiers
 	 * @return this
 	 */
@@ -171,7 +174,7 @@ public class Fafram extends ExternalResource {
 		ModifierExecutor.addCustomModifiers(modifiers);
 		if (running) {
 			// If we are running modifiers in the test, execute them directly
-			for (Modifier mod: modifiers) {
+			for (Modifier mod : modifiers) {
 				mod.execute();
 			}
 		}
@@ -271,8 +274,13 @@ public class Fafram extends ExternalResource {
 	 * @param maxPermMem max perm mem
 	 * @return this
 	 */
-	public Fafram setJvmOptions(String xms, String xmx, String permMem, String maxPermMem) {
-		ModifierExecutor.addModifiers(setJvmOpts(xms, xmx, permMem, maxPermMem));
+	public Fafram setMemoryJvmOptions(String xms, String xmx, String permMem, String maxPermMem) {
+		final List<String> opts = new ArrayList<>();
+		opts.add("JAVA_MIN_MEM=" + xms);
+		opts.add("JAVA_MAX_MEM=" + xmx);
+		opts.add("JAVA_PERM_MEM=" + permMem);
+		opts.add("JAVA_MAX_PERM_MEM=" + maxPermMem);
+		ModifierExecutor.addModifiers(setJvmMemOpts(opts));
 		SystemProperty.set(FaframConstant.SKIP_DEFAULT_JVM_OPTS, "");
 		return this;
 	}
@@ -453,7 +461,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Add bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
+	 * Adds bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
 	 *
 	 * @param bundles list of bundles
 	 * @return this
@@ -471,6 +479,30 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram command(String... commands) {
 		ContainerManager.getCommands().addAll(Arrays.asList(commands));
+		return this;
+	}
+
+	/**
+	 * Sets path to java directory with predefined path on Openstack machine.
+	 *
+	 * @param openstack enum Openstack defining path to different jdks
+	 * @return this
+	 */
+	public Fafram jdk(Openstack openstack) {
+		jdk(openstack.getPath());
+		return this;
+	}
+
+	/**
+	 * Sets path to java directory that will be used by all containers.
+	 *
+	 * @param javaHomePath file path to java home
+	 * @return this
+	 */
+	public Fafram jdk(String javaHomePath) {
+		SystemProperty.set(FaframConstant.JAVA_HOME, javaHomePath);
+		ModifierExecutor.addModifiers(setJavaHome(SystemProperty.getJavaHome()));
+
 		return this;
 	}
 
@@ -531,7 +563,7 @@ public class Fafram extends ExternalResource {
 	 */
 	private void setDefaultModifiers() {
 		if (!SystemProperty.skipDefaultJvmOpts()) {
-			ModifierExecutor.addModifiers(setDefaultJvmOpts());
+			ModifierExecutor.addModifiers(setDefaultJvmMemOpts());
 		}
 
 		ModifierExecutor.addPostModifiers(

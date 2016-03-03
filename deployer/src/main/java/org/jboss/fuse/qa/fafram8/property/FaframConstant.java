@@ -168,4 +168,7 @@ public final class FaframConstant {
 
 	// Keep containers running after the test
 	public static final String KEEP_CONTAINERS = "keepContainers";
+
+	// Path to java home that will be used for Fuse (root and containers)
+	public static final String JAVA_HOME = "fafram.java.home";
 }

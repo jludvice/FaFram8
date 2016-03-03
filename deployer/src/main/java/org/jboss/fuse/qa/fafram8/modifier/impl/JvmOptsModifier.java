@@ -1,32 +1,35 @@
 package org.jboss.fuse.qa.fafram8.modifier.impl;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
-import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * JVM Opts modifier.
- * Created by avano on 8.10.15.
+ * Random modifier class.
+ * Modifier for better performance of Fuse on Openstack machines.
+ * Created by avano on 16.9.15.
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
 @Slf4j
 @ToString
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, of = {"host"})
 public final class JvmOptsModifier extends Modifier {
-	private String xms = "768M";
-	private String xmx = "1536M";
-	private String permMem = "768M";
-	private String maxPermMem = "1536M";
+	private String jvmOptsForRoot = "";
+
+	/**
+	 * Private constructor.
+	 */
+	private JvmOptsModifier(String jvmOptsForRoot) {
+		this.jvmOptsForRoot = jvmOptsForRoot;
+	}
 
 	/**
 	 * Private constructor.
@@ -35,101 +38,65 @@ public final class JvmOptsModifier extends Modifier {
 	}
 
 	/**
-	 * Private constructor.
+	 * Factory method.
 	 *
-	 * @param xms xms
-	 * @param xmx xmx
-	 * @param permMem perm mem
-	 * @param maxPermMem max perm mem
+	 * @param jvmOptsForRoot additional jvm-opts for random modifier
+	 * @return random modifier instance
 	 */
-	private JvmOptsModifier(String xms, String xmx, String permMem, String maxPermMem) {
-		this.xms = xms;
-		this.xmx = xmx;
-		this.permMem = permMem;
-		this.maxPermMem = maxPermMem;
+	public static JvmOptsModifier changeRandomSource(String jvmOptsForRoot) {
+		return new JvmOptsModifier(jvmOptsForRoot);
+	}
+
+	/**
+	 * Factory method.
+	 *
+	 * @return random modifier instance
+	 */
+	public static JvmOptsModifier changeRandomSource() {
+		return new JvmOptsModifier();
 	}
 
 	@Override
 	public void execute() {
-		if (super.getExecutor() != null) {
-			modifyRemoteJvmOpts();
+		if (super.getExecutor() == null) {
+			localExecute();
 		} else {
-			modifyLocalJvmOpts();
+			remoteExecute();
 		}
 	}
 
 	/**
-	 * Sets default jvm options.
-	 *
-	 * @return jvm options modifier
+	 * Adds random modifier to bin/karaf on localhost.
 	 */
-	public static JvmOptsModifier setDefaultJvmOpts() {
-		return new JvmOptsModifier();
-	}
-
-	/**
-	 * Sets jvm options.
-	 *
-	 * @param xms xms
-	 * @param xmx xmx
-	 * @param permMem perm mem
-	 * @param maxPermMem max perm mem
-	 * @return jvm options modifier
-	 */
-	public static JvmOptsModifier setJvmOpts(String xms, String xmx, String permMem, String maxPermMem) {
-		return new JvmOptsModifier(xms, xmx, permMem, maxPermMem);
-	}
-
-	/**
-	 * Modifies JVM Opts on localhost.
-	 */
-	private void modifyLocalJvmOpts() {
-		// Files locations
-		final File setenv = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv");
-		final File setenvBat = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
-
-		// File content
-		final List<String> lines = Arrays.asList("JAVA_MIN_MEM=" + xms + "\n", "JAVA_MAX_MEM=" + xmx + "\n",
-				"JAVA_PERM_MEM=" + permMem + "\n", "JAVA_MAX_PERM_MEM=" + maxPermMem);
+	public void localExecute() {
 		try {
-			if (!setenvBat.exists()) {
-				setenvBat.createNewFile();
-			}
-			if (!setenv.exists()) {
-				setenv.createNewFile();
-			}
-			if ((System.getProperty("os.name").startsWith("Windows"))) {
-				for (String line : lines) {
-					FileUtils.writeStringToFile(setenv, "export " + line, true);
-				}
-			} else {
-				for (String line : lines) {
-					FileUtils.writeStringToFile(setenv, "export " + line, true);
-				}
-			}
+			final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+			final FileInputStream fis = new FileInputStream(filePath);
+			String content = IOUtils.toString(fis);
+
+			// Default java opts from karaf + randomness location
+			content += "\nexport JAVA_OPTS=\"-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava"
+					+ ".security.egd=file:/dev/./urandom " + jvmOptsForRoot + "\"\n";
+			final FileOutputStream fos = new FileOutputStream(filePath, false);
+			IOUtils.write(content, fos);
+
+			fis.close();
+			fos.close();
 		} catch (Exception ex) {
-			log.error("Exception while modifying files: " + ex);
-			throw new FaframException(ex);
+			log.error("Error while manipulating the files " + ex);
 		}
 	}
 
 	/**
-	 * Modifies JVM opts on remote.
+	 * Adds random modifier to bin/karaf on remote host.
 	 */
-	private void modifyRemoteJvmOpts() {
-		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
-		String content = String.format("export JAVA_MIN_MEM=%s%nexport JAVA_MAX_MEM=%s%nexport JAVA_PERM_MEM=%s%nexport JAVA_MAX_PERM_MEM=%s",
-				xms, xmx, permMem, maxPermMem);
-		// Remove original files
-		if ((System.getProperty("os.name").startsWith("Windows"))) {
-			super.getExecutor().executeCommand("rm -rf " + path + ".bat");
-			// Changes to win
-			content = content.replaceAll("export", "SET");
-			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path + ".bat");
-		} else {
-			super.getExecutor().executeCommand("rm -rf " + path);
-			// Print content into the files
-			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path);
+	public void remoteExecute() {
+		final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+
+		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
+				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom\\\" \" >> " + filePath);
+		if (!response.isEmpty()) {
+			log.error("Setting property on remote host failed. Response should be empty but was: {}.", response);
 		}
 	}
 }

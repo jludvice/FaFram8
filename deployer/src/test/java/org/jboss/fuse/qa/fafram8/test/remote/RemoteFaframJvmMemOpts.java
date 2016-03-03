@@ -15,20 +15,20 @@ import java.io.File;
  * <p/>
  * Created by avano on 8.10.15.
  */
-public class RemoteJvmOpts {
+public class RemoteFaframJvmMemOpts {
 
 	private Fafram fafram;
 
 	@Test
-	public void jvmOptsTest() throws Exception {
+	public void jvmMemOptsTest() throws Exception {
 		fafram = new Fafram().suppressStart().setup();
 		assertTrue(fafram.executeNodeCommand("cat " + System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
 				File.separator + "setenv").contains("1536M"));
 	}
 
 	@Test
-	public void customJvmOptsTest() throws Exception {
-		fafram = new Fafram().setJvmOptions("312M", "512M", "312M", "512M").suppressStart().setup();
+	public void customJvmMemOptsTest() throws Exception {
+		fafram = new Fafram().setMemoryJvmOptions("312M", "512M", "312M", "512M").suppressStart().setup();
 		assertTrue(fafram.executeNodeCommand("cat " + System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
 				File.separator + "setenv").contains("312M"));
 	}

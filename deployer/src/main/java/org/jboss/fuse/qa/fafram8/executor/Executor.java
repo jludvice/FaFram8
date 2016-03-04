@@ -329,11 +329,12 @@ public class Executor {
 		int retries = 0;
 		String container;
 		String provisionStatus = "";
+		String containerInfoStatus = "";
 		boolean isSuccessful = false;
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			handleProvisionWaitTime(retries, waitFor, status);
+			handleProvisionWaitTime(retries, waitFor, containerInfoStatus);
 
 			String reason = "";
 
@@ -347,6 +348,8 @@ public class Executor {
 				if (content.length == maxLength) {
 					provisionStatus = content[maxLength - 1];
 				}
+
+				containerInfoStatus = StringUtils.substringAfter(client.executeCommand("container-info " + waitFor, true), "Provision Status:").trim();
 			} catch (Exception e) {
 				// Get the reason
 				reason = e.getMessage();
@@ -364,6 +367,13 @@ public class Executor {
 				restarted = true;
 				log.warn("Container requires restart (provision status: " + provisionStatus + ")! Restarting...");
 				break;
+			}
+
+			// If we are waiting for certain provision status and status is either error/success(opposite to wanted status) then terminate waitForProvision with exception
+			log.trace("Status: {} , ProvisionStatus: {}", status, provisionStatus);
+			if (!status.equals(provisionStatus) && (provisionStatus.contains("error") || provisionStatus.contains("success"))) {
+				log.error("Container {} did not provision to state \"{}\" but ended in state: \"{}\"", waitFor, status, containerInfoStatus);
+				throw new FaframException("Container " + waitFor + " failed to provision to state \"success\" and ended in provision status \"" + containerInfoStatus + "\"");
 			}
 
 			if (!isSuccessful) {

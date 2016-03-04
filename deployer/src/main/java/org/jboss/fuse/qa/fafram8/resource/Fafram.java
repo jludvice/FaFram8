@@ -53,6 +53,7 @@ public class Fafram extends ExternalResource {
 	// Flag if the fafram has already finished the initialization and it's running
 	// Used in .containers method
 	private boolean running = false;
+
 	/**
 	 * Constructor.
 	 */
@@ -128,6 +129,10 @@ public class Fafram extends ExternalResource {
 		}
 
 		provisionProvider.releaseResources();
+		provisionProvider.cleanIpTables(ContainerManager.getContainerList());
+		if (!SystemProperty.isKeepOsResources()) {
+			provisionProvider.releaseResources();
+		}
 
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
@@ -453,7 +458,7 @@ public class Fafram extends ExternalResource {
 	 * @param bundles list of bundles
 	 * @return this
 	 */
-	public Fafram bundle(String... bundles) {
+	public Fafram bundles(String... bundles) {
 		ContainerManager.getBundles().addAll(Arrays.asList(bundles));
 		return this;
 	}
@@ -603,6 +608,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Gets the "root" container (first root container found in the container list, see getRoot() method).
+	 *
 	 * @return container
 	 */
 	public Container getRootContainer() {

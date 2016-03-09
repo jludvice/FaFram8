@@ -43,7 +43,6 @@ public class RemoteSettingIPtablesTest {
 		System.clearProperty(FaframConstant.FUSE_ZIP);
 	}
 
-	//TODO(rjakubco): uncomment this when OpenStack is more stable and fafram was refactored
 	@Test
 	public void testLoadingIptables() throws VerifyFalseException, SSHClientException, KarafSessionDownException {
 		String response = root.getNode().getExecutor().executeCommand("sudo iptables -L -n");

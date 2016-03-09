@@ -6,7 +6,6 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,24 +67,15 @@ public class SshContainer extends Container {
 		if (SystemProperty.suppressStart()) {
 			return;
 		}
-
-		String arguments = "";
-
-		for (String profile : super.getProfiles()) {
-			arguments += " --profile " + profile;
-		}
-
-		if (super.getVersion() != null) {
-			arguments += " --version " + super.getVersion();
-		}
-
+		// Get String containing all properties of container
+		final String properties = setAndFormatProperties();
 		log.info("Creating container " + this);
 
 		getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s%s %s",
-				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), arguments, super.getName()));
+				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), properties, super.getName()));
+		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
-		super.setCreated(true);
 	}
 
 	@Override
@@ -148,6 +138,43 @@ public class SshContainer extends Container {
 	@Override
 	public Executor getExecutor() {
 		return super.getParent().getExecutor();
+	}
+
+	/**
+	 * Creates string containing all container's properties correctly formatted for Fuse command.
+	 *
+	 * @return formatted string containing container's properties
+	 */
+	private String setAndFormatProperties() {
+		final StringBuilder arguments = new StringBuilder("");
+		if (!super.getJvmOpts().isEmpty()) {
+			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
+			for (String rule : super.getJvmOpts()) {
+				jvmOpts.append(" " + rule);
+			}
+			jvmOpts.append("\"");
+			arguments.append(jvmOpts.toString());
+		}
+
+		if (!super.getEnvs().isEmpty()) {
+			for (String rule : super.getEnvs()) {
+				arguments.append(" --env " + rule);
+			}
+		}
+
+		if (!SystemProperty.getJavaHome().isEmpty()) {
+			arguments.append(" --env JAVA_HOME=" + SystemProperty.getJavaHome());
+		}
+
+		for (String profile : super.getProfiles()) {
+			arguments.append(" --profile " + profile);
+		}
+
+		if (super.getVersion() != null) {
+			arguments.append(" --version " + super.getVersion());
+		}
+
+		return arguments.toString();
 	}
 
 	/**
@@ -230,6 +257,7 @@ public class SshContainer extends Container {
 
 		/**
 		 * Setter.
+		 *
 		 * @param host host
 		 * @param user user
 		 * @param password password
@@ -249,6 +277,7 @@ public class SshContainer extends Container {
 
 		/**
 		 * Setter.
+		 *
 		 * @param host host
 		 * @param port port
 		 * @param user user
@@ -314,11 +343,34 @@ public class SshContainer extends Container {
 
 		/**
 		 * Setter.
+		 *
 		 * @param version version
 		 * @return this
 		 */
 		public SshBuilder version(String version) {
 			container.setVersion(version);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param envs environment variables
+		 * @return this
+		 */
+		public SshBuilder env(String... envs) {
+			container.getEnvs().addAll(Arrays.asList(envs));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param jvmOpts JVM options
+		 * @return this
+		 */
+		public SshBuilder jvmOpts(String... jvmOpts) {
+			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
 			return this;
 		}
 
@@ -343,9 +395,11 @@ public class SshContainer extends Container {
 							.password(container.getNode().getPassword())
 							.build())
 					// Same as node
-					.commands(new ArrayList<>(container.getCommands()))
-					.profiles(new ArrayList<>(container.getProfiles()))
-					.version(container.getVersion());
+					.commands(container.getCommands())
+					.profiles(container.getProfiles())
+					.version(container.getVersion())
+					.jvmOpts(container.getJvmOpts())
+					.env(container.getEnvs());
 		}
 	}
 }

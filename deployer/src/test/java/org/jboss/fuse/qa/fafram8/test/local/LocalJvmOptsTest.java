@@ -27,7 +27,7 @@ public class LocalJvmOptsTest {
 
 	@Test
 	public void customJvmOptsTest() throws Exception {
-		fafram = new Fafram().setJvmOptions("312M", "512M", "312M", "512M").setup();
+		fafram = new Fafram().setMemoryJvmOptions("312M", "512M", "312M", "512M").setup();
 		assertTrue(FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
 				File.separator + "setenv")).contains("312M"));
 	}

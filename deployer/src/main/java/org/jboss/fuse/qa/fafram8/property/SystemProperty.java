@@ -471,6 +471,15 @@ public class SystemProperty {
 	/**
 	 * Getter.
 	 *
+	 * @return java home path
+	 */
+	public static String getJavaHome() {
+		return System.getProperty(FaframConstant.JAVA_HOME, "");
+	}
+
+	/**
+	 * Getter.
+	 *
 	 * @return openstack wait time
 	 */
 	public static boolean isKeepContainers() {

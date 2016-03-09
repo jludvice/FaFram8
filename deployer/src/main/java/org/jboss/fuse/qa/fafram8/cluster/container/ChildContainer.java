@@ -68,28 +68,36 @@ public class ChildContainer extends Container {
 			return;
 		}
 
-		String arguments = "";
+		final StringBuilder arguments = new StringBuilder("");
 
 		for (String profile : super.getProfiles()) {
-			arguments += " --profile " + profile;
+			arguments.append(" --profile " + profile);
 		}
 
 		if (super.getVersion() != null) {
-			arguments += " --version " + super.getVersion();
+			arguments.append(" --version " + super.getVersion());
+		}
+
+		if (!super.getJvmOpts().isEmpty()) {
+			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
+			for (String rule : super.getJvmOpts()) {
+				jvmOpts.append(" " + rule);
+			}
+			jvmOpts.append("\"");
+			arguments.append(jvmOpts.toString());
 		}
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand("container-create-child" + arguments + " " + super.getParent().getName()
-				+ " " + super.getName());
+		getExecutor().executeCommand(String.format("container-create-child %s %s %s", arguments.toString(), super.getParent().getName(), super.getName()));
+		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
-		super.setCreated(true);
 	}
 
 	@Override
 	public void destroy() {
-		if (SystemProperty.suppressStart() || !super.isOnline() || !super.isCreated()) {
+		if (SystemProperty.suppressStart() || !super.isCreated()) {
 			return;
 		}
 
@@ -224,11 +232,23 @@ public class ChildContainer extends Container {
 
 		/**
 		 * Setter.
+		 *
 		 * @param version version
 		 * @return this
 		 */
 		public ChildBuilder version(String version) {
 			container.setVersion(version);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param jvmOpts JVM options
+		 * @return this
+		 */
+		public ChildBuilder jvmOpts(String... jvmOpts) {
+			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
 			return this;
 		}
 
@@ -247,6 +267,7 @@ public class ChildContainer extends Container {
 					.profiles(container.getProfiles())
 					.commands(container.getCommands())
 					.version(container.getVersion())
+					.jvmOpts(container.getJvmOpts())
 					.node(null);
 		}
 	}

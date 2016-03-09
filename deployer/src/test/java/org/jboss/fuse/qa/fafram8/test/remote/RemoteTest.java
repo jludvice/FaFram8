@@ -11,6 +11,7 @@ import org.junit.runners.Suite;
 
 import java.util.Date;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -22,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Suite.SuiteClasses({
 		RemoteAddUser.class,
 		RemoteFabric.class,
-		RemoteJvmOpts.class,
+		RemoteFaframJvmMemOpts.class,
 		RemoteOnlyConnect.class,
 		RemoteProperties.class,
 		RemoteReplaceFile.class,
@@ -32,16 +33,21 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteCurl.class,
 		RemoteWorkingDirectory.class,
 		RemoteBundleUpload.class,
+		RemoteSetJdk.class,
 		RemoteKillingContainers.class
 })
 @Slf4j
-public class RemoteTest {
+public final class RemoteTest {
 	public static final String SERVER_NAME = "build-FaframRemoteTestNode" + new Date().getTime();
 
 	// associated floating IP address in Openstack
-	public static String ipAddress;
+	@Getter
+	private static String ipAddress;
 
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
+
+	private RemoteTest() {
+	}
 
 	@BeforeClass
 	public static void before() throws InterruptedException {

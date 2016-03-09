@@ -69,6 +69,7 @@ public class ModifierExecutor {
 
 	/**
 	 * Adds modifiers to custom modifierse.
+	 *
 	 * @param modifier modifiers
 	 */
 	public static void addCustomModifiers(Modifier... modifier) {

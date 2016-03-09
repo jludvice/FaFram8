@@ -1,8 +1,8 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.addJvmOptsAndRandomSource;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.RandomModifier.changeRandomSource;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootName;
 
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
@@ -12,6 +12,7 @@ import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
+import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.ArrayList;
@@ -85,11 +86,15 @@ public class RootContainer extends Container {
 		if (!SystemProperty.skipDefaultUser()) {
 			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
 			ModifierExecutor.addModifiers(
-					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator"));
+					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator,admin"));
 		}
 
-		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop"), setRootName(this, super.getNode().getHost()),
-				changeRandomSource());
+		if (!super.getJvmMemOpts().isEmpty()) {
+			ModifierExecutor.addModifiers(JvmMemoryModifier.setJvmMemOpts(super.getJvmMemOpts()));
+		}
+
+		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
+				setRootName(this, super.getNode().getHost()), addJvmOptsAndRandomSource(super.getJvmOpts()));
 
 		if (!SystemProperty.isClean()) {
 			nodeManager.clean();
@@ -357,6 +362,34 @@ public class RootContainer extends Container {
 		}
 
 		/**
+		 * Sets the JVM options.
+		 *
+		 * @param xms xms
+		 * @param xmx xmx
+		 * @param permMem perm mem
+		 * @param maxPermMem max perm mem
+		 * @return this
+		 */
+		public RootBuilder jvmMemoryOpts(String xms, String xmx, String permMem, String maxPermMem) {
+			container.getJvmMemOpts().add("JAVA_MIN_MEM=" + xms);
+			container.getJvmMemOpts().add("JAVA_MAX_MEM=" + xmx);
+			container.getJvmMemOpts().add("JAVA_PERM_MEM=" + permMem);
+			container.getJvmMemOpts().add("JAVA_MAX_PERM_MEM=" + maxPermMem);
+			return this;
+		}
+
+		/**
+		 * Sets JVM opts.
+		 *
+		 * @param jvmOpts JVM options for setting
+		 * @return this
+		 */
+		public RootBuilder jvmOpts(String... jvmOpts) {
+			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
+			return this;
+		}
+
+		/**
 		 * Builds the default root container.
 		 *
 		 * @return this
@@ -418,7 +451,11 @@ public class RootContainer extends Container {
 					// The same as node
 					.commands(cmds)
 					.bundles(new ArrayList<>(container.getBundles()))
-					.profiles(new ArrayList<>(container.getProfiles()));
+					.profiles(new ArrayList<>(container.getProfiles()))
+					.bundles(container.getBundles())
+					.profiles(container.getProfiles())
+					.jvmOpts(container.getJvmOpts())
+					.jvmMemOpts(container.getJvmMemOpts());
 		}
 	}
 }

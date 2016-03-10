@@ -86,7 +86,7 @@ public class RootContainer extends Container {
 		if (!SystemProperty.skipDefaultUser()) {
 			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
 			ModifierExecutor.addModifiers(
-					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator,admin"));
+					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator"));
 		}
 
 		if (!super.getJvmMemOpts().isEmpty()) {
@@ -146,12 +146,18 @@ public class RootContainer extends Container {
 	@Override
 	public void restart() {
 		nodeManager.restart();
+		if (super.isFabric()) {
+			waitForProvisioning();
+		}
 	}
 
 	@Override
 	public void start() {
 		nodeManager.startFuse();
 		super.setOnline(true);
+		if (super.isFabric()) {
+			waitForProvisioning();
+		}
 	}
 
 	@Override

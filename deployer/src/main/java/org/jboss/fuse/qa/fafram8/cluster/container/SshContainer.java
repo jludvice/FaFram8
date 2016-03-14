@@ -68,7 +68,16 @@ public class SshContainer extends Container {
 			return;
 		}
 		// Get String containing all properties of container
-		final String properties = setAndFormatProperties();
+		String properties = setAndFormatProperties();
+
+		// Find out if system property or parameter on container of working directory was set
+		if (!("".equals(super.getWorkingDirectory())) || !("".equals(SystemProperty.getWorkingDirectory()))) {
+			// Decide if working directory was set on ssh and if not set the system property as default
+			final String path = "".equals(super.getWorkingDirectory()) ? SystemProperty.getWorkingDirectory() : super.getWorkingDirectory();
+			log.debug("Working directory was set. Setting working directory \"{}\" for container \"{}\".", path, super.getName());
+			properties = properties + " --path " + path;
+		}
+
 		log.info("Creating container " + this);
 
 		getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s%s %s",
@@ -375,6 +384,17 @@ public class SshContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param workingDirectory file path to working directory for SSH container
+		 * @return this
+		 */
+		public SshBuilder directory(String workingDirectory) {
+			container.setWorkingDirectory(workingDirectory);
+			return this;
+		}
+
+		/**
 		 * Builds the instance.
 		 *
 		 * @return sshcontainer instance
@@ -399,7 +419,8 @@ public class SshContainer extends Container {
 					.profiles(container.getProfiles())
 					.version(container.getVersion())
 					.jvmOpts(container.getJvmOpts())
-					.env(container.getEnvs());
+					.env(container.getEnvs())
+					.directory(container.getWorkingDirectory());
 		}
 	}
 }

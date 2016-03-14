@@ -80,6 +80,10 @@ public class RootContainer extends Container {
 			// Connect the node executor
 			super.getNode().getExecutor().connect();
 			nodeManager = new RemoteNodeManager(super.getNode().getExecutor(), super.getExecutor());
+
+			// Set workign directory for root container if it was set on root container object
+			// It will be either empty string of file system path
+			((RemoteNodeManager) nodeManager).setWorkingDirectory(super.getWorkingDirectory());
 		}
 
 		// Add the modifiers
@@ -424,6 +428,17 @@ public class RootContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param workingDirectory file path to working directory for SSH container
+		 * @return this
+		 */
+		public RootBuilder directory(String workingDirectory) {
+			container.setWorkingDirectory(workingDirectory);
+			return this;
+		}
+
+		/**
 		 * Builds the container.
 		 *
 		 * @return rootcontainer instance
@@ -461,7 +476,8 @@ public class RootContainer extends Container {
 					.bundles(container.getBundles())
 					.profiles(container.getProfiles())
 					.jvmOpts(container.getJvmOpts())
-					.jvmMemOpts(container.getJvmMemOpts());
+					.jvmMemOpts(container.getJvmMemOpts())
+					.directory(container.getWorkingDirectory());
 		}
 	}
 }

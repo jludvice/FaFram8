@@ -31,7 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteRestart.class,
 		Remote.class,
 		RemoteCurl.class,
-		RemoteWorkingDirectory.class,
 		RemoteBundleUpload.class,
 		RemoteSetJdk.class,
 		RemoteKillingContainers.class

@@ -10,6 +10,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import java.io.File;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +36,10 @@ public class RemoteNodeManager implements NodeManager {
 	// Full path to unzipped product
 	private String productPath;
 
+	// Working directory for root container for overriding system property fafram.working.dir
+	@Setter
+	private String workingDirectory = "";
+
 	/**
 	 * Constructor.
 	 *
@@ -50,7 +55,7 @@ public class RemoteNodeManager implements NodeManager {
 	public void prepareZip() {
 		log.info("Preparing zip...");
 		executor.executeCommand("mkdir " + getFolder());
-		productZipPath = Downloader.getProduct(executor);
+		productZipPath = Downloader.getProduct(executor, this);
 		log.debug("Zip path is " + productZipPath);
 	}
 
@@ -125,16 +130,19 @@ public class RemoteNodeManager implements NodeManager {
 
 	/**
 	 * Creates folder path on remote machines.
-	 * Checking if property fafram.working.directory is set.
+	 * Checking if property fafram.working.directory is set or if specific working directory was set for container.
 	 *
 	 * @return path where fafram8 folder should be created
 	 */
-	public static String getFolder() {
-		String folder;
-		if ("".equals(SystemProperty.getWorkingDirectory())) {
+	public String getFolder() {
+		// Check if specific working folder was set for container
+		final String prefix = "".equals(workingDirectory) ? SystemProperty.getWorkingDirectory() : workingDirectory;
+
+		final String folder;
+		if ("".equals(prefix)) {
 			folder = SystemProperty.getFaframFolder();
 		} else {
-			folder = SystemProperty.getWorkingDirectory() + SEP + SystemProperty.getFaframFolder();
+			folder = prefix + SEP + SystemProperty.getFaframFolder();
 		}
 		return folder;
 	}

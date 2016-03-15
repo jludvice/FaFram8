@@ -142,15 +142,22 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
 			return;
 		}
+
 		log.info("Releasing allocated OpenStack resources.");
-		for (FloatingIP ip : floatingIPs) {
+		for (int i = floatingIPs.size() - 1; i >= 0; i--) {
+			final FloatingIP ip = floatingIPs.get(i);
 			log.info("Deallocating floating IP: " + ip.getFloatingIpAddress());
 			os.compute().floatingIps().deallocateIP(ip.getId());
+			floatingIPs.remove(i);
 		}
-		for (Server server : serverRegister) {
+
+		for (int i = serverRegister.size() - 1; i >= 0; i--) {
+			final Server server = serverRegister.get(i);
 			log.info("Terminating server: " + server.getName());
 			os.compute().servers().delete(server.getId());
+			serverRegister.remove(i);
 		}
+
 		log.info("All OpenStack resources has been released successfully");
 	}
 

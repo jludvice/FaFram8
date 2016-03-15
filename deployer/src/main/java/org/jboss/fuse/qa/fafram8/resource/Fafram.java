@@ -722,7 +722,7 @@ public class Fafram extends ExternalResource {
 		// Create a temp list without child containers
 		final List<Container> temp = new ArrayList<>();
 		for (Container c : ContainerManager.getContainerList()) {
-			if (!(c instanceof ChildContainer)) {
+			if (!(c instanceof ChildContainer) && (c.getNode().getHost() == null || "".equals(c.getNode().getHost()))) {
 				temp.add(c);
 			}
 		}

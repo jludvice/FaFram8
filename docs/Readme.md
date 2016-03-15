@@ -142,7 +142,7 @@ The project for uploading must have specific configuration in its _pom.xml_:
             </repository>
     </distributionManagement>
 
-When the project is configured correctly then you need to add path to _pom.xml_ using the _bundle(String... commands)_ method on _Fafram_ class. Also it is possible to specify multiple paths to different projects.
+When the project is configured correctly then you need to add path to _pom.xml_ using the _bundles(String... commands)_ method on _Fafram_ class. Also it is possible to specify multiple paths to different projects.
 
 	@Rule
     	public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml", "test/project/pom.xml");
@@ -255,6 +255,32 @@ using the **skip.test.fafram** property.
 Example usage:
 
 	cd deployer; mvn clean install -Dskip.test.fafram=false -Dtest=HostValidatorTest
+
+### Building Maven projects
+
+Fafram8 provides support for building custom Maven project with custom goals and properties. This feature is useful e.g if you want to build a quickstart project can be later deployed to running Fuse via _osgi:install mvn:group/artifact/1.0_. Defined projects are built before unzipping and starting Fuse. That means you can also defined commands for adding built project to Fuse right on the Fafram object.
+
+ There is possibility to define projects for maven execution right on the Fafram object with method _buildBundle()_ or use static method _MavenPomInvoker.buildMvnProject()_ with different paramaters.
+
+ ```
+ Map<String, String> properties = new HashMap<>();
+ properties.put("custom.property", "faframIsGreat");
+
+ public Fafram fafram = new Fafram().buildBundle("src/test/resources/blank-project/pom.xml", "clean", "install").buildBundle("path/test/pom.xml", properties, "clean", "deploy").commands(osgi:install -s mvn:org.jboss.fuse.qa.test/useless-artifact/1.0);
+ ```
+
+  ```
+ Map<String, String> properties = new HashMap<>();
+ properties.put("custom.property", "faframIsGreat");
+  List<String> goals = new ArrayList<>();
+  goals.add("install");
+
+ MavenPomInvoker.buildMvnProject("/home/user/path/pom.xml", properties, "clean", "package");
+
+ MavenPomInvoker.buildMvnProject(new MavenProject("/home/user/path/pom.xml", properties, goals);
+
+ MavenPomInvoker.buildMvnProject(new MavenProject("/home/user/path/pom.xml", properties, "clean", "test);
+ ```
 
 ## FaFram8 example usage
 

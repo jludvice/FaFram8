@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.invoker;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class MavenProject {
 	private List<String> goals;
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 *
 	 * @param projectPath absolute path to pom.xml of the maven project
 	 * @param properties properties that should be added to execution of the maven project
@@ -39,6 +40,19 @@ public class MavenProject {
 	 */
 	public MavenProject(String projectPath, Map<String, String> properties, List<String> goals) {
 		this.goals = goals;
+		this.projectPath = projectPath;
+		this.properties = properties;
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param projectPath absolute path to pom.xml of the maven project
+	 * @param properties properties that should be added to execution of the maven project
+	 * @param goals list of goals that should be executed on the maven project (e.g. install, clean, etc.)
+	 */
+	public MavenProject(String projectPath, Map<String, String> properties, String... goals) {
+		this.goals = Arrays.asList(goals);
 		this.projectPath = projectPath;
 		this.properties = properties;
 	}

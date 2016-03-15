@@ -63,7 +63,7 @@ public class Fafram extends ExternalResource {
 	private boolean running = false;
 
 	@Getter
-	private List<MavenProject> bundlesForBuilding = new ArrayList<>();
+	private List<MavenProject> bundlesToBuild = new ArrayList<>();
 
 	/**
 	 * Constructor.
@@ -494,7 +494,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram buildBundle(String projectPath, Map<String, String> properties, String... goals) {
-		bundlesForBuilding.add(new MavenProject(projectPath, properties, Arrays.asList(goals)));
+		bundlesToBuild.add(new MavenProject(projectPath, properties, Arrays.asList(goals)));
 		return this;
 	}
 
@@ -518,7 +518,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram buildBundles(MavenProject... projects) {
 		for (MavenProject project : projects) {
-			bundlesForBuilding.add(project);
+			bundlesToBuild.add(project);
 		}
 
 		return this;
@@ -762,7 +762,7 @@ public class Fafram extends ExternalResource {
 	 * Builds defined bundles with specific maven goals on local host.
 	 */
 	public void buildBundles() {
-		for (MavenProject project : bundlesForBuilding) {
+		for (MavenProject project : bundlesToBuild) {
 			log.debug("Invoking maven project: {}", project);
 			try {
 				MavenPomInvoker.buildMvnProject(project);

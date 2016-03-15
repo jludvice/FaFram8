@@ -176,9 +176,11 @@ public class ContainerManager {
 	 */
 	public static void uploadBundles(Container c) {
 		if (c.getBundles() != null && !c.getBundles().isEmpty()) {
+			final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(c.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
+
 			for (String bundle : c.getBundles()) {
 				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle,
-						"http://" + c.getUser() + ":" + c.getPassword() + "@" + c.getNode().getHost() + ":8181/maven/upload");
+						"http://" + c.getUser() + ":" + c.getPassword() + "@" + mavenProxy);
 				try {
 					bundleInstaller.installFile();
 				} catch (URISyntaxException | MavenInvocationException e) {

@@ -17,7 +17,6 @@ import org.junit.Test;
  */
 public class TwoRootsTest {
 	private static final Container TEMPLATE = RootContainer.builder()
-			.node("openstack")
 			.profiles("gateway-mq")
 			.commands("profile-create template")
 			.withFabric()

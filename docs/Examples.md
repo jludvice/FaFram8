@@ -38,7 +38,6 @@ Using the same approach you can define more child containers and even SSH contai
 
 ```
 private static final Container TEMPLATE = RootContainer.builder()
-			.node("openstack")
 			.profiles("gateway-mq")
 			.commands("profile-create template")
 			.withFabric()

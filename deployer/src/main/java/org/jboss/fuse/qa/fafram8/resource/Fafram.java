@@ -191,6 +191,10 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram addUser(String user, String password, String roles) {
 		ModifierExecutor.addModifiers(putProperty("etc/users.properties", user, password + "," + roles));
+		// Do not add the default user if we override it
+		if (user.equals(SystemProperty.getFuseUser())) {
+			SystemProperty.set(FaframConstant.SKIP_DEFAULT_USER, "");
+		}
 		return this;
 	}
 

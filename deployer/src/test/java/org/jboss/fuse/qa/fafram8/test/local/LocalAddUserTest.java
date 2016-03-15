@@ -1,12 +1,15 @@
 package org.jboss.fuse.qa.fafram8.test.local;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -18,13 +21,31 @@ import java.io.IOException;
  * Created by avano on 21.8.15.
  */
 public class LocalAddUserTest {
-	@Rule
-	public Fafram fafram = new Fafram().addUser("testu", "testp", "testr1,testr2").suppressStart();
+	private Fafram fafram;
 
 	@Test
 	public void userTest() throws IOException {
-		String fileContent = FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "etc" +
-				File.separator + "users.properties"));
+		fafram = new Fafram().addUser("testu", "testp", "testr1,testr2").suppressStart();
+		fafram.setup();
+		final String fileContent = FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator
+				+ "etc" + File.separator + "users.properties"));
 		assertTrue(fileContent.contains("testu=testp,testr1,testr2"));
+	}
+
+	@Test
+	public void testOverrideUser() throws Exception {
+		fafram = new Fafram().addUser("fafram", "faframoverride", "Monitor").suppressStart();
+		fafram.setup();
+		final String fileContent = FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator
+				+ "etc" + File.separator + "users.properties"));
+		assertTrue(fileContent.contains("fafram=faframoverride,Monitor"));
+		assertFalse(fileContent.contains("fafram=fafram,Administrator"));
+	}
+
+	@After
+	public void after() {
+		if (fafram != null) {
+			fafram.tearDown();
+		}
 	}
 }

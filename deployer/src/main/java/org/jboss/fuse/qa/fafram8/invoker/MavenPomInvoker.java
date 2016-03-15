@@ -120,6 +120,7 @@ public class MavenPomInvoker {
 	 *
 	 * @param projectPath absolute or relative (to root project pom) path of target project
 	 * @param goals list of maven goals that should be executed on target project
+	 * @param properties properties for maven execution
 	 * @throws URISyntaxException exception
 	 * @throws MavenInvocationException exception
 	 */
@@ -161,6 +162,7 @@ public class MavenPomInvoker {
 	 *
 	 * @param projectPath absolute or relative (to root project pom) path of target project
 	 * @param goals maven goals that should be executed on target project
+	 * @param properties properties for maven execution
 	 * @throws URISyntaxException exception
 	 * @throws MavenInvocationException exception
 	 */

@@ -6,6 +6,7 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class SshContainer extends Container {
 	 * @return builder instance
 	 */
 	public static SshBuilder builder() {
-		return new SshBuilder(new SshContainer());
+		return new SshBuilder(null);
 	}
 
 	/**
@@ -200,7 +201,27 @@ public class SshContainer extends Container {
 		 */
 		public SshBuilder(Container copy) {
 			if (copy != null) {
-				this.container = copy;
+				this.container = new SshContainer()
+						.name(copy.getName())
+						.user(copy.getUser())
+						.password(copy.getPassword())
+						.parent(copy.getParent())
+						.parentName(copy.getParentName())
+						// We need to create a new instance of the node for the cloning case, otherwise all clones
+						// would have the same object instance
+						.node(Node.builder()
+								.host(copy.getNode().getHost())
+								.port(copy.getNode().getPort())
+								.username(copy.getNode().getUsername())
+								.password(copy.getNode().getPassword())
+								.build())
+						// Same as node
+						.commands(new ArrayList<String>(copy.getCommands()))
+						.profiles(new ArrayList<String>(copy.getProfiles()))
+						.version(copy.getVersion())
+						.jvmOpts(copy.getJvmOpts())
+						.env(copy.getEnvs())
+						.directory(copy.getWorkingDirectory());;
 			} else {
 				this.container = new SshContainer();
 				// Set the empty node
@@ -400,27 +421,7 @@ public class SshContainer extends Container {
 		 * @return sshcontainer instance
 		 */
 		public Container build() {
-			return new SshContainer()
-					.name(container.getName())
-					.user(container.getUser())
-					.password(container.getPassword())
-					.parent(container.getParent())
-					.parentName(container.getParentName())
-					// We need to create a new instance of the node for the cloning case, otherwise all clones
-					// would have the same object instance
-					.node(Node.builder()
-							.host(container.getNode().getHost())
-							.port(container.getNode().getPort())
-							.username(container.getNode().getUsername())
-							.password(container.getNode().getPassword())
-							.build())
-					// Same as node
-					.commands(container.getCommands())
-					.profiles(container.getProfiles())
-					.version(container.getVersion())
-					.jvmOpts(container.getJvmOpts())
-					.env(container.getEnvs())
-					.directory(container.getWorkingDirectory());
+			return container;
 		}
 	}
 }

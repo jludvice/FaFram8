@@ -40,7 +40,7 @@ public interface ProvisionProvider {
 	 * Method behaves differently for OpenStackProvider. If FaframConstant.OFFLINE property is set to true then the method
 	 * looks for default iptables-no-internet file in user's home folder(present in ecervena snapshots). This
 	 * configuration turns off internet completely.
-	 *
+	 * <p/>
 	 * For static provider it is in experimental stage. Default iptables configuration is saved to newly created file on
 	 * all nodes. After the test or when there is a exception in FaFram setup then the iptables are restored back to normal
 	 * using the created file.
@@ -48,12 +48,6 @@ public interface ProvisionProvider {
 	 * @param containerList list of containers
 	 */
 	void loadIPTables(List<Container> containerList);
-
-	/**
-	 * Checks if there are already nodes with the same name defined (for Openstack only).
-	 * @param containerList container list
-	 */
-	void checkNodes(List<Container> containerList);
 
 	/**
 	 * Experimental method for cleaning iptables configuration on all nodes. This method restore iptables back to default
@@ -64,4 +58,11 @@ public interface ProvisionProvider {
 	 * @param containerList list of containers
 	 */
 	void cleanIpTables(List<Container> containerList);
+
+	/**
+	 * Checks if there are already nodes with the same name defined (for Openstack only).
+	 *
+	 * @param containerList container list
+	 */
+	void checkNodes(List<Container> containerList);
 }

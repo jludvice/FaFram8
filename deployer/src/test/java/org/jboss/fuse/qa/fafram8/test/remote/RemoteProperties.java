@@ -22,9 +22,9 @@ public class RemoteProperties {
 
 	@Test
 	public void testAddingProperty() {
-		assertTrue(fafram.executeNodeCommand("cat " + SystemProperty.getFusePath() + File.separator + "etc" +
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "etc" +
 				File.separator + "custom.properties").contains("test.property=testing"));
-		assertTrue(fafram.executeNodeCommand("cat " + SystemProperty.getFusePath() + File.separator + "etc" +
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "etc" +
 				File.separator + "custom.properties").contains("karaf.systemBundlesStartLevel=60"));
 	}
 }

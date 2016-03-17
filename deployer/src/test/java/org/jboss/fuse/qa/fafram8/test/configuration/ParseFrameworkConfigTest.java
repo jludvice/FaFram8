@@ -54,6 +54,7 @@ public class ParseFrameworkConfigTest {
 	}
 
 	@Test
+	@Ignore
 	public void fusePath() {
 		Assert.assertEquals("testpath", SystemProperty.getInstance().getFusePath());
 	}

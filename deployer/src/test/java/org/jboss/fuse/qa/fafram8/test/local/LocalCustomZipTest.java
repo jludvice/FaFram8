@@ -32,11 +32,11 @@ public class LocalCustomZipTest {
 		artifactName = artifactName.replace("full-", "");
 
 		// Remove extension
-		String expectedFolderName = artifactName.substring(0, artifactName.lastIndexOf("."));
+		final String expectedFolderName = artifactName.substring(0, artifactName.lastIndexOf("."));
 
 		// It sets the system property to the product path
 		assertTrue("Does not contain expected dir in path",
-				System.getProperty(FaframConstant.FUSE_PATH).contains(expectedFolderName));
+				fafram.getProductPath().contains(expectedFolderName));
 	}
 
 	@After

@@ -105,6 +105,11 @@ public abstract class Container {
 	@Setter
 	private String workingDirectory = "";
 
+	// Full path to unzipped product directory for root container
+	@Getter
+	@Setter
+	private String fusePath;
+
 	/**
 	 * Creates a container.
 	 */

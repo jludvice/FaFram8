@@ -666,12 +666,12 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Gets the full product path.
+	 * Gets the full product path. Functional only for Fafram with one root container.
 	 *
 	 * @return product path
 	 */
 	public String getProductPath() {
-		return SystemProperty.getFusePath();
+		return getRoot().getFusePath();
 	}
 
 	/**

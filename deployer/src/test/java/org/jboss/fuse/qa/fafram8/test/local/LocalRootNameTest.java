@@ -23,7 +23,7 @@ public class LocalRootNameTest {
 
 	@Test
 	public void rootNameTest() throws Exception {
-		String fileContent = FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "etc" +
+		final String fileContent = FileUtils.readFileToString(new File(fafram.getProductPath() + File.separator + "etc" +
 				File.separator + "system.properties"));
 		assertTrue(fileContent.contains("karaf.name = testroot"));
 		assertFalse(fileContent.contains("karaf.name = root"));

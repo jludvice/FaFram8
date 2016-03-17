@@ -24,9 +24,9 @@ public class LocalArchiveTest {
 
 	@Test
 	public void testA() {
-		Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
-		String baseDir = SystemProperty.getBaseDir();
-		String dirStructure = StringUtils.substringAfter(SystemProperty.getFusePath(), baseDir);
+		final Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
+		final String baseDir = SystemProperty.getBaseDir();
+		final String dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir);
 		fafram.tearDown();
 		if (System.getenv("WORKSPACE") != null) {
 			firstTestPath = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc",
@@ -39,11 +39,11 @@ public class LocalArchiveTest {
 
 	@Test
 	public void testB() {
-		Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
-		String baseDir = SystemProperty.getBaseDir();
-		String dirStructure = StringUtils.substringAfter(SystemProperty.getFusePath(), baseDir);
+		final Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
+		final String baseDir = SystemProperty.getBaseDir();
+		final String dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir);
 		fafram.tearDown();
-		String path;
+		final String path;
 		if (System.getenv("WORKSPACE") != null) {
 			path = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc",
 					"users.properties").toAbsolutePath().toString();

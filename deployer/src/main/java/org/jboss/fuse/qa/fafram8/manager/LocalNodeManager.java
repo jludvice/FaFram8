@@ -2,6 +2,7 @@ package org.jboss.fuse.qa.fafram8.manager;
 
 import org.apache.commons.io.FileUtils;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
@@ -82,7 +83,7 @@ public class LocalNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void unzipArtifact() {
+	public void unzipArtifact(RootContainer container) {
 		// Fix for long jenkins paths
 		if (jenkins) {
 			targetPath = new File(System.getenv("WORKSPACE") + SEP + new Date().getTime()).getAbsolutePath();
@@ -107,9 +108,8 @@ public class LocalNodeManager implements NodeManager {
 		// Use the subdir name to construct the product path
 		productPath = targetPath + SEP + folderName;
 		log.debug("Product path is " + productPath);
-		SystemProperty
-				.set(FaframConstant.BASE_DIR, new File(jenkins ? System.getenv("WORKSPACE") : "").getAbsolutePath());
-		SystemProperty.set(FaframConstant.FUSE_PATH, productPath);
+		SystemProperty.set(FaframConstant.BASE_DIR, new File(jenkins ? System.getenv("WORKSPACE") : "").getAbsolutePath());
+		container.setFusePath(productPath);
 	}
 
 	@Override

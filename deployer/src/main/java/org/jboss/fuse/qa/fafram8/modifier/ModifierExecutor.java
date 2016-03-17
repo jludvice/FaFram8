@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.modifier;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
@@ -8,6 +9,8 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -20,6 +23,10 @@ public class ModifierExecutor {
 	private static Set<Modifier> modifiers = null;
 	private static Set<Modifier> postModifiers = null;
 	private static Set<Modifier> customModifiers = null;
+
+	@Setter
+	@Getter
+	private static RootContainer container = null;
 
 	/**
 	 * Constructor.

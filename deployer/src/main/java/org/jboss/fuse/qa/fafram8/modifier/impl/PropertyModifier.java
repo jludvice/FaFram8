@@ -2,7 +2,7 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 
 import org.codehaus.plexus.util.StringUtils;
 
@@ -114,7 +114,7 @@ public final class PropertyModifier extends Modifier {
 
 		Path path = Paths.get(filePath);
 		if (!path.isAbsolute()) {
-			path = Paths.get(SystemProperty.getFusePath() + File.separator + filePath);
+			path = Paths.get(ModifierExecutor.getContainer().getFusePath() + File.separator + filePath);
 		}
 		// load property file if it exists
 		if (Files.exists(path)) {
@@ -146,7 +146,7 @@ public final class PropertyModifier extends Modifier {
 	 * Modifies properties on remote.
 	 */
 	private void remoteExecute() {
-		final String path = SystemProperty.getFusePath() + File.separator + filePath;
+		final String path = ModifierExecutor.getContainer().getFusePath() + File.separator + filePath;
 
 		final String response = super.getExecutor().executeCommand("(grep -v '[#]' " + path + " | grep -q '" + key + "' ) && sed"
 				+ " -i \"s/^\\s*\\(" + StringUtils.replace(key, ".", "\\.") + "\\).*\\$/\\1=" + value + "/\" " + path

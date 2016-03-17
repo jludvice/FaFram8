@@ -1,10 +1,10 @@
 package org.jboss.fuse.qa.fafram8.manager;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
@@ -60,7 +60,7 @@ public class RemoteNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void unzipArtifact() {
+	public void unzipArtifact(RootContainer container) {
 		log.info("Unzipping fuse from " + productZipPath);
 
 		// Jar can't unzip to specified directory, so we need to change the dir first
@@ -77,7 +77,8 @@ public class RemoteNodeManager implements NodeManager {
 				: executor.executeCommand("ls -d " + getFolder() + SEP + "*" + SEP).trim();
 
 		log.debug("Product path is " + productPath);
-		SystemProperty.set(FaframConstant.FUSE_PATH, productPath);
+
+		container.setFusePath(productPath);
 	}
 
 	@Override
@@ -88,7 +89,6 @@ public class RemoteNodeManager implements NodeManager {
 	@Override
 	public void startFuse() {
 		try {
-			// TODO(rjakubco): add changing java before start
 			log.info("Starting container");
 			executor.executeCommand(productPath + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();

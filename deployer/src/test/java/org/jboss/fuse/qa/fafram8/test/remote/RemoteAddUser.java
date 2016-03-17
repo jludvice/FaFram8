@@ -7,7 +7,6 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,7 +24,7 @@ public class RemoteAddUser {
 	public void testAddUser() {
 		fafram = new Fafram().addUser("testu", "testp", "testr1,testr2").suppressStart();
 		fafram.setup();
-		assertTrue(fafram.executeNodeCommand("cat " + SystemProperty.getFusePath() + File.separator + "etc"
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "etc"
 				+ File.separator + "users.properties").contains("testu=testp,testr1,testr2"));
 	}
 
@@ -33,9 +32,9 @@ public class RemoteAddUser {
 	public void testOverrideUser() {
 		fafram = new Fafram().addUser("fafram", "faframoverride", "Monitor").suppressStart();
 		fafram.setup();
-		assertTrue(fafram.executeNodeCommand("cat " + SystemProperty.getFusePath() + File.separator + "etc"
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "etc"
 				+ File.separator + "users.properties").contains("fafram=faframoverride,Monitor"));
-		assertFalse(fafram.executeNodeCommand("cat " + SystemProperty.getFusePath() + File.separator + "etc"
+		assertFalse(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "etc"
 				+ File.separator + "users.properties").contains("fafram=fafram,Administrator"));
 	}
 

@@ -210,7 +210,42 @@ public class RootContainer extends Container {
 		 */
 		public RootBuilder(Container root) {
 			if (root != null) {
-				this.container = root;
+				Node node = null;
+				if (root.getNode() != null) {
+					node = Node.builder()
+							.host(root.getNode().getHost())
+							.port(root.getNode().getPort())
+							.username(root.getNode().getUsername())
+							.password(root.getNode().getPassword())
+							.build();
+				}
+				// Add zookeeper commands because child/ssh container.stop() need them
+				final List<String> cmds = new ArrayList<>(root.getCommands());
+				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
+				if (!cmds.contains(zkCommand)) {
+					cmds.add(zkCommand);
+				}
+				// fuse executor is set when the container is being created
+				this.container = new RootContainer()
+						.name(root.getName())
+						.user(root.getUser())
+						.password(root.getPassword())
+						.root(true)
+						// We need to create a new instance of the node for the cloning case, otherwise all clones
+						// would have the same object instance
+						.node(node)
+						.parent(null)
+						.parentName(null)
+						.fabric(root.isFabric())
+						.fabricCreateArguments(root.getFabricCreateArguments())
+						// The same as node
+						.commands(cmds)
+						.bundles(new ArrayList<>(root.getBundles()))
+						.profiles(new ArrayList<>(root.getProfiles()))
+						.bundles(new ArrayList<>(root.getBundles()))
+						.jvmOpts(root.getJvmOpts())
+						.jvmMemOpts(root.getJvmMemOpts())
+						.directory(root.getWorkingDirectory());
 			} else {
 				container = new RootContainer();
 			}
@@ -445,40 +480,7 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
-			Node node = null;
-			if (container.getNode() != null) {
-				node = Node.builder()
-						.host(container.getNode().getHost())
-						.port(container.getNode().getPort())
-						.username(container.getNode().getUsername())
-						.password(container.getNode().getPassword())
-						.build();
-			}
-			// Add zookeeper commands because child/ssh container.stop() need them
-			final List<String> cmds = new ArrayList<>(container.getCommands());
-			cmds.add("fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default");
-			// fuse executor is set when the container is being created
-			return new RootContainer()
-					.name(container.getName())
-					.user(container.getUser())
-					.password(container.getPassword())
-					.root(true)
-					// We need to create a new instance of the node for the cloning case, otherwise all clones
-					// would have the same object instance
-					.node(node)
-					.parent(null)
-					.parentName(null)
-					.fabric(container.isFabric())
-					.fabricCreateArguments(container.getFabricCreateArguments())
-					// The same as node
-					.commands(cmds)
-					.bundles(new ArrayList<>(container.getBundles()))
-					.profiles(new ArrayList<>(container.getProfiles()))
-					.bundles(container.getBundles())
-					.profiles(container.getProfiles())
-					.jvmOpts(container.getJvmOpts())
-					.jvmMemOpts(container.getJvmMemOpts())
-					.directory(container.getWorkingDirectory());
+			return container;
 		}
 	}
 }

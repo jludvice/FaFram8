@@ -22,14 +22,14 @@ public class RemoteFaframJvmMemOpts {
 	@Test
 	public void jvmMemOptsTest() throws Exception {
 		fafram = new Fafram().suppressStart().setup();
-		assertTrue(fafram.executeNodeCommand("cat " + System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "bin" +
 				File.separator + "setenv").contains("1536M"));
 	}
 
 	@Test
 	public void customJvmMemOptsTest() throws Exception {
 		fafram = new Fafram().setMemoryJvmOptions("312M", "512M", "312M", "512M").suppressStart().setup();
-		assertTrue(fafram.executeNodeCommand("cat " + System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
+		assertTrue(fafram.executeNodeCommand("cat " + fafram.getProductPath() + File.separator + "bin" +
 				File.separator + "setenv").contains("312M"));
 	}
 

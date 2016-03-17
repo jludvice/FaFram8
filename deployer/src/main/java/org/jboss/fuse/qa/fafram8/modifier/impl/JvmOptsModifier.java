@@ -3,7 +3,7 @@ package org.jboss.fuse.qa.fafram8.modifier.impl;
 import org.apache.commons.io.IOUtils;
 
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -75,7 +75,7 @@ public final class JvmOptsModifier extends Modifier {
 	 */
 	public void localExecute() {
 		try {
-			final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+			final String filePath = ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv";
 			final FileInputStream fis = new FileInputStream(filePath);
 			String content = IOUtils.toString(fis);
 
@@ -96,7 +96,7 @@ public final class JvmOptsModifier extends Modifier {
 	 * Adds random modifier to bin/setenv on remote host.
 	 */
 	public void remoteExecute() {
-		final String filePath = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+		final String filePath = ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv";
 
 		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
 				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom" + additionalJvmOpts + "\\\" \" >> " + filePath);

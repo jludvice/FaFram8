@@ -4,7 +4,7 @@ import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 
 import java.io.File;
 
@@ -63,8 +63,8 @@ public final class JavaHomeModifier extends Modifier {
 	 */
 	private void modifyLocalJavaHome() {
 		// Files locations
-		final File setenv = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv");
-		final File setenvBat = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
+		final File setenv = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv");
+		final File setenvBat = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
 
 		// File content
 		final String line = "export JAVA_HOME=" + javaHomePath + "\n";
@@ -90,7 +90,7 @@ public final class JavaHomeModifier extends Modifier {
 	 *Modifies JAVA_HOME on remote.
 	 */
 	private void modifyRemoteJavaHome() {
-		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+		final String path = ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv";
 		String content = String.format("export JAVA_HOME=%s%n", javaHomePath);
 		// Remove original files
 		if ((System.getProperty("os.name").startsWith("Windows"))) {

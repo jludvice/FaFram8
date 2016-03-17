@@ -86,6 +86,7 @@ public class RootContainer extends Container {
 			((RemoteNodeManager) nodeManager).setWorkingDirectory(super.getWorkingDirectory());
 		}
 
+		ModifierExecutor.setContainer(this);
 		// Add the modifiers
 		if (!SystemProperty.skipDefaultUser()) {
 			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
@@ -108,7 +109,7 @@ public class RootContainer extends Container {
 		try {
 			nodeManager.detectPlatformAndProduct();
 			nodeManager.prepareZip();
-			nodeManager.unzipArtifact();
+			nodeManager.unzipArtifact(this);
 			nodeManager.prepareFuse(super.getNode().getHost());
 			if (!SystemProperty.suppressStart()) {
 				nodeManager.startFuse();

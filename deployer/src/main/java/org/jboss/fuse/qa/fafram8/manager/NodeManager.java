@@ -1,5 +1,6 @@
 package org.jboss.fuse.qa.fafram8.manager;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 
 /**
@@ -13,9 +14,11 @@ public interface NodeManager {
 	void prepareZip();
 
 	/**
-	 * Unzips the zip file.
+	 *  Unzips the zip file.
+	 *
+	 * @param container root container that is being created
 	 */
-	void unzipArtifact();
+	void unzipArtifact(RootContainer container);
 
 	/**
 	 * Configures fuse on specified host.

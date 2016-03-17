@@ -9,7 +9,6 @@ import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.AfterClass;
@@ -44,12 +43,11 @@ public class RemoteWorkingDirectoryTest {
 
 	@Test
 	public void testWorkingDirecotory() throws Exception {
-		assertTrue(SystemProperty.getFusePath().contains(DIR));
+		assertTrue(root.getFusePath().contains(DIR));
 		assertTrue(ssh.executeCommand("exec ps aux | grep karaf.base").contains(DIR));
 
-		final String response = root2.executeCommand("exec ps aux | grep working-dir-root2");
-		assertTrue(response.contains("/home/fuse"));
-		assertFalse(response.contains(DIR));
+		assertTrue(root2.getFusePath().contains("/home/fuse"));
+		assertFalse(root2.getFusePath().contains(DIR));
 	}
 
 	@Test

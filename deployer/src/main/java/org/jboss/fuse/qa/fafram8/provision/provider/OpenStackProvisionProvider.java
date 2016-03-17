@@ -45,29 +45,167 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OpenStackProvisionProvider implements ProvisionProvider {
 
-	//server boot timeout
+	// Server boot timeout
 	private static final int BOOT_TIMEOUT = 120000;
 
-	//Server invoker pool instance
+	// Server invoker pool instance
 	private final ServerInvokerPool invokerPool = new ServerInvokerPool();
 
-	//List of floating addresses allocated by OpenStackProvisionProvider
+	// List of floating addresses allocated by OpenStackProvisionProvider
 	private static final List<FloatingIP> floatingIPs = new LinkedList<>();
 
-	//List of all created OpenStack nodes a.k.a. servers
+	// List of all created OpenStack nodes a.k.a. servers
 	private static final List<Server> serverRegister = new LinkedList<>();
 
-	//List of available OpenStack nodes which are not assigned to container yet
+	// List of available OpenStack nodes which are not assigned to container yet
 	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
 	private static List<Server> serverPool = new LinkedList<>();
 
-	//Authenticated OpenStackClient instance
+	// Authenticated OpenStackClient instance
 	@Getter
 	private final OSClient os = OpenStackClient.getInstance();
 
 	private static final String OFFLINE_IPTABLES_FILE = "iptables-no-internet";
 
 	private String ipTablesFilePath;
+
+	/**
+	 * This method will use ConfigurationParser singleton to parse XML representation of OpenStack infrastructure
+	 * and spawn thread for each container to create its OpenStack node. Each thread will create one OpenStack node,
+	 * assign its serverId to container object model and register new server to OpenStackProvisionProvider's ServerList.
+	 * IP addresses are assigned to containers later. Root container will get floating public IP and register it.
+	 * Others will get only local IP.
+	 *
+	 * @param containerList list of containers
+	 */
+	@Override
+	public void createServerPool(List<Container> containerList) {
+		log.info("Spawning OpenStack infrastructure.");
+		invokerPool.spawnServers(containerList);
+	}
+
+	/**
+	 * Assign IP addresses to list of containers. Container marked as root will get public IP.
+	 * Check that all servers for containers are online and SSH server is online.
+	 *
+	 * @param containerList list of containers to assign addresses
+	 */
+	@Override
+	public void assignAddresses(List<Container> containerList) {
+		if (containerList.isEmpty()) {
+			throw new EmptyContainerListException("Container list is empty!");
+		}
+		for (Container container : containerList) {
+			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
+					+ "-" + container.getName());
+			container.getNode().setNodeId(server.getId());
+
+			if (container.isRoot()) {
+				final String ip = assignFloatingAddress(server.getId());
+				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
+				container.getNode().setHost(ip);
+				container.getNode().setExecutor(container.getNode().createExecutor());
+				removeServerFromPool(server);
+			} else {
+				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
+				setLocalIPToContainer(container, server);
+				log.debug("Assigning local IP: " + server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant
+						.OPENSTACK_ADDRESS_TYPE)).get(0).getAddr() + " for container: " + container.getName());
+				removeServerFromPool(server);
+			}
+		}
+
+		final Executor executor = createExecutor(containerList);
+		try {
+			// This will wait for startup of server for root container
+			executor.connect();
+		} catch (FaframException ex) {
+			throw new FaframException("Connection couldn't be established after " + SystemProperty.getStartWaitTime() + " seconds to "
+					+ executor.getClient().getHost());
+		}
+
+		for (Container container : containerList) {
+			// Iterate over all container and try to connect to them (exclude child containers)
+			if (!(container instanceof ChildContainer)) {
+				canConnect(executor, container);
+			}
+		}
+		//TODO(ecervena): add ip assigment control
+	}
+
+	/**
+	 * Release allocated OpenStack resources. Method will delete created servers and release allocated floating IPs.
+	 */
+	@Override
+	public void releaseResources() {
+		if (SystemProperty.isKeepOsResources()) {
+			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
+			return;
+		}
+		log.info("Releasing allocated OpenStack resources.");
+		for (FloatingIP ip : floatingIPs) {
+			log.info("Deallocating floating IP: " + ip.getFloatingIpAddress());
+			os.compute().floatingIps().deallocateIP(ip.getId());
+		}
+		for (Server server : serverRegister) {
+			log.info("Terminating server: " + server.getName());
+			os.compute().servers().delete(server.getId());
+		}
+		log.info("All OpenStack resources has been released successfully");
+	}
+
+	@Override
+	public void loadIPTables(List<Container> containerList) {
+		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
+		if (SystemProperty.getIptablesConfFilePath().isEmpty() && !SystemProperty.isOffline()) {
+			// There was no iptables configuration file set so the user doesn't want to change environment.
+			return;
+		}
+
+		log.info("Loading iptables configuration files.");
+
+		final Executor executor = createExecutor(containerList);
+		executor.connect();
+
+		setCorrectIpTablesFilePath(executor);
+
+		// If the environment should be configured by custom iptables configuration file from localhost then copy the file to remote root node
+		if (!SystemProperty.isOffline()) {
+			try {
+				log.debug("Copying iptables configuration file on node: " + executor.getClient().toString());
+				((NodeSSHClient) executor.getClient()).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), this.ipTablesFilePath);
+			} catch (CopyFileException e) {
+				throw new FaframException("Problem with copying iptables configuration file to node: " + executor.getClient().getHost() + ".", e);
+			}
+		}
+
+		// For each container in container list execute and set a correct iptables configuration file
+		for (Container c : containerList) {
+			if (c instanceof ChildContainer) {
+				// If the child container is child then skip. The file will be copied and executed for all ssh containers
+				// and root. It doesn't make sense to do also for child containers.
+				continue;
+			}
+			executeIpTables(executor, c);
+		}
+
+		log.info("IPTables configuration files successfully loaded on all nodes! Environment configuration according to {} file.", this.ipTablesFilePath);
+	}
+
+	@Override
+	public void cleanIpTables(List<Container> containerList) {
+		// Do nothing
+	}
+
+	@Override
+	public void checkNodes(List<Container> containerList) {
+		for (Container c : containerList) {
+			if (getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
+				throw new InstanceAlreadyExistsException("Instance " + SystemProperty.getOpenstackServerNamePrefix()
+						+ "-" + c.getName() + " already exists!");
+			}
+		}
+	}
 
 	/**
 	 * Register server to OpenStackProvisionProvider's "register".
@@ -179,72 +317,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	}
 
 	/**
-	 * This method will use ConfigurationParser singleton to parse XML representation of OpenStack infrastructure
-	 * and spawn thread for each container to create its OpenStack node. Each thread will create one OpenStack node,
-	 * assign its serverId to container object model and register new server to OpenStackProvisionProvider's ServerList.
-	 * IP addresses are assigned to containers later. Root container will get floating public IP and register it.
-	 * Others will get only local IP.
-	 *
-	 * @param containerList list of containers
-	 */
-	public void createServerPool(List<Container> containerList) {
-		log.info("Spawning OpenStack infrastructure.");
-		invokerPool.spawnServers(containerList);
-	}
-
-	/**
-	 * Assign IP addresses to list of containers. Container marked as root will get public IP.
-	 *
-	 * @param containerList list of containers to assign addresses
-	 */
-	public void assignAddresses(List<Container> containerList) {
-		if (containerList.isEmpty()) {
-			throw new EmptyContainerListException("Container list is empty!");
-		}
-		for (Container container : containerList) {
-			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
-					+ "-" + container.getName());
-			container.getNode().setNodeId(server.getId());
-
-			if (container.isRoot()) {
-				final String ip = assignFloatingAddress(server.getId());
-				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
-				container.getNode().setHost(ip);
-				container.getNode().setExecutor(container.getNode().createExecutor());
-				removeServerFromPool(server);
-			} else {
-				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
-				setLocalIPToContainer(container, server);
-				log.debug("Assigning local IP: " + server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant
-						.OPENSTACK_ADDRESS_TYPE)).get(0).getAddr() + " for container: " + container.getName());
-				removeServerFromPool(server);
-			}
-		}
-
-		//TODO(ecervena): add ip assigment control
-	}
-
-	/**
-	 * Release allocated OpenStack resources. Method will delete created servers and release allocated floating IPs.
-	 */
-	public void releaseResources() {
-		if (SystemProperty.isKeepOsResources()) {
-			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
-			return;
-		}
-		log.info("Releasing allocated OpenStack resources.");
-		for (FloatingIP ip : floatingIPs) {
-			log.info("Deallocating floating IP: " + ip.getFloatingIpAddress());
-			os.compute().floatingIps().deallocateIP(ip.getId());
-		}
-		for (Server server : serverRegister) {
-			log.info("Terminating server: " + server.getName());
-			os.compute().servers().delete(server.getId());
-		}
-		log.info("All OpenStack resources has been released successfully");
-	}
-
-	/**
 	 * Assign floating IP address to specified server.
 	 *
 	 * @param serverID ID of the server
@@ -273,61 +345,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		}
 	}
 
-	@Override
-	public void checkNodes(List<Container> containerList) {
-		for (Container c : containerList) {
-			if (getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
-				throw new InstanceAlreadyExistsException("Instance " + SystemProperty.getOpenstackServerNamePrefix()
-						+ "-" + c.getName() + " already exists!");
-			}
-		}
-	}
-
-	@Override
-	public void loadIPTables(List<Container> containerList) {
-		// "If" for deciding if this method should be used is moved here so the Fafram method is clean(Only for you ecervena <3)
-		if (SystemProperty.getIptablesConfFilePath().isEmpty() && !SystemProperty.isOffline()) {
-			// There was no iptables configuration file set so the user doesn't want to change environment.
-			return;
-		}
-
-		log.info("Loading iptables configuration files.");
-
-		final Executor executor = createExecutor(containerList);
-
-		setCorrectIpTablesFilePath(executor);
-
-		// If the environment should be configured by custom iptables configuration file from localhost then copy the file to remote root node
-		if (!SystemProperty.isOffline()) {
-			try {
-				log.debug("Copying iptables configuration file on node: " + executor.getClient().toString());
-				((NodeSSHClient) executor.getClient()).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), this.ipTablesFilePath);
-			} catch (CopyFileException e) {
-				throw new FaframException("Problem with copying iptables configuration file to node: " + executor.getClient().getHost() + ".", e);
-			}
-		}
-
-		// For each container in container list execute and set a correct iptables configuration file
-		for (Container c : containerList) {
-			if (c instanceof ChildContainer) {
-				// If the child container is child then skip. The file will be copied and executed for all ssh containers
-				// and root. It doesn't make sense to do also for child containers.
-				continue;
-			}
-			executeIpTables(executor, c);
-		}
-
-		log.info("IPTables configuration files successfully loaded on all nodes! Environment configuration according to {} file."
-				, this.ipTablesFilePath);
-	}
-
-	@Override
-	public void cleanIpTables(List<Container> containerList) {
-		// Do nothing
-	}
-
 	/**
-	 * Creates and connects executor to node with root container. Node of the root container has always assinged public IP.
+	 * Creates executor to node with root container. Node of the root container has always assigned public IP.
 	 *
 	 * @param containerList list of containers
 	 * @return connected executor
@@ -348,7 +367,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		final SSHClient sshClient = new NodeSSHClient().defaultSSHPort().host(rootNode.getHost())
 				.username(rootNode.getUsername()).password(rootNode.getPassword());
 		final Executor executor = new Executor(sshClient);
-		executor.connect();
 
 		return executor;
 	}
@@ -416,6 +434,60 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		} catch (Exception e) {
 			throw new FaframException("There was problem setting iptables on node: "
 					+ container.getNode().getHost(), e);
+		}
+	}
+
+	/**
+	 * Tries to connect specified container's server and check if SSH server is online. Connection is tried through
+	 * root container's machine because servers that are intended for SSH containers don't have public IP addresses.
+	 * This complicates using SSH client for connecting to these machines.
+	 *
+	 * @param executor executor for machine that will contain root container
+	 * @param container that is tested for running SSH
+	 */
+	private void canConnect(Executor executor, Container container) {
+		log.debug("Testing connection to: " + container.getNode().getHost());
+		Boolean connected = false;
+		final int step = 5;
+		int elapsed = 0;
+		final long timeout = step * 1000L;
+
+		log.info("Waiting for SSH connection ...");
+		final String preCommand = "ssh -o StrictHostKeyChecking=no " + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
+		while (!connected) {
+			// Check if the time is up
+			if (elapsed > SystemProperty.getProvisionWaitTime()) {
+				log.error("Connection couldn't be established after " + SystemProperty.getProvisionWaitTime() + " seconds to container with name \""
+						+ container.getName() + "\" with IP " + container.getNode().getHost());
+				throw new FaframException("Connection couldn't be established after " + SystemProperty.getProvisionWaitTime() + " seconds to container with name \""
+						+ container.getName() + "\" with IP " + container.getNode().getHost());
+			}
+
+			String response = executor.executeCommand(preCommand + " echo Connected");
+			if ("Connected".equals(response)) {
+				response = executor.executeCommand("echo $?");
+				if ("0".equals(response)) {
+					connected = true;
+					log.debug("Connected to remote SSH server {}" + container.getNode().getHost());
+					continue;
+				}
+			}
+			log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - elapsed) + " seconds. ");
+			elapsed += step;
+			sleep(timeout);
+		}
+	}
+
+	/**
+	 * Sleeps for given amount of time.
+	 *
+	 * @param time time in millis
+	 */
+	private void sleep(long time) {
+		try {
+			Thread.sleep(time);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 }

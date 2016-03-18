@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.nio.file.Files;
@@ -51,7 +52,7 @@ public class ArchiveModifier extends Modifier {
 			final DirectoryScanner scanner = new DirectoryScanner();
 			scanner.setIncludes(archiveFiles);
 			// set base dir to target/
-			scanner.setBasedir(SystemProperty.getFusePath());
+			scanner.setBasedir(ModifierExecutor.getContainer().getFusePath());
 			scanner.setCaseSensitive(false);
 			// perform scan
 			scanner.scan();
@@ -60,11 +61,11 @@ public class ArchiveModifier extends Modifier {
 			log.info("Archiving {} file" + (foundFiles.length > 1 ? "s" : "") + " to {}", foundFiles.length, archiveTargetPath);
 			for (String fileName : foundFiles) {
 				//scanner returns paths relative to fuseDir
-				final Path p = Paths.get(SystemProperty.getFusePath(), fileName);
+				final Path p = Paths.get(ModifierExecutor.getContainer().getFusePath(), fileName);
 				log.debug("Archiving file {}", fileName);
 				//create target directory structure
 				final Path target = Paths.get(archiveTargetPath.toString(), StringUtils.substringBetween(
-						Paths.get(SystemProperty.getFusePath(), fileName).toAbsolutePath().toString(), SystemProperty.getBaseDir(), fileName),
+						Paths.get(ModifierExecutor.getContainer().getFusePath(), fileName).toAbsolutePath().toString(), SystemProperty.getBaseDir(), fileName),
 						fileName).toAbsolutePath();
 				Files.createDirectories(target.getParent());
 				// for instance copy

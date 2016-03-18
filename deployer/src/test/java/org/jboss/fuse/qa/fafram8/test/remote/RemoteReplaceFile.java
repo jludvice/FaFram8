@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.apache.commons.io.FileUtils;
 
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.Rule;
@@ -35,10 +34,10 @@ public class RemoteReplaceFile {
 
 		assertNotNull(replaceContent);
 
-		String fileLocation = System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "etc" + File.separator +
-				"activemq.xml";
+		final String fileLocation = fafram.getProductPath() + File.separator + "etc" + File.separator
+				+ "activemq.xml";
 
-		String file = fafram.executeNodeCommand("cat " + fileLocation);
+		final String file = fafram.executeNodeCommand("cat " + fileLocation);
 
 		assertNotNull(file);
 		assertEquals(replaceContent, file);

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.apache.commons.io.FileUtils;
 
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.Rule;
@@ -33,8 +32,7 @@ public class LocalReplaceFileTest {
 
 		assertNotNull(replaceContent);
 
-		String fileLocation = System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "fabric" + File.separator +
-				"readme.txt";
+		final String fileLocation = fafram.getProductPath() + File.separator + "fabric" + File.separator + "readme.txt";
 		String file = null;
 		try {
 			file = FileUtils.readFileToString(new File(fileLocation));

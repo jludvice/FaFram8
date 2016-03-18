@@ -27,13 +27,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteTurnOffInternetTest {
-	private Container root = RootContainer.builder().name("build-offline-root").node(Node.builder().host("openstack").build()).build();
+	private Container root = RootContainer.builder().name("build-offline-root").node(Node.builder().host("openstack").build()).withFabric().build();
 
-	private Container ssh = SshContainer.builder().name("build-offline-ssh").parentName("build-offline-root").node(
+	private Container ssh = SshContainer.builder().name("build-offline-ssh").parent(root).node(
 			Node.builder().host("openstack").build()).build();
 
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().provider(FaframProvider.OPENSTACK).containers(root, ssh).offline().suppressStart();
+	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).containers(root, ssh).offline().suppressStart();
 
 	@BeforeClass
 	public static void before() {

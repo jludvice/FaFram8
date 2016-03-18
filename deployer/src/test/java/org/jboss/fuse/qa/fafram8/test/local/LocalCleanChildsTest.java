@@ -3,7 +3,6 @@ package org.jboss.fuse.qa.fafram8.test.local;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.Test;
@@ -22,7 +21,7 @@ public class LocalCleanChildsTest {
 		fafram.setup();
 		assertTrue("Container list does not contain test1", fafram.executeCommand("container-list").contains("test1"));
 		assertTrue("Container list does not contain test1", fafram.executeCommand("container-list").contains("test1"));
-		String path = System.getProperty(FaframConstant.FUSE_PATH);
+		final String path = fafram.getProductPath();
 		fafram.tearDown();
 
 		// If the childs are deleted successfully, the whole folder is deleted successfully

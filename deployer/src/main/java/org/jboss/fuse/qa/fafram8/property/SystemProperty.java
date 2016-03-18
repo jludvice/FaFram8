@@ -274,7 +274,9 @@ public class SystemProperty {
 	 * Getter.
 	 *
 	 * @return fuse path
+	 * @deprecated With theory of more possible root containers, this property doesn't work anymore. Use container.getProductPath().
 	 */
+	@Deprecated
 	public static String getFusePath() {
 		return System.getProperty(FaframConstant.FUSE_PATH);
 	}

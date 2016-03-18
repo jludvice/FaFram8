@@ -4,7 +4,7 @@ import org.apache.commons.io.FileUtils;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -81,9 +81,10 @@ public final class JvmMemoryModifier extends Modifier {
 	 * Modifies JVM Opts on localhost.
 	 */
 	private void modifyLocalJvmMemOpts() {
+		log.error(ModifierExecutor.getContainer().getFusePath());
 		// Files locations
-		final File setenv = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv");
-		final File setenvBat = new File(SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
+		final File setenv = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv");
+		final File setenvBat = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");
 
 		try {
 			if (!setenvBat.exists()) {
@@ -111,7 +112,7 @@ public final class JvmMemoryModifier extends Modifier {
 	 * Modifies JVM memory opts on remote.
 	 */
 	private void modifyRemoteJvmMemOpts() {
-		final String path = SystemProperty.getFusePath() + File.separator + "bin" + File.separator + "setenv";
+		final String path = ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv";
 		final StringBuilder builder = new StringBuilder();
 		for (String line : jvmMemOpts) {
 			builder.append("export " + line + "\n");

@@ -11,6 +11,7 @@ import org.apache.maven.shared.invoker.PrintStreamHandler;
 
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
@@ -61,12 +62,14 @@ public final class Downloader {
 	 * Downloads/Gets the product zip to the remote host.
 	 *
 	 * @param executor executor with assign ssh client
+	 * @param nodeManager NodeManager specific for root container where zip should be downloaded
 	 * @return absolute path to the file
 	 */
-	public static String getProduct(Executor executor) {
+	public static String getProduct(Executor executor, NodeManager nodeManager) {
 		// We are using custom zip on local
 		log.info("Getting product from " + SystemProperty.getFuseZip());
-		return getProductFromUrl(executor);
+		// We already know we are downloading Fuse distro on remote. Retype NodeManager...
+		return getProductFromUrl(executor, (RemoteNodeManager) nodeManager);
 	}
 
 	/**
@@ -75,7 +78,7 @@ public final class Downloader {
 	 * @return absolute path to the file
 	 */
 	private static String getProductFromMaven() {
-		String localRepo;
+		final String localRepo;
 
 		// If we use custom local repository, use it
 		if (System.getProperty("maven.repo.local") != null) {
@@ -96,7 +99,7 @@ public final class Downloader {
 	private static String getProductFromUrl() {
 		// Get the protocol from the property
 		final String protocol = StringUtils.substringBefore(SystemProperty.getFuseZip(), ":");
-		String location;
+		final String location;
 		switch (protocol) {
 			case "http":
 				try {
@@ -126,15 +129,23 @@ public final class Downloader {
 	 * @param executor executor with ssh client connected to desired remote host
 	 * @return absolute path to the file
 	 */
-	private static String getProductFromUrl(Executor executor) {
+
+	/**
+	 * Gets the product zip from url on remote.
+	 *
+	 * @param executor executor with ssh client connected to desired remote host
+	 * @param nodeManager RemoteNodeManager object for root container where zip will be downloaded
+	 * @return absolute path to the file
+	 */
+	private static String getProductFromUrl(Executor executor, RemoteNodeManager nodeManager) {
 		// Get the protocol from the property
 		final String protocol = StringUtils.substringBefore(SystemProperty.getFuseZip(), ":");
-		String location;
+		final String location;
 		switch (protocol) {
 			case "http":
-				log.info(executor.executeCommand("curl -L -s -o " + RemoteNodeManager.getFolder()
+				log.info(executor.executeCommand("curl -L -s -o " + nodeManager.getFolder()
 						+ SEP + "fuse.zip " + SystemProperty.getFuseZip()));
-				location = executor.executeCommand("ls -d -1 " + RemoteNodeManager.getFolder() + SEP + "*");
+				location = executor.executeCommand("ls -d -1 " + nodeManager.getFolder() + SEP + "*");
 				break;
 			case "scp":
 				// impossible to provide password to scp command without third party library ssh-pass
@@ -179,7 +190,7 @@ public final class Downloader {
 			log.debug("Checking path for mvn: " + part);
 			if (part.contains("mvn") || part.contains("maven")) {
 				// Strip the /bin from mvn path if found
-				String mvnLocation;
+				final String mvnLocation;
 				if (part.contains("bin")) {
 					mvnLocation = StringUtils.substringBefore(part, "bin");
 				} else {

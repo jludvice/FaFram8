@@ -9,6 +9,8 @@ import org.apache.maven.shared.invoker.MavenInvocationException;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import lombok.Setter;
@@ -110,5 +112,73 @@ public class MavenPomInvoker {
 		final Invoker invoker = new DefaultInvoker();
 		log.info("Invoking maven target " + projectPath);
 		invoker.execute(request);
+	}
+
+	/**
+	 * Invokes maven execution on specified project with specified goals.
+	 * There is no upload or anything else done with the specified project regarding to running Fuse.
+	 *
+	 * @param projectPath absolute or relative (to root project pom) path of target project
+	 * @param goals list of maven goals that should be executed on target project
+	 * @param properties properties for maven execution
+	 * @throws URISyntaxException exception
+	 * @throws MavenInvocationException exception
+	 */
+	public static void buildMvnProject(String projectPath, Map<String, String> properties, List<String> goals) throws URISyntaxException, MavenInvocationException {
+		final InvocationRequest request = new DefaultInvocationRequest();
+		request.setPomFile(new File(projectPath));
+
+		if (properties != null) {
+			final Properties props = new Properties();
+			for (String property : properties.keySet()) {
+				props.setProperty(property, properties.get(property));
+			}
+			request.setProperties(props);
+		}
+
+		request.setGoals(goals);
+
+		final Invoker invoker = new DefaultInvoker();
+		log.info("Invoking maven target " + projectPath);
+		invoker.execute(request);
+	}
+
+	/**
+	 * Invokes maven execution on specified project with specified goals.
+	 * There is no upload or anything else done with the specified project regarding to running Fuse.
+	 *
+	 * @param projectPath absolute or relative (to root project pom) path of target project
+	 * @param goals maven goals that should be executed on target project
+	 * @throws URISyntaxException exception
+	 * @throws MavenInvocationException exception
+	 */
+	public static void buildMvnProject(String projectPath, String... goals) throws URISyntaxException, MavenInvocationException {
+		buildMvnProject(projectPath, null, Arrays.asList(goals));
+	}
+
+	/**
+	 * Invokes maven execution on specified project with specified goals.
+	 * There is no upload or anything else done with the specified project regarding to running Fuse.
+	 *
+	 * @param projectPath absolute or relative (to root project pom) path of target project
+	 * @param goals maven goals that should be executed on target project
+	 * @param properties properties for maven execution
+	 * @throws URISyntaxException exception
+	 * @throws MavenInvocationException exception
+	 */
+	public static void buildMvnProject(String projectPath, Map<String, String> properties, String... goals) throws URISyntaxException, MavenInvocationException {
+		buildMvnProject(projectPath, properties, Arrays.asList(goals));
+	}
+
+	/**
+	 * Invokes maven execution on specified project with specified goals.
+	 * There is no upload or anything else done with the specified project regarding to running Fuse.
+	 *
+	 * @param project object containing information about maven project to be executed
+	 * @throws MavenInvocationException exception
+	 * @throws URISyntaxException exception
+	 */
+	public static void buildMvnProject(MavenProject project) throws MavenInvocationException, URISyntaxException {
+		buildMvnProject(project.getProjectPath(), project.getProperties(), project.getGoals());
 	}
 }

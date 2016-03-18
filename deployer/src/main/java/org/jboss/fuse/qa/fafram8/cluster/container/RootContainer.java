@@ -70,13 +70,14 @@ public class RootContainer extends Container {
 	public void create() {
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
-
 		log.info("Creating container " + this);
 
 		// Instantiate the node manager based on node.getHost()
 		if ("localhost".equals(super.getNode().getHost())) {
 			nodeManager = new LocalNodeManager(getExecutor());
 		} else {
+			// Re-create the executor
+			super.getNode().setExecutor(super.getNode().createExecutor());
 			// Connect the node executor
 			super.getNode().getExecutor().connect();
 			nodeManager = new RemoteNodeManager(super.getNode().getExecutor(), super.getExecutor());
@@ -446,18 +447,13 @@ public class RootContainer extends Container {
 				container.setFabric(true);
 				container.setFabricCreateArguments(SystemProperty.getFabric());
 			}
-
+			// Create node with default properties but without the host - it will be set later in ContainerManager configure roots
+			// because in this moment we don't know if we use local or openstack or anything else
+			// Port, user and pass are automatically set in Node object from system properties
+			container.setNode(Node.builder().build());
 			container.setName(SystemProperty.getDefaultRootName());
 			container.setUser(SystemProperty.getFuseUser());
 			container.setPassword(SystemProperty.getFusePassword());
-			container.setNode(
-					Node.builder()
-							.host(SystemProperty.getHost())
-							.port(SystemProperty.getHostPort())
-							.username(SystemProperty.getHostUser())
-							.password(SystemProperty.getHostPassword())
-							.build()
-			);
 			container.setCommands(ContainerManager.getCommands());
 			container.setBundles(ContainerManager.getBundles());
 			return this;

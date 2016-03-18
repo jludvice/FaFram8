@@ -98,6 +98,15 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		for (Container container : containerList) {
 			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
 					+ "-" + container.getName());
+			if (container.getNode() == null) {
+				// We dont have any info, use the defaults
+				container.setNode(
+						Node.builder()
+								.port(SystemProperty.getHostPort())
+								.username(SystemProperty.getHostUser())
+								.password(SystemProperty.getHostPassword())
+								.build());
+			}
 			container.getNode().setNodeId(server.getId());
 
 			if (container.isRoot()) {
@@ -470,12 +479,12 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 						+ container.getName() + "\" with IP " + container.getNode().getHost());
 			}
 
-			String response = executor.executeCommand(preCommand + " echo Connected");
+			String response = executor.executeCommand(preCommand + "echo Connected");
 			if ("Connected".equals(response)) {
 				response = executor.executeCommand("echo $?");
 				if ("0".equals(response)) {
 					connected = true;
-					log.debug("Connected to remote SSH server {}" + container.getNode().getHost());
+					log.debug("Connected to remote SSH server {}", container.getNode().getHost());
 					continue;
 				}
 			}

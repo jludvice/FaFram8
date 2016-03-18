@@ -81,7 +81,6 @@ public final class JvmMemoryModifier extends Modifier {
 	 * Modifies JVM Opts on localhost.
 	 */
 	private void modifyLocalJvmMemOpts() {
-		log.error(ModifierExecutor.getContainer().getFusePath());
 		// Files locations
 		final File setenv = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv");
 		final File setenvBat = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv.bat");

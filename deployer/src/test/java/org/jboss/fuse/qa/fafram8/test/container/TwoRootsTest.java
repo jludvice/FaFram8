@@ -21,8 +21,8 @@ public class TwoRootsTest {
 			.commands("profile-create template")
 			.withFabric()
 			.build();
-	private Container root1 = RootContainer.builder(TEMPLATE).name("root").commands("profile-create root1").build();
-	private Container root2 = RootContainer.builder(TEMPLATE).name("root2").profiles("gateway-http").build();
+	private Container root1 = RootContainer.builder(TEMPLATE).name("tworoots1").commands("profile-create root1").build();
+	private Container root2 = RootContainer.builder(TEMPLATE).name("tworoots2").profiles("gateway-http").build();
 	@Rule
 	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_URL).provider(FaframProvider.OPENSTACK)
 			.containers(root1, root2);

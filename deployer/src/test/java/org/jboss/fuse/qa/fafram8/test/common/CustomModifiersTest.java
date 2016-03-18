@@ -3,6 +3,7 @@ package org.jboss.fuse.qa.fafram8.test.common;
 import static org.junit.Assert.assertTrue;
 
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.After;
@@ -47,7 +48,7 @@ public class CustomModifiersTest {
 		@Override
 		public void execute() {
 			try {
-				new File(fafram.getProductPath() + "/modifier.log").createNewFile();
+				new File(SystemProperty.getFusePath() + "/modifier.log").createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

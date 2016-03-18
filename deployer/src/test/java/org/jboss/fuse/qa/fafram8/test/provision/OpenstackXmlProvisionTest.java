@@ -38,7 +38,6 @@ public class OpenstackXmlProvisionTest {
 		SystemProperty.clearAllProperties();
 		ModifierExecutor.clearAllModifiers();
 	}
-	
 
 	@Test
 	public void fabricTest() {

@@ -9,12 +9,16 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setJvmMe
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 
+import org.apache.maven.shared.invoker.MavenInvocationException;
+
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
 import org.jboss.fuse.qa.fafram8.deployer.Deployer;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
+import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
+import org.jboss.fuse.qa.fafram8.invoker.MavenProject;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
@@ -29,9 +33,11 @@ import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +61,9 @@ public class Fafram extends ExternalResource {
 	// Flag if the fafram has already finished the initialization and it's running
 	// Used in .containers method
 	private boolean running = false;
+
+	@Getter
+	private List<MavenProject> bundlesToBuild = new ArrayList<>();
 
 	/**
 	 * Constructor.
@@ -84,6 +93,7 @@ public class Fafram extends ExternalResource {
 			printLogo();
 			setDefaultModifiers();
 			prepareNodes(provisionProvider);
+			buildBundles();
 			Deployer.deploy();
 		} catch (Exception ex) {
 			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
@@ -476,6 +486,45 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Adds bundle into list of bundles which should be built with specified goals.
+	 *
+	 * @param projectPath absolute or relative (to root project pom) path of target project
+	 * @param properties properties for maven execution
+	 * @param goals list of goals that should be executed
+	 * @return this
+	 */
+	public Fafram buildBundle(String projectPath, Map<String, String> properties, String... goals) {
+		bundlesToBuild.add(new MavenProject(projectPath, properties, Arrays.asList(goals)));
+		return this;
+	}
+
+	/**
+	 * Adds bundle into list of bundles which should be built with specified goals.
+	 *
+	 * @param projectPath absolute or relative (to root project pom) path of target project
+	 * @param goals list of goals that should be executed
+	 * @return this
+	 */
+	public Fafram buildBundle(String projectPath, String... goals) {
+		buildBundle(projectPath, null, goals);
+		return this;
+	}
+
+	/**
+	 * Adds bundles into list of bundles which should be built with specified goals.
+	 *
+	 * @param projects list of projects for execution
+	 * @return this
+	 */
+	public Fafram buildBundles(MavenProject... projects) {
+		for (MavenProject project : projects) {
+			bundlesToBuild.add(project);
+		}
+
+		return this;
+	}
+
+	/**
 	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
 	 *
 	 * @param commands list of commands
@@ -588,6 +637,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Executes multiple commands in node shell.
+	 *
 	 * @param commands commands array to execute
 	 * @return list of commands responses
 	 */
@@ -607,6 +657,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Executes multiple commands in root container.
+	 *
 	 * @param commands commands array to execute
 	 * @return list of commands responses
 	 */
@@ -705,5 +756,20 @@ public class Fafram extends ExternalResource {
 	 */
 	public List<Container> getContainerList() {
 		return ContainerManager.getContainerList();
+	}
+
+	/**
+	 * Builds defined bundles with specific maven goals on local host.
+	 */
+	public void buildBundles() {
+		for (MavenProject project : bundlesToBuild) {
+			log.debug("Invoking maven project: {}", project);
+			try {
+				MavenPomInvoker.buildMvnProject(project);
+			} catch (URISyntaxException | MavenInvocationException e) {
+				log.error("Invocation of maven target \"{}\" failed.", project);
+				throw new FaframException("Invocation of maven target \"" + project + "\" failed.", e);
+			}
+		}
 	}
 }

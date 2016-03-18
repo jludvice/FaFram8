@@ -101,6 +101,15 @@ public abstract class Container {
 	@Setter
 	private List<String> jvmMemOpts = new ArrayList<>();
 
+	@Getter
+	@Setter
+	private String workingDirectory = "";
+
+	// Full path to unzipped product directory for root container
+	@Getter
+	@Setter
+	private String fusePath;
+
 	/**
 	 * Creates a container.
 	 */
@@ -153,11 +162,13 @@ public abstract class Container {
 
 	/**
 	 * Executes multiple commands in container.
+	 *
 	 * @param commands commands array to execute
 	 * @return list of commands responses
 	 */
 
 	public abstract List<String> executeCommands(String... commands);
+
 	/**
 	 * Creates the executor from the specified attributes. It is used in builder and in OpenstackProvisionProvider.
 	 *
@@ -345,6 +356,17 @@ public abstract class Container {
 	 */
 	public Container jvmMemOpts(List<String> jvmMemOpts) {
 		this.jvmMemOpts = jvmMemOpts;
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param workingDirectory file path to working directory for container
+	 * @return this
+	 */
+	public Container directory(String workingDirectory) {
+		this.workingDirectory = workingDirectory;
 		return this;
 	}
 }

@@ -5,7 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
@@ -45,7 +45,7 @@ public final class RootNameModifier extends Modifier {
 	@Override
 	public void execute() {
 		if ("localhost".equals(container.getNode().getHost())) {
-			final File configFile = new File(SystemProperty.getFusePath() + File.separator + "etc" + File.separator + "system.properties");
+			final File configFile = new File(ModifierExecutor.getContainer().getFusePath() + File.separator + "etc" + File.separator + "system.properties");
 			try {
 				String fileContent = FileUtils.readFileToString(configFile);
 				fileContent = fileContent.replaceAll("karaf.name = root", "karaf.name = " + container.getName());
@@ -73,7 +73,7 @@ public final class RootNameModifier extends Modifier {
 			c.connect(true);
 			log.debug("Setting root name to " + container.getName() + " on " + container.getNode().getHost());
 			c.executeCommand("sed -i 's#\\<karaf.name = root\\>#karaf.name = " + container.getName() + "#g' "
-					+ SystemProperty.getFusePath() + "etc" + File.separator + "system.properties", true);
+					+ ModifierExecutor.getContainer().getFusePath() + "etc" + File.separator + "system.properties", true);
 			c.disconnect();
 		} catch (Exception e) {
 			throw new FaframException("Error while setting root name on " + container.getNode().getHost() + ": " + e);

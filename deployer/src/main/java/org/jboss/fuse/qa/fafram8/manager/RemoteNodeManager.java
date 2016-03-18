@@ -1,15 +1,16 @@
 package org.jboss.fuse.qa.fafram8.manager;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.downloader.Downloader;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.io.File;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +36,10 @@ public class RemoteNodeManager implements NodeManager {
 	// Full path to unzipped product
 	private String productPath;
 
+	// Working directory for root container for overriding system property fafram.working.dir
+	@Setter
+	private String workingDirectory = "";
+
 	/**
 	 * Constructor.
 	 *
@@ -50,12 +55,12 @@ public class RemoteNodeManager implements NodeManager {
 	public void prepareZip() {
 		log.info("Preparing zip...");
 		executor.executeCommand("mkdir " + getFolder());
-		productZipPath = Downloader.getProduct(executor);
+		productZipPath = Downloader.getProduct(executor, this);
 		log.debug("Zip path is " + productZipPath);
 	}
 
 	@Override
-	public void unzipArtifact() {
+	public void unzipArtifact(RootContainer container) {
 		log.info("Unzipping fuse from " + productZipPath);
 
 		// Jar can't unzip to specified directory, so we need to change the dir first
@@ -72,7 +77,8 @@ public class RemoteNodeManager implements NodeManager {
 				: executor.executeCommand("ls -d " + getFolder() + SEP + "*" + SEP).trim();
 
 		log.debug("Product path is " + productPath);
-		SystemProperty.set(FaframConstant.FUSE_PATH, productPath);
+
+		container.setFusePath(productPath);
 	}
 
 	@Override
@@ -83,7 +89,6 @@ public class RemoteNodeManager implements NodeManager {
 	@Override
 	public void startFuse() {
 		try {
-			// TODO(rjakubco): add changing java before start
 			log.info("Starting container");
 			executor.executeCommand(productPath + "bin" + SEP + "start");
 			fuseExecutor.waitForBoot();
@@ -125,16 +130,19 @@ public class RemoteNodeManager implements NodeManager {
 
 	/**
 	 * Creates folder path on remote machines.
-	 * Checking if property fafram.working.directory is set.
+	 * Checking if property fafram.working.directory is set or if specific working directory was set for container.
 	 *
 	 * @return path where fafram8 folder should be created
 	 */
-	public static String getFolder() {
-		String folder;
-		if ("".equals(SystemProperty.getWorkingDirectory())) {
+	public String getFolder() {
+		// Check if specific working folder was set for container
+		final String prefix = "".equals(workingDirectory) ? SystemProperty.getWorkingDirectory() : workingDirectory;
+
+		final String folder;
+		if ("".equals(prefix)) {
 			folder = SystemProperty.getFaframFolder();
 		} else {
-			folder = SystemProperty.getWorkingDirectory() + SEP + SystemProperty.getFaframFolder();
+			folder = prefix + SEP + SystemProperty.getFaframFolder();
 		}
 		return folder;
 	}

@@ -2,7 +2,6 @@ package org.jboss.fuse.qa.fafram8.test.local;
 
 import static org.junit.Assert.assertTrue;
 
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.After;
@@ -22,7 +21,7 @@ public class LocalKeepFolderTest {
 		fafram = new Fafram().suppressStart().keepFolder().setup();
 
 		// It sets the system property to the product path
-		String path = System.getProperty(FaframConstant.FUSE_PATH);
+		final String path = fafram.getProductPath();
 		fafram.tearDown();
 
 		assertTrue("Folder was deleted", new File(path).exists());

@@ -21,14 +21,14 @@ public class LocalJvmOptsTest {
 	@Test
 	public void jvmOptsTest() throws Exception {
 		fafram = new Fafram().setup();
-		assertTrue(FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
+		assertTrue(FileUtils.readFileToString(new File(fafram.getProductPath() + File.separator + "bin" +
 				File.separator + "setenv")).contains("1536M"));
 	}
 
 	@Test
 	public void customJvmOptsTest() throws Exception {
 		fafram = new Fafram().setMemoryJvmOptions("312M", "512M", "312M", "512M").setup();
-		assertTrue(FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "bin" +
+		assertTrue(FileUtils.readFileToString(new File(fafram.getProductPath() + File.separator + "bin" +
 				File.separator + "setenv")).contains("312M"));
 	}
 

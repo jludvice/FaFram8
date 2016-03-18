@@ -1,13 +1,8 @@
 package org.jboss.fuse.qa.fafram8.test.common;
 
-import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
-
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
-import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.After;
@@ -52,7 +47,7 @@ public class CustomModifiersTest {
 		@Override
 		public void execute() {
 			try {
-				new File(System.getProperty(FaframConstant.FUSE_PATH) + "/modifier.log").createNewFile();
+				new File(fafram.getProductPath() + "/modifier.log").createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

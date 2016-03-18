@@ -43,6 +43,13 @@ public final class FaframConstant {
 	public static final String FUSE_ZIP = "fuse.zip";
 
 	// Full path to unzipped product directory
+	// Deprecated with theory of more than 1 root in one fafram -> not good enough
+	/**
+	 * Deprecated.
+	 *
+	 * @deprecated With theory of more possible root containers, this property doesn't work anymore. Use container.getProductPath().
+	 */
+	@Deprecated
 	public static final String FUSE_PATH = "fuse.path";
 
 	// Karaf start wait time

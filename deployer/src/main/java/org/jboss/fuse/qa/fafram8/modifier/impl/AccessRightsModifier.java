@@ -1,7 +1,7 @@
 package org.jboss.fuse.qa.fafram8.modifier.impl;
 
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
-import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 
 import java.io.File;
 
@@ -52,7 +52,7 @@ public final class AccessRightsModifier extends Modifier {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private void localExecute() {
 		for (String path : paths) {
-			new File(SystemProperty.getFusePath() + File.separator + path).setExecutable(true);
+			new File(ModifierExecutor.getContainer().getFusePath() + File.separator + path).setExecutable(true);
 		}
 	}
 
@@ -61,7 +61,7 @@ public final class AccessRightsModifier extends Modifier {
 	 */
 	private void remoteExecute() {
 		for (String path : paths) {
-			super.getExecutor().executeCommand("chmod +x " + SystemProperty.getFusePath() + path);
+			super.getExecutor().executeCommand("chmod +x " + ModifierExecutor.getContainer().getFusePath() + path);
 		}
 	}
 }

@@ -31,7 +31,7 @@ public class LocalWithoutDefaultUserTest {
 
 	@Test
 	public void customUserTest() throws Exception {
-		String fileContent = FileUtils.readFileToString(new File(System.getProperty(FaframConstant.FUSE_PATH) + File.separator + "etc" +
+		String fileContent = FileUtils.readFileToString(new File(fafram.getProductPath() + File.separator + "etc" +
 				File.separator + "users.properties"));
 
 		// Change the default commented out admin user

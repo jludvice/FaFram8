@@ -31,13 +31,6 @@ public class ContainerValidatorTest {
 	}
 
 	@Test(expected = ValidatorException.class)
-	public void rootInvalidNodeTest() {
-		fafram = new Fafram();
-		fafram.containers(RootContainer.builder().name("test").node(Node.builder().build()).build());
-		fafram.setup();
-	}
-
-	@Test(expected = ValidatorException.class)
 	public void rootParentTest() {
 		fafram = new Fafram();
 		fafram.containers(RootContainer.builder().name("test").node(Node.builder().host("a").port(1).username("a").password("a").build()).build()

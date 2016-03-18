@@ -160,7 +160,7 @@ public class SshContainer extends Container {
 		if (!super.getJvmOpts().isEmpty()) {
 			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
 			for (String rule : super.getJvmOpts()) {
-				jvmOpts.append(" " + rule);
+				jvmOpts.append(" ").append(rule);
 			}
 			jvmOpts.append("\"");
 			arguments.append(jvmOpts.toString());
@@ -168,20 +168,20 @@ public class SshContainer extends Container {
 
 		if (!super.getEnvs().isEmpty()) {
 			for (String rule : super.getEnvs()) {
-				arguments.append(" --env " + rule);
+				arguments.append(" --env ").append(rule);
 			}
 		}
 
 		if (!SystemProperty.getJavaHome().isEmpty()) {
-			arguments.append(" --env JAVA_HOME=" + SystemProperty.getJavaHome());
+			arguments.append(" --env JAVA_HOME=").append(SystemProperty.getJavaHome());
 		}
 
 		for (String profile : super.getProfiles()) {
-			arguments.append(" --profile " + profile);
+			arguments.append(" --profile ").append(profile);
 		}
 
 		if (super.getVersion() != null) {
-			arguments.append(" --version " + super.getVersion());
+			arguments.append(" --version ").append(super.getVersion());
 		}
 
 		return arguments.toString();

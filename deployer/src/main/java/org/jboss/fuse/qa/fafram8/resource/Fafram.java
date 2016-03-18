@@ -88,11 +88,12 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram setup() {
 		try {
+			printLogo();
 			initConfiguration();
 			Validator.validate();
-			printLogo();
+			ContainerManager.configureRoots();
 			setDefaultModifiers();
-			prepareNodes(provisionProvider);
+			prepareNodes(ContainerManager.getContainerList());
 			buildBundles();
 			Deployer.deploy();
 		} catch (Exception ex) {
@@ -168,7 +169,8 @@ public class Fafram extends ExternalResource {
 			// == if we are adding the containers in the test method, we need to create them
 			// Validate the containers
 			Validator.validate();
-			// deploy method will create only offline containers
+			// Create new nodes using provider
+			prepareNodes(Arrays.asList(containers));
 			Deployer.deploy();
 		}
 		return this;
@@ -517,9 +519,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram buildBundles(MavenProject... projects) {
-		for (MavenProject project : projects) {
-			bundlesToBuild.add(project);
-		}
+		bundlesToBuild.addAll(Arrays.asList(projects));
 
 		return this;
 	}
@@ -711,27 +711,26 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Triggers specified provision provider. It will call providers functionality to provision pool of nodes required
-	 * to satisfy needs of test deployment. Provider will create node for every container listed in Fafram
-	 * .containerList.
+	 * to satisfy needs of test deployment.
 	 * When the container is marked as root provider will assign public IP to it. Otherwise local IP will be provided.
 	 * Provider have to implement ProvisionProvider interface.
 	 *
-	 * @param provider provider type name
+	 * @param containerList container list
 	 */
-	public void prepareNodes(ProvisionProvider provider) {
+	public void prepareNodes(List<Container> containerList) {
 		// Create a temp list without child containers
 		final List<Container> temp = new ArrayList<>();
-		for (Container c : ContainerManager.getContainerList()) {
-			if (!(c instanceof ChildContainer) && (c.getNode().getHost() == null || "".equals(c.getNode().getHost()))) {
+		for (Container c : containerList) {
+			if (!(c instanceof ChildContainer) && (c.getNode() == null || c.getNode().getHost() == null || "".equals(c.getNode().getHost()))) {
 				temp.add(c);
 			}
 		}
 
 		// Check if there are nodes with the defined names
-		provider.checkNodes(temp);
-		provider.createServerPool(temp);
-		provider.assignAddresses(temp);
-		provider.loadIPTables(temp);
+		provisionProvider.checkNodes(temp);
+		provisionProvider.createServerPool(temp);
+		provisionProvider.assignAddresses(temp);
+		provisionProvider.loadIPTables(temp);
 	}
 
 	/**

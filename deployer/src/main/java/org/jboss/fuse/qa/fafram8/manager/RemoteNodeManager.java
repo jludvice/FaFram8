@@ -171,6 +171,6 @@ public class RemoteNodeManager implements NodeManager {
 
 	@Override
 	public void kill() {
-		executor.executeCommand("pkill -9 -f karaf");
+		executor.executeCommand("pkill -9 -f karaf.base");
 	}
 }

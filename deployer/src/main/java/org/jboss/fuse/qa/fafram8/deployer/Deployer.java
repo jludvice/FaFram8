@@ -25,15 +25,9 @@ public final class Deployer {
 	}
 
 	/**
-	 * Creates all containers from the container list. If the container list is empty, it adds the default root built from system properties.
+	 * Creates all containers from the container list.
 	 */
 	public static void deploy() {
-		if (ContainerManager.getContainerList().isEmpty()) {
-			final Container c = RootContainer.builder().defaultRoot().build();
-			log.info("Creating default root container");
-			ContainerManager.getContainerList().add(c);
-		}
-
 		for (Container c : ContainerManager.getContainerList()) {
 			if (!c.isOnline()) {
 				c.create();

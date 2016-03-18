@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.exception.BundleUploadException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
@@ -213,6 +214,33 @@ public class ContainerManager {
 	public static void patchStandaloneBeforeFabric(Container c) {
 		if (SystemProperty.patchStandalone()) {
 			patchStandalone(c);
+		}
+	}
+
+	/**
+	 * Configures root nodes - if using StaticProvider, add the node built from system properties.
+	 */
+	public static void configureRoots() {
+		createRootIfNecessary();
+		if (!SystemProperty.getProvider().toLowerCase().contains("static")) {
+			return;
+		}
+		for (Container c : containerList) {
+			// If the host is not set in case of static deployment, we use localhost
+			if (c instanceof RootContainer && c.getNode().getHost() == null) {
+				c.getNode().setHost(SystemProperty.getHost());
+			}
+		}
+	}
+
+	/**
+	 * If the container list is empty, it adds the default root built from system properties.
+	 */
+	private static void createRootIfNecessary() {
+		if (ContainerManager.getContainerList().isEmpty()) {
+			final Container c = RootContainer.builder().defaultRoot().build();
+			log.info("Creating default root container");
+			ContainerManager.getContainerList().add(c);
 		}
 	}
 

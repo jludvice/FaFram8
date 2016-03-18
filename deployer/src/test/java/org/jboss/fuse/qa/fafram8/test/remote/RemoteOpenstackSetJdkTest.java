@@ -26,8 +26,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteOpenstackSetJdkTest {
-	private final Container root = RootContainer.builder().name("test-jdk-root").node(Node.builder().host("openstack").build()).withFabric().build();
-	private final Container ssh = SshContainer.builder().name("test-jdk-ssh").parent(root).node(Node.builder().host("openstack").build()).build();
+	private final Container root = RootContainer.builder().name("test-jdk-root").withFabric().build();
+	private final Container ssh = SshContainer.builder().name("test-jdk-ssh").parent(root).build();
 	private final Container rootChild = ChildContainer.builder().name("test-jdk-child").parent(root).build();
 	private final Container sshChild = ChildContainer.builder().name("test-jdk-ssh-child").parent(ssh).build();
 

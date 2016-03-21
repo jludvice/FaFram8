@@ -5,6 +5,7 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -171,7 +172,17 @@ public class ChildContainer extends Container {
 			if (copy == null) {
 				this.container = new ChildContainer();
 			} else {
-				this.container = copy;
+				this.container = new ChildContainer()
+						.name(copy.getName())
+						.user(copy.getUser())
+						.password(copy.getPassword())
+						.parent(copy.getParent())
+						.parentName(copy.getParentName())
+						.profiles(new ArrayList<>(copy.getProfiles()))
+						.commands(new ArrayList<>(copy.getCommands()))
+						.version(copy.getVersion())
+						.jvmOpts(copy.getJvmOpts())
+						.node(null);
 			}
 		}
 
@@ -258,17 +269,7 @@ public class ChildContainer extends Container {
 		 * @return childcontainer instance
 		 */
 		public Container build() {
-			return new ChildContainer()
-					.name(container.getName())
-					.user(container.getUser())
-					.password(container.getPassword())
-					.parent(container.getParent())
-					.parentName(container.getParentName())
-					.profiles(container.getProfiles())
-					.commands(container.getCommands())
-					.version(container.getVersion())
-					.jvmOpts(container.getJvmOpts())
-					.node(null);
+			return this.container;
 		}
 	}
 }

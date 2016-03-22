@@ -328,29 +328,18 @@ public class Executor {
 		// Wait before executing - sometimes the provision is triggered a bit later
 		sleep(startTimeout);
 		int retries = 0;
-		String container;
 		String provisionStatus = "";
-		String containerInfoStatus = "";
 		boolean isSuccessful = false;
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			handleProvisionWaitTime(retries, waitFor, status, containerInfoStatus);
+			handleProvisionWaitTime(retries, waitFor, status, provisionStatus);
 
 			String reason = "";
 
 			try {
-				container = client.executeCommand("container-list | grep " + waitFor, true);
-				isSuccessful = container.contains(status);
-
-				// Parse the provision status from the container-list output
-				container = container.replaceAll(" +", " ").trim();
-				final String[] content = container.split(" ", maxLength);
-				if (content.length == maxLength) {
-					provisionStatus = content[maxLength - 1];
-				}
-
-				containerInfoStatus = StringUtils.substringAfter(client.executeCommand("container-info " + waitFor, true), "Provision Status:").trim();
+				provisionStatus = StringUtils.substringAfter(client.executeCommand("container-info " + waitFor, true), "Provision Status:").trim();
+				isSuccessful = provisionStatus.contains(status);
 			} catch (Exception e) {
 				// Get the reason
 				reason = e.getMessage();
@@ -373,8 +362,8 @@ public class Executor {
 			// If we are waiting for certain provision status and status is either error/success(opposite to wanted status) then terminate waitForProvision with exception
 			log.trace("Status: {} , ProvisionStatus: {}", status, provisionStatus);
 			if (!status.equals(provisionStatus) && (provisionStatus.contains("error") || provisionStatus.contains("success"))) {
-				log.error("Container {} did not provision to state \"{}\" but ended in state: \"{}\"", waitFor, status, containerInfoStatus);
-				throw new FaframException("Container " + waitFor + " failed to provision to state \"success\" and ended in provision status \"" + containerInfoStatus + "\"");
+				log.error("Container {} did not provision to state \"{}\" but ended in state: \"{}\"", waitFor, status, provisionStatus);
+				throw new FaframException("Container " + waitFor + " failed to provision to state \"" + status + "\"  and ended in provision status \"" + provisionStatus + "\"");
 			}
 
 			if (!isSuccessful) {
@@ -517,7 +506,7 @@ public class Executor {
 
 	/**
 	 * Gets all the child containers and returns all their names.
-	 * <p/>
+	 * <p>
 	 * TODO(avano): this could be reworked in the future after the changes to deploying
 	 *
 	 * @return list of child container names

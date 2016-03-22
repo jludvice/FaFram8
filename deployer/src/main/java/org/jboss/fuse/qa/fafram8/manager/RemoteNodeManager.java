@@ -125,7 +125,9 @@ public class RemoteNodeManager implements NodeManager {
 		executor.executeCommand("pkill -9 -f karaf.base");
 
 		log.info("Deleting Fafram folder on " + executor.getClient().getHost());
-		executor.executeCommand("rm -rf " + SystemProperty.getFaframFolder());
+		final String directory = SystemProperty.getWorkingDirectory().isEmpty()
+				? SystemProperty.getFaframFolder() : SystemProperty.getWorkingDirectory() + SEP + SystemProperty.getFaframFolder();
+		executor.executeCommand("rm -rf " + directory);
 	}
 
 	/**

@@ -6,6 +6,7 @@ import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,6 +69,10 @@ public class SshContainer extends Container {
 		if (SystemProperty.suppressStart()) {
 			return;
 		}
+		if ("StaticProvider".equals(SystemProperty.getProvider())) {
+			killAndClean();
+		}
+
 		// Get String containing all properties of container
 		String properties = setAndFormatProperties();
 
@@ -121,8 +126,12 @@ public class SshContainer extends Container {
 
 	@Override
 	public void kill() {
-		super.getParent().getNode().getExecutor().executeCommand("ssh -o StrictHostKeyChecking=no " + super.getNode().getUsername() + "@"
-				+ super.getNode().getHost() + " pkill -9 -f containers/" + super.getName());
+		if ("StaticProvider".equals(SystemProperty.getProvider())) {
+			super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
+		} else {
+			super.getParent().getNode().getExecutor().executeCommand("ssh -o StrictHostKeyChecking=no " + super.getNode().getUsername() + "@"
+					+ super.getNode().getHost() + " pkill -9 -f " + super.getName());
+		}
 	}
 
 	@Override
@@ -188,6 +197,22 @@ public class SshContainer extends Container {
 	}
 
 	/**
+	 * Delete SSH container folder from static node.
+	 */
+	private void killAndClean() {
+		kill();
+		final String path;
+		if (!("".equals(super.getWorkingDirectory())) || !("".equals(SystemProperty.getWorkingDirectory()))) {
+			// Decide if working directory was set on ssh and if not set the system property as default
+			path = "".equals(super.getWorkingDirectory()) ? SystemProperty.getWorkingDirectory() : super.getWorkingDirectory();
+		} else {
+			path = "containers";
+		}
+
+		super.getNode().getExecutor().executeCommand("rm -rf " + path + File.separator + super.getName());
+	}
+
+	/**
 	 * Ssh builder class - this class returns the SshContainer object and it is the only way the ssh container should be built.
 	 */
 	public static class SshBuilder {
@@ -221,7 +246,8 @@ public class SshContainer extends Container {
 						.version(copy.getVersion())
 						.jvmOpts(copy.getJvmOpts())
 						.env(copy.getEnvs())
-						.directory(copy.getWorkingDirectory());;
+						.directory(copy.getWorkingDirectory());
+				;
 			} else {
 				this.container = new SshContainer();
 				// Set the empty node

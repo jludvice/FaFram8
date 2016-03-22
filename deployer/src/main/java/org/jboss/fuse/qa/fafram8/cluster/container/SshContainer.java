@@ -69,8 +69,11 @@ public class SshContainer extends Container {
 		if (SystemProperty.suppressStart()) {
 			return;
 		}
+
+		// If using static provider then clean
 		if ("StaticProvider".equals(SystemProperty.getProvider())) {
-			killAndClean();
+
+			clean();
 		}
 
 		// Get String containing all properties of container
@@ -199,8 +202,9 @@ public class SshContainer extends Container {
 	/**
 	 * Delete SSH container folder from static node.
 	 */
-	private void killAndClean() {
-		kill();
+	private void clean() {
+		log.info("Deleting container folder on " + super.getNode().getHost());
+
 		final String path;
 		if (!("".equals(super.getWorkingDirectory())) || !("".equals(SystemProperty.getWorkingDirectory()))) {
 			// Decide if working directory was set on ssh and if not set the system property as default
@@ -208,7 +212,8 @@ public class SshContainer extends Container {
 		} else {
 			path = "containers";
 		}
-
+		// Executor needs to be connected before executing command
+		super.getNode().getExecutor().connect();
 		super.getNode().getExecutor().executeCommand("rm -rf " + path + File.separator + super.getName());
 	}
 
@@ -247,7 +252,6 @@ public class SshContainer extends Container {
 						.jvmOpts(copy.getJvmOpts())
 						.env(copy.getEnvs())
 						.directory(copy.getWorkingDirectory());
-				;
 			} else {
 				this.container = new SshContainer();
 				// Set the empty node

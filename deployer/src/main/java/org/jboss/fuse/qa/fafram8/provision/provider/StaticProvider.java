@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
@@ -12,7 +13,9 @@ import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +31,7 @@ public class StaticProvider implements ProvisionProvider {
 	private static final String SAVED_IPTABLES = "ipTablesSaved";
 
 	/**
-	 * Does nothing.
+	 * Killing Fuse processes on provided containers and theirs nodes.
 	 *
 	 * @param containerList list of containers
 	 */
@@ -37,9 +40,27 @@ public class StaticProvider implements ProvisionProvider {
 		log.info("Assuming static test infrastructure. Dynamic server provision is skipped.");
 		if (SystemProperty.isClean()) {
 			log.info("Cleaning resources");
-//			for (Container c : containerList) {
-			//TODO(mmelko): Finish containers cleaning.
-//			}
+			Executor executor;
+
+			// Set for keeping track of already connected hosts and skipping them if necessary
+			final Set<String> ipAddresses = new HashSet<>();
+			for (Container c : containerList) {
+				if (c instanceof ChildContainer || ipAddresses.contains(c.getNode().getHost())) {
+					continue;
+				}
+				ipAddresses.add(c.getNode().getHost());
+
+				final SSHClient sshClient = new NodeSSHClient().defaultSSHPort().host(c.getNode().getHost())
+						.username(c.getNode().getUsername()).password(c.getNode().getPassword());
+				executor = new Executor(sshClient);
+				log.debug("Killing Fuse process on node: ", executor);
+				try {
+					executor.connect();
+					executor.executeCommand("pkill -9 -f karaf.base");
+				} catch (Exception e) {
+					throw new FaframException("Exception when killing Fuse on provides nodes (StaticProvider):", e);
+				}
+			}
 		}
 	}
 

@@ -100,15 +100,8 @@ public class BrokerTest {
 
 		String result = fafram.getContainer("mesh1").executeCommand("bstat");
 
-		System.out.println(result);
-		assertTrue(result.contains("mesh1"));
-
-		result = fafram.getContainer("mesh2").executeCommand("bstat");
-		System.out.println(result);
-		assertTrue(result.contains("mesh2"));
-
-		result = fafram.getContainer("mesh3").executeCommand("bstat");
-		System.out.println(result);
-		assertTrue(result.contains("mesh3"));
+		assertTrue(fafram.getContainer("mesh1").executeCommand("bstat").contains("mesh1"));
+		assertTrue(fafram.getContainer("mesh2").executeCommand("bstat").contains("mesh2"));
+		assertTrue(fafram.getContainer("mesh3").executeCommand("bstat").contains("mesh3"));
 	}
 }

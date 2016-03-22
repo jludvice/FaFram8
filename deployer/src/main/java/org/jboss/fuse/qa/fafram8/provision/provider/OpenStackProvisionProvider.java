@@ -469,7 +469,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		final long timeout = step * 1000L;
 
 		log.info("Waiting for SSH connection ...");
-		final String preCommand = "ssh -o StrictHostKeyChecking=no " + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
+		final String preCommand = "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5" + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
 		while (!connected) {
 			// Check if the time is up
 			if (elapsed > SystemProperty.getProvisionWaitTime()) {
@@ -489,7 +489,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				}
 			}
 			log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - elapsed) + " seconds. ");
-			elapsed += step;
+			elapsed += step + 5;
 			sleep(timeout);
 		}
 	}

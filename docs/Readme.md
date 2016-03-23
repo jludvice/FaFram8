@@ -2,7 +2,7 @@
 
 ## SSHClient
 
-SSHClient is based on the JSch library. Currently there are two SSHClients - _NodeSSHClient_ and _FuseSSHClient_ both implementing the 
+SSHClient is based on the JSch library. Currently there are two SSHClients - _NodeSSHClient_ and _FuseSSHClient_ both implementing the
 abstract _SSHClient_ class.
 
 The abstract SSHClient class has a set of common methods that both clients use and one abstract method:
@@ -18,7 +18,7 @@ The difference is in the exception handling and more details about this can be f
 
 ## Deployer
 
-Deployer represents the main functionality of FaFram8 framework and it is using the Fuse- and NodeSSH- clients. The framework can be ran from 
+Deployer represents the main functionality of FaFram8 framework and it is using the Fuse- and NodeSSH- clients. The framework can be ran from
 the test in two ways:
 
 First is to use the JUnit rule:
@@ -54,8 +54,8 @@ There are two basic deployment structures: _local deployment_ and _remote deploy
 
 ### Local deployment
 
-Local deployment can be used to run a single Fuse/A-MQ instance on your localhost. It gets the distribution zip file from your maven local 
-repository (if no additional properties are specified). Then it does a list of steps necessary to set up the distribution (unzip, modify, 
+Local deployment can be used to run a single Fuse/A-MQ instance on your localhost. It gets the distribution zip file from your maven local
+repository (if no additional properties are specified). Then it does a list of steps necessary to set up the distribution (unzip, modify,
 run) and the whole workflow looks like this:
 
 	Get the zip file
@@ -67,7 +67,7 @@ run) and the whole workflow looks like this:
 	<your test>
 	Stop the container
 	Delete the container directory if it's desired
-	
+
 ### Remote deployment
 
 Remote deployment can be used for running Fuse/A-MQ instance on remote host. Its functionality is almost similar to local deployment with some small differences. The first one is that it doesn't get distribution zip file from maven local repository and it is required to specify **fuse.zip** property. This property should be either path to distribution zip present on the remote host or URL for downloading the distribution zip from the net. Last difference is that the distribution zip is unzipped to _fafram/${FUSE_NAME}_ folder in the user's home directory on specified machine. The whole workflow for remote deployment looks like this:
@@ -213,7 +213,7 @@ The workflow or properties can be modified using system properties. Full list of
 Patcher class is used to prepare the patch zips to be installed. Currently the **patch** property accepts four ways how you can define the patch:
 
 * -Dpatch=r2 - scans the <fafram.patch.dir> recursively for the patch zip name that contains the string "r2" and returns the first occurance.
-	The patches are (hopefully) always sorted lexicographically, so r2 patch zip should be found sooner than r2p4 for example. It is possible 
+	The patches are (hopefully) always sorted lexicographically, so r2 patch zip should be found sooner than r2p4 for example. It is possible
 	to use the string "r2,r2p4" where both patch zips will be returned and installed. At the same time it checks if the patch version matches
 	the current version set by the fuse.version property.
 * -Dpatch=latest - scans the <fafram.patch.dir>/latest folder and returns all the files in the folder. Again, they should be sorted so the right
@@ -223,9 +223,9 @@ Patcher class is used to prepare the patch zips to be installed. Currently the *
 
 ### Container zip location
 
-By default the FaFram8 framework gets the container zip from the local maven repository. First of all, 
-it gets the maven local repository location using the maven invoker. For the maven invoker you need to have a maven binary in your **PATH** 
-environment variable, or the **M2_HOME** system or environment property set. The FaFram8 framework then constructs the absolute path to the 
+By default the FaFram8 framework gets the container zip from the local maven repository. First of all,
+it gets the maven local repository location using the maven invoker. For the maven invoker you need to have a maven binary in your **PATH**
+environment variable, or the **M2_HOME** system or environment property set. The FaFram8 framework then constructs the absolute path to the
 container zip file using the **fuse.group**, **fuse.id** and **fuse.version** properties.
 
 This default behavior can be overriden with setting the **fuse.zip** property in this way:
@@ -235,8 +235,8 @@ This default behavior can be overriden with setting the **fuse.zip** property in
 
 ### Fafram8 JUnit Test runner
 
-You can annotate your JUnit test class with `@RunWith(FaframTestRunner.class)` to be able to use the `@Jira("xxx")` annotation for your test. 
-This annotation will check the jira status and can be used to skip the test if the issue is not fixed. The test will be run if the jira is in 
+You can annotate your JUnit test class with `@RunWith(FaframTestRunner.class)` to be able to use the `@Jira("xxx")` annotation for your test.
+This annotation will check the jira status and can be used to skip the test if the issue is not fixed. The test will be run if the jira is in
 "Resolved" or "Closed" state, otherwise the test will be skipped. The test runner also prints the name of the current test method before the
 actual test execution.
 
@@ -249,7 +249,7 @@ then merged with our properties file (with your changes on top of the default va
 
 ### Tests
 
-Tests can be found in the respective directory in the module directories. Tests are skipped by default and this behavior can be overriden 
+Tests can be found in the respective directory in the module directories. Tests are skipped by default and this behavior can be overriden
 using the **skip.test.fafram** property.
 
 Example usage:
@@ -303,11 +303,25 @@ container automatically and use it, you need to include this in your pom.xml fil
 			<fuse.version>6.2.0.redhat-133</fuse.version>
         </properties>
 
+		<repositories>
+				<!-- Fuse QE repositories (Fafram8 releases) -->
+				<repository>
+					<id>fuse-qe-repo</id>
+					<url>http://fusewin.tpb.lab.eng.brq.redhat.com:8081/nexus/content/repositories/fuse-qe-repo/</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</repository>
+		</repositories>
+
 		<dependencies>
 			<dependency>
 				<groupId>org.jboss.fuse.qa</groupId>
 				<artifactId>fafram8</artifactId>
-				<version>1.0-SNAPSHOT</version>
+				<version>0.3</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>

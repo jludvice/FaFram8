@@ -2,6 +2,10 @@ package org.jboss.fuse.qa.fafram8.property;
 
 import org.apache.commons.lang.StringUtils;
 
+import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -273,11 +277,15 @@ public class SystemProperty {
 	/**
 	 * Getter.
 	 *
-	 * @return fuse path
-	 * @deprecated With theory of more possible root containers, this property doesn't work anymore. Use container.getProductPath().
+	 * @return fuse path of the first root container it finds, system property otherwise
 	 */
-	@Deprecated
 	public static String getFusePath() {
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c instanceof RootContainer) {
+				return c.getFusePath();
+			}
+		}
+		log.warn("No root container found, returning deprecated system property");
 		return System.getProperty(FaframConstant.FUSE_PATH);
 	}
 
@@ -485,8 +493,8 @@ public class SystemProperty {
 	 * @return openstack wait time
 	 */
 	public static boolean isKeepContainers() {
-		return System.getProperty(FaframConstant.KEEP_CONTAINERS) == null
-				? false : Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
+		return System.getProperty(FaframConstant.KEEP_CONTAINERS) != null
+				&& Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
 	}
 
 	/**

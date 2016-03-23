@@ -111,13 +111,13 @@ public Fafram fafram = new Fafram().fuseZip("http://path/to/fuse.zip").container
 ```
 
 #### Openstack provider
-Openstack provider is on the other hand used for dynamic provisioning of machines on Openstack. This is not the default behavior of FaFram8 so user needs to specify it using the _provider()_ method on _Fafram_ class. FaFram provides static enum _FaframProvider.OPENSTACK_ for defining that Openstack provider should be used. Afterwards it is necessary to specify for each container that it should use the provided IP address by Openstack specifying _node("openstack")_ on it.
+Openstack provider is on the other hand used for dynamic provisioning of machines on Openstack. This is not the default behavior of FaFram8 so user needs to specify it using the _provider()_ method on _Fafram_ class. FaFram provides static enum _FaframProvider.OPENSTACK_ for defining that Openstack provider should be used. Afterwards for all containers without defined node there will be an openstack instance spawned and the IP assigned into the container object.
 
 Full example of using the dynamic provisioning of machines using the Openstack provider.
 ```
-private Container root = RootContainer.builder().name("offline-cluster-root").node("openstack").withFabric().build();
-private Container sshContainer = SshContainer.builder().name("ssh1-offline").parent(root).profiles("gateway-mq").node("openstack").build();
-private Container sshContainer2 = SshContainer.builder().name("ssh2-offline").parent(root).profiles("feature-camel", "complex-create").node("openstack").build();
+private Container root = RootContainer.builder().name("offline-cluster-root").withFabric().build();
+private Container sshContainer = SshContainer.builder().name("ssh1-offline").parent(root).profiles("gateway-mq").build();
+private Container sshContainer2 = SshContainer.builder().name("ssh2-offline").parent(root).profiles("feature-camel", "complex-create").build();
 private static Container sshChild = ChildContainer.builder().name("child-ssh-offline1").parent(sshContainer).build();
 
 @Rule

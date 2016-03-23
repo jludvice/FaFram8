@@ -41,11 +41,7 @@ public final class Validator {
 	 * Validates containers in container list.
 	 */
 	private static void validateContainers() {
-		if (ContainerManager.getContainerList().isEmpty()) {
-			validateDefaultContainer();
-			return;
-		}
-
+		validatePatch();
 		for (Container c : ContainerManager.getContainerList()) {
 			if (c instanceof RootContainer) {
 				validateRootContainer(c);
@@ -63,19 +59,25 @@ public final class Validator {
 	 * @param c root container
 	 */
 	private static void validateRootContainer(Container c) {
-		if (c.getNode() == null) {
-			throw new ValidatorException("Root container (" + c.getName() + ") node is null!");
+		if (SystemProperty.getProvider().toLowerCase().contains("static")) {
+			if (c.getNode() == null) {
+				throw new ValidatorException("Root container (" + c.getName() + ") node is null!");
+			}
+			validateZip(SystemProperty.getHost());
+			validateHost();
+		} else {
+			validateZip(null);
 		}
 
-		validateZip(c.getNode().getHost());
-
-		if ("".equals(c.getName())) {
+		if (c.getName() == null || "".equals(c.getName())) {
 			throw new ValidatorException("Root name can't be empty!");
 		}
 
-		if (c.getNode().getHost() == null || c.getNode().getPort() == 0 || c.getNode().getUsername() == null
-				|| c.getNode().getPassword() == null) {
-			throw new ValidatorException("Atleast one of root container node attributes (" + c.getName() + ") is not set!");
+		if (SystemProperty.getProvider().toLowerCase().contains("static")) {
+			if (c.getNode().getPort() == 0 || c.getNode().getUsername() == null
+					|| c.getNode().getPassword() == null) {
+				throw new ValidatorException("Atleast one of root container node attributes (" + c.getName() + ") is not set!");
+			}
 		}
 
 		if (c.getParent() != null || c.getParentName() != null) {
@@ -115,12 +117,14 @@ public final class Validator {
 			throw new ValidatorException("SSH container name can't be empty!");
 		}
 
-		if (c.getNode() == null) {
-			throw new ValidatorException("SSH container node is null!");
-		}
+		if (SystemProperty.getProvider().toLowerCase().contains("static")) {
+			if (c.getNode() == null) {
+				throw new ValidatorException("SSH container node is null!");
+			}
 
-		if (c.getNode().getHost() == null || c.getNode().getUsername() == null || c.getNode().getPassword() == null) {
-			throw new ValidatorException("Atleast one of ssh container (" + c.getName() + ") node attributes is not set!");
+			if (c.getNode().getHost() == null || c.getNode().getUsername() == null || c.getNode().getPassword() == null) {
+				throw new ValidatorException("Atleast one of ssh container (" + c.getName() + ") node attributes is not set!");
+			}
 		}
 
 		if (c.getParentName() == null && c.getParent() == null) {
@@ -131,18 +135,6 @@ public final class Validator {
 			if (ContainerManager.getContainer(c.getParentName()) == null) {
 				throw new ValidatorException(String.format("Parent of %s (%s) does not exist in container list!", c.getName(), c.getParentName()));
 			}
-		}
-	}
-
-	/**
-	 * Validates default container built from system properties.
-	 */
-	private static void validateDefaultContainer() {
-		if ("localhost".equals(SystemProperty.getHost())) {
-			validateZip(SystemProperty.getHost());
-			validatePatch();
-		} else {
-			validateHost();
 		}
 	}
 
@@ -202,7 +194,7 @@ public final class Validator {
 			throw new ValidatorException(FaframConstant.HOST + " property is empty!");
 		}
 
-		if (!"localhost".equals(host) && !"openstack".equals(host)) {
+		if (!"localhost".equals(host)) {
 			try {
 				final InetAddress inet = InetAddress.getByName(host);
 				if (!inet.isReachable(timeout)) {

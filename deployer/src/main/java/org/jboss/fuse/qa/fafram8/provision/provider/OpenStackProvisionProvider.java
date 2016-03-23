@@ -98,6 +98,15 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		for (Container container : containerList) {
 			final Server server = getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX)
 					+ "-" + container.getName());
+			if (container.getNode() == null) {
+				// We dont have any info, use the defaults
+				container.setNode(
+						Node.builder()
+								.port(SystemProperty.getHostPort())
+								.username(SystemProperty.getHostUser())
+								.password(SystemProperty.getHostPassword())
+								.build());
+			}
 			container.getNode().setNodeId(server.getId());
 
 			if (container.isRoot()) {
@@ -142,15 +151,22 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
 			return;
 		}
+
 		log.info("Releasing allocated OpenStack resources.");
-		for (FloatingIP ip : floatingIPs) {
+		for (int i = floatingIPs.size() - 1; i >= 0; i--) {
+			final FloatingIP ip = floatingIPs.get(i);
 			log.info("Deallocating floating IP: " + ip.getFloatingIpAddress());
 			os.compute().floatingIps().deallocateIP(ip.getId());
+			floatingIPs.remove(i);
 		}
-		for (Server server : serverRegister) {
+
+		for (int i = serverRegister.size() - 1; i >= 0; i--) {
+			final Server server = serverRegister.get(i);
 			log.info("Terminating server: " + server.getName());
 			os.compute().servers().delete(server.getId());
+			serverRegister.remove(i);
 		}
+
 		log.info("All OpenStack resources has been released successfully");
 	}
 
@@ -463,12 +479,12 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 						+ container.getName() + "\" with IP " + container.getNode().getHost());
 			}
 
-			String response = executor.executeCommand(preCommand + " echo Connected");
+			String response = executor.executeCommand(preCommand + "echo Connected");
 			if ("Connected".equals(response)) {
 				response = executor.executeCommand("echo $?");
 				if ("0".equals(response)) {
 					connected = true;
-					log.debug("Connected to remote SSH server {}" + container.getNode().getHost());
+					log.debug("Connected to remote SSH server {}", container.getNode().getHost());
 					continue;
 				}
 			}

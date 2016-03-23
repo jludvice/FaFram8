@@ -30,8 +30,8 @@ public class RemoteSettingJvmOptsTest {
 	private String rootJvmOpts2 = "-XX:PermSize=128M -XX:MaxPermSize=512M";
 	private String sshJvmOpts = "-Xms1024M -Xmx1048M -XX:PermSize=256M -XX:MaxPermSize=600M";
 	private String childJvmOpts = "-Xms1024M -Xmx1048M -XX:PermSize=128M -XX:MaxPermSize=400M";
-	private final Container root = RootContainer.builder().name("test-jvm-opts-root").node(Node.builder().host("openstack").build()).withFabric().jvmMemoryOpts("1024M", "3048M", "128M", "512M").jvmOpts("-XX:PermSize=128M -XX:MaxPermSize=512M").build();
-	private final Container ssh = SshContainer.builder().name("test-jvm-opts-ssh").parent(root).node(Node.builder().host("openstack").build()).jvmOpts("-Xms1024M", "-Xmx1048M", "-XX:PermSize=256M", "-XX:MaxPermSize=600M").build();
+	private final Container root = RootContainer.builder().name("test-jvm-opts-root").withFabric().jvmMemoryOpts("1024M", "3048M", "128M", "512M").jvmOpts("-XX:PermSize=128M -XX:MaxPermSize=512M").build();
+	private final Container ssh = SshContainer.builder().name("test-jvm-opts-ssh").parent(root).jvmOpts("-Xms1024M", "-Xmx1048M", "-XX:PermSize=256M", "-XX:MaxPermSize=600M").build();
 	private final Container sshChild = ChildContainer.builder().name("test-jvm-opts-ssh-child").parent(ssh).jvmOpts("-Xms1024M", "-Xmx1048M", "-XX:PermSize=128M", "-XX:MaxPermSize=400M").build();
 
 	@Rule

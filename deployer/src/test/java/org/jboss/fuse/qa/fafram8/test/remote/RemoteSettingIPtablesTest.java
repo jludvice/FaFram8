@@ -24,10 +24,8 @@ import org.junit.Test;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 public class RemoteSettingIPtablesTest {
-	private Container root = RootContainer.builder().name("build-load-ip-root").node(
-			Node.builder().host("openstack").build()).build();
-	private Container ssh = SshContainer.builder().name("build-load-ip-ssh").parentName("build-load-ip-root").node(
-			Node.builder().host("openstack").build()).build();
+	private Container root = RootContainer.builder().name("build-load-ip-root").build();
+	private Container ssh = SshContainer.builder().name("build-load-ip-ssh").parentName("build-load-ip-root").build();
 
 	@Rule
 	public Fafram fafram = new Fafram().withFabric().provider(FaframProvider.OPENSTACK).containers(root, ssh)

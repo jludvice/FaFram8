@@ -32,11 +32,11 @@ public class RemoteWorkingDirectoryTest {
 	}
 
 	private static Container root = RootContainer.builder().name("working-dir-root").node(
-			Node.builder().host("openstack").build()).withFabric().build();
+			Node.builder().build()).withFabric().build();
 	private static Container root2 = RootContainer.builder().name("working-dir-root2").node(
-			Node.builder().host("openstack").build()).directory("/home/fuse").build();
+			Node.builder().build()).directory("/home/fuse").build();
 	private static Container ssh = SshContainer.builder().name("working-dir-ssh").parent(root).node(
-			Node.builder().host("openstack").build()).build();
+			Node.builder().build()).build();
 
 	@ClassRule
 	public static Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).containers(root, root2, ssh);

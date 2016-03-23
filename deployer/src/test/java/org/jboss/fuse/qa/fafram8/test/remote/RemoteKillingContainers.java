@@ -8,11 +8,14 @@ import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
+import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,7 +37,7 @@ public class RemoteKillingContainers {
 	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
 	private Container root = RootContainer.builder().defaultRoot().name("build-root").withFabric().build();
-	private Container child = ChildContainer.builder().name(childName).parentName("build-root").build();
+	private Container child = ChildContainer.builder().name(childName).parent(root).build();
 
 	@BeforeClass
 	public static void before() throws InterruptedException {
@@ -46,7 +49,7 @@ public class RemoteKillingContainers {
 	}
 
 	@Rule
-	public Fafram fafram = new Fafram().withFabric().containers(root, child,
+	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_URL).provider(FaframProvider.OPENSTACK).containers(root, child,
 			SshContainer.builder().name(sshName).parent(root).node(Node.builder().host(ipSsh).username("fuse").password("fuse").build()).build());
 
 	@Test
@@ -65,5 +68,10 @@ public class RemoteKillingContainers {
 		root.kill();
 
 		assertNull(fafram.executeCommand("list"));
+	}
+
+	@AfterClass
+	public static void tearDown() {
+		osm.releaseResources();
 	}
 }

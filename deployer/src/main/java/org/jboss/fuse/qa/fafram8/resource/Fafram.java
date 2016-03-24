@@ -478,6 +478,8 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Adds bundle into list of bundles which should be uploaded into fabric maven proxy on the end of initialization.
+	 * This works only with defaultRoot() initialization. If working with different infrastructure of fabric then use
+	 * RootContainer.bundles() method for specifying exact container where bundles should be uploaded.
 	 *
 	 * @param bundles list of bundles
 	 * @return this

@@ -102,7 +102,7 @@ public class RootContainer extends Container {
 		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
 				setRootName(this, super.getNode().getHost()), addJvmOptsAndRandomSource(super.getJvmOpts()));
 
-		if (!SystemProperty.isClean()) {
+		if (SystemProperty.isClean()) {
 			nodeManager.clean();
 		}
 

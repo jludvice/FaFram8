@@ -3,6 +3,7 @@ package org.jboss.fuse.qa.fafram8.manager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 
+import org.jboss.fuse.qa.fafram8.cluster.broker.Broker;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.exception.BundleUploadException;
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
  * patching, etc.
- * <p/>
+ * <p>
  * Created by avano on 2.9.15.
  */
 @Slf4j
@@ -36,6 +37,9 @@ public class ContainerManager {
 
 	// List of bundles that will be executed on the _default_ root container only.
 	private static List<String> commands = null;
+
+	//List of all brokers in cluster
+	private static List<Broker> brokers = null;
 
 	/**
 	 * Constructor.
@@ -54,6 +58,7 @@ public class ContainerManager {
 			containerList = new ArrayList<>();
 			bundles = new ArrayList<>();
 			commands = new ArrayList<>();
+			brokers = new ArrayList<>();
 		}
 
 		return instance;
@@ -108,6 +113,32 @@ public class ContainerManager {
 	}
 
 	/**
+	 * Returns the first root container.
+	 *
+	 * @return root container
+	 */
+	public static Container getRoot() {
+		for (Container c : ContainerManager.getContainerList()) {
+			if (c.isRoot()) {
+				return c;
+			}
+		}
+		// This should never happen
+		return null;
+	}
+
+	/**
+	 * Get list the broker list.
+	 *
+	 * @return list of all brokers
+	 */
+	public static List<Broker> getBrokers() {
+		//Force the initialization
+		getInstance();
+		return brokers;
+	}
+
+	/**
 	 * Clears all the lists in this class - containerList, bundles, commands.
 	 */
 	public static void clearAllLists() {
@@ -121,6 +152,9 @@ public class ContainerManager {
 		}
 		for (int i = commands.size() - 1; i >= 0; i--) {
 			commands.remove(i);
+		}
+		for (int i = brokers.size() - 1; i >= 0; i--) {
+			brokers.remove(i);
 		}
 
 		log.debug("Container manager lists cleared");
@@ -302,6 +336,49 @@ public class ContainerManager {
 		final String patchName = response.split(" ")[0];
 		log.debug("Patch name is " + patchName);
 		return patchName;
+	}
+
+	/**
+	 * Inits all of the brokers.
+	 * All needed commands are put into commands and particular broker-profiles are assigned.
+	 */
+	public static void initBrokers() {
+		//Find the root
+		final Container root = getRoot();
+
+		for (Broker b : brokers) {
+			//add all necessary command into list
+			root.getCommands().addAll(b.getCreateCommands());
+			// assign profiles to all commands
+			for (String containerName : b.getContainers()) {
+				final Container c = getContainer(containerName);
+				c.getProfiles().add(b.getProfileName());
+			}
+		}
+	}
+
+	/**
+	 * Inits all of the brokers passed as parameter. This method is used only if Fafram is running.
+	 * All needed commands are put into commands and particular broker-profiles are assigned.
+	 *
+	 * @param brokers list of new brokers which will be initialised
+	 */
+	public static void initBrokers(Broker... brokers) {
+		final Container root = getRoot();
+
+		for (Broker b : brokers) {
+			b.setAssignContainer(true);
+			//execute all necessery commands
+			final List<String> createCommands = b.getCreateCommands();
+			root.executeCommands(createCommands.toArray(new String[createCommands.size()]));
+			// assign profiles to all commands
+			for (String containerName : b.getContainers()) {
+				final Container c = getContainer(containerName);
+				c.getProfiles().add(b.getProfileName());
+				//wait for provision
+				c.waitForProvisioning();
+			}
+		}
 	}
 }
 

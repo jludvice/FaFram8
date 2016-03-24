@@ -11,6 +11,7 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProper
 
 import org.apache.maven.shared.invoker.MavenInvocationException;
 
+import org.jboss.fuse.qa.fafram8.cluster.broker.Broker;
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.configuration.ConfigurationParser;
@@ -91,6 +92,7 @@ public class Fafram extends ExternalResource {
 			printLogo();
 			initConfiguration();
 			Validator.validate();
+			ContainerManager.initBrokers();
 			ContainerManager.configureRoots();
 			setDefaultModifiers();
 			prepareNodes(ContainerManager.getContainerList());
@@ -172,6 +174,19 @@ public class Fafram extends ExternalResource {
 			// Create new nodes using provider
 			prepareNodes(Arrays.asList(containers));
 			Deployer.deploy();
+		}
+		return this;
+	}
+
+	/**
+	 * Add broker(s) to the broker list.
+	 * @param brokers brokers array
+	 * @return this
+	 */
+	public Fafram brokers(Broker... brokers) {
+		ContainerManager.getBrokers().addAll(new ArrayList<Broker>(Arrays.asList(brokers)));
+		if (running) {
+			ContainerManager.initBrokers(brokers);
 		}
 		return this;
 	}
@@ -445,9 +460,9 @@ public class Fafram extends ExternalResource {
 	 * Turns environment to offline mode. For this purpose the "iptables-no-internet" configuration file is used which
 	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
 	 * specified in FaFram.
-	 * <p/>
+	 * <p>
 	 * This method can be used only with ecervena snapshots on OpenStack or snapshots that contain mentioned folder.
-	 * <p/>
+	 * <p>
 	 * By default the snapshot used for spawning containers using the OpenStack provider contains this file.
 	 *
 	 * @return this
@@ -460,11 +475,11 @@ public class Fafram extends ExternalResource {
 	/**
 	 * Loads up a custom iptables configuration file from local host and uploads it to remote hosts and executes them.
 	 * This method sets up the environment to environment defined in provided the configuration file.
-	 * <p/>
+	 * <p>
 	 * This option should be only used on OpenStack machines with sudo command configured to be used without password
 	 * otherwise it won't work. Also the snapshots should have exchanged ssh key to be able to connect between them
 	 * without password.
-	 * <p/>
+	 * <p>
 	 * At the moment this method is only experimental and should be used with caution. Cleaning up the iptables after
 	 * the test is not completed yet.
 	 *
@@ -571,13 +586,7 @@ public class Fafram extends ExternalResource {
 	 * @return root container
 	 */
 	private Container getRoot() {
-		for (Container c : ContainerManager.getContainerList()) {
-			if (c.isRoot()) {
-				return c;
-			}
-		}
-		// This should never happen
-		return null;
+		return ContainerManager.getRoot();
 	}
 
 	/**

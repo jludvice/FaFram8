@@ -6,16 +6,17 @@ import lombok.Getter;
  * Response wrapper for generic data response. <br/>
  * Designated usage: {@code return java.util.concurrent.Callable&lt;Response&lt;T&gt;&gt;}
  *
+ * @param <T> type of data
  * @author Josef Ludvicek
  */
-public class Response<T> {
+public final class Response<T> {
 	@Getter
 	private Boolean success = false;
 
 	@Getter
 	private T data = null;
 
-	public Response(Boolean success, T response) {
+	private Response(Boolean success, T response) {
 		this.success = success;
 		this.data = response;
 	}
@@ -23,6 +24,7 @@ public class Response<T> {
 	/**
 	 * Suggests that operation timed out and data is null.
 	 *
+	 * @param <T> type of requested data (in this case data=null)
 	 * @return data = null
 	 */
 	public static <T> Response<T> timeOut() {

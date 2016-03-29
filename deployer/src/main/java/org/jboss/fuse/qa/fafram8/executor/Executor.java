@@ -12,9 +12,12 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 import org.jboss.fuse.qa.fafram8.util.CommandHistory;
+import org.jboss.fuse.qa.fafram8.util.callables.Response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import lombok.ToString;
@@ -28,6 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString(of = {"client"})
 public class Executor {
+	// waitfor - wait before next attempt (in milliseconds)
+	public static final long DEFAULT_TIMEOUT_PERIOD = TimeUnit.SECONDS.toMillis(3);
+
 	@Getter
 	private SSHClient client;
 	private int provisionRetries = 0;
@@ -543,5 +549,45 @@ public class Executor {
 		}
 
 		return childs;
+	}
+
+	/**
+	 * Utility method for waiting on custom condition.
+	 * Check {@link org.jboss.fuse.qa.fafram8.util.callables.Response} and other classes
+	 * in this package.
+	 *
+	 * @param methodBlock callable which is executed every 3 seconds until it returns success
+	 * @param secondsTimeout repeat callable until it's success or timeout (in seconds)
+	 * @param <T> type of expected data response
+	 * @return {@link Response} wrapper with boolean success/fail and nullable data response
+	 */
+	public static <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
+		final long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(secondsTimeout);
+		log.info("Waiting {} seconds for operation {} to complete", secondsTimeout, methodBlock);
+
+		Response<T> response = Response.timeOut();
+		while (System.currentTimeMillis() <= deadline) {
+			try {
+				response = methodBlock.call();
+				if (response.getSuccess()) {
+					log.info("Patience rewarded, success of {}", methodBlock);
+					return response;
+				}
+				log.debug("Remaining time: {} seconds", TimeUnit.MILLISECONDS.toSeconds(
+						deadline - System.currentTimeMillis()
+				));
+			} catch (Exception e) {
+				log.debug("Remaining time: {} - op {} raised exception {}",
+						TimeUnit.MILLISECONDS.toSeconds(deadline - System.currentTimeMillis()),
+						methodBlock, e.getMessage(), e);
+			}
+			try {
+				Thread.sleep(DEFAULT_TIMEOUT_PERIOD);
+			} catch (InterruptedException e) {
+				log.error("InterruptedException when sleeping for next waitFor run.", e);
+			}
+		}
+		log.warn("Time is up, fail of {} in {} seconds.", methodBlock, secondsTimeout);
+		return response;
 	}
 }

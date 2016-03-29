@@ -41,11 +41,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 /**
  * Fafram resource class.
@@ -184,6 +182,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Add broker(s) to the broker list.
+	 *
 	 * @param brokers brokers array
 	 * @return this
 	 */
@@ -797,33 +796,7 @@ public class Fafram extends ExternalResource {
 	 * @param <T> type of expected data response
 	 * @return {@link Response} wrapper with boolean success/fail and nullable data response
 	 */
-	public static <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
-		val deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(secondsTimeout);
-		log.info("Waiting {} seconds for operation {} to complete", secondsTimeout, methodBlock);
-
-		Response<T> response = Response.timeOut();
-		while (System.currentTimeMillis() <= deadline) {
-			try {
-				response = methodBlock.call();
-				if (response.getSuccess()) {
-					log.info("Patience rewarded, success of {}", methodBlock);
-					return response;
-				}
-				log.debug("Remaining time: {} seconds", TimeUnit.MILLISECONDS.toSeconds(
-						deadline - System.currentTimeMillis()
-				));
-			} catch (Exception e) {
-				log.debug("Remaining time: {} - op {} raised exception {}",
-						TimeUnit.MILLISECONDS.toSeconds(deadline - System.currentTimeMillis()),
-						methodBlock, e.getMessage(), e);
-			}
-			try {
-				Thread.sleep(TimeUnit.SECONDS.toMillis(3));
-			} catch (InterruptedException e) {
-				log.error("InterruptedException when sleeping for next waitFor run.", e);
-			}
-		}
-		log.warn("Time is up, fail of {} in {} seconds.", methodBlock, secondsTimeout);
-		return response;
+	public <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
+		return root.getExecutor().waitFor(methodBlock, secondsTimeout);
 	}
 }

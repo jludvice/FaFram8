@@ -39,7 +39,6 @@ public class FrameworkConfigurationModel {
 	 * This method logs formated properties unmarshaled from Fafram8 XML configuration file.
 	 */
 	public void logUnmarshalledProperties() {
-		log.info("Framework properties:"
-				+ "  Patch version: " + patchVersion);
+		log.info("Framework properties: \n Patch version: " + patchVersion);
 	}
 }

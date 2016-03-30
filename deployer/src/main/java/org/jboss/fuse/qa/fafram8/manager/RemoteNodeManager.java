@@ -56,7 +56,7 @@ public class RemoteNodeManager implements NodeManager {
 		log.info("Preparing zip...");
 		executor.executeCommand("mkdir " + getFolder());
 		productZipPath = Downloader.getProduct(executor, this);
-		log.debug("Zip path is " + productZipPath);
+		log.trace("Zip path is " + productZipPath);
 	}
 
 	@Override
@@ -65,9 +65,9 @@ public class RemoteNodeManager implements NodeManager {
 
 		// Jar can't unzip to specified directory, so we need to change the dir first
 		if (productZipPath.contains(getFolder())) {
-			log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
+			log.trace(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
 		} else {
-			log.debug(executor.executeCommand("cd " + getFolder() + "; jar xf " + productZipPath));
+			log.trace(executor.executeCommand("cd " + getFolder() + "; jar xf " + productZipPath));
 		}
 
 		// Problem if WORKING_DIRECTORY is set because then the first command doesn't work
@@ -76,7 +76,7 @@ public class RemoteNodeManager implements NodeManager {
 				? executor.executeCommand("ls -d $PWD" + SEP + getFolder() + SEP + "*" + SEP).trim()
 				: executor.executeCommand("ls -d " + getFolder() + SEP + "*" + SEP).trim();
 
-		log.debug("Product path is " + productPath);
+		log.trace("Product path is " + productPath);
 
 		container.setFusePath(productPath);
 	}
@@ -121,10 +121,10 @@ public class RemoteNodeManager implements NodeManager {
 	 */
 	public void clean() {
 		// todo(rjakubco): create better cleaning mechanism for Fabric on Windows machines
-		log.info("Killing container");
+		log.debug("Killing container");
 		executor.executeCommand("pkill -9 -f karaf.base");
 
-		log.info("Deleting Fafram folder on " + executor.getClient().getHost());
+		log.debug("Deleting Fafram folder on " + executor.getClient().getHost());
 		final String directory = SystemProperty.getWorkingDirectory().isEmpty()
 				? SystemProperty.getFaframFolder() : SystemProperty.getWorkingDirectory() + SEP + SystemProperty.getFaframFolder();
 		executor.executeCommand("rm -rf " + directory);

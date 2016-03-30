@@ -51,16 +51,16 @@ public class ConfigurationParser {
 	public void parseConfigurationFile(String path) throws JAXBException {
 		log.info("Configuration parser started.");
 
-		log.info("Creating unmarshaller.");
+		log.trace("Creating unmarshaller.");
 		final JAXBContext jaxbContext = JAXBContext.newInstance(ClusterModel.class);
 		final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
-		log.info("Unmarshalling cluster model from " + path);
+		log.trace("Unmarshalling cluster model from " + path);
 		clusterModel = (ClusterModel) jaxbUnmarshaller.unmarshal(new File(path));
 
 		//TODO(ecervena): provisional debug logging
 		for (ContainerModel containerModel : clusterModel.getContainerModelList()) {
-			log.info(containerModel.toString());
+			log.debug(containerModel.toString());
 		}
 	}
 
@@ -69,7 +69,7 @@ public class ConfigurationParser {
 	 * objects parsed from Fafram8 XML configuration.
 	 */
 	public void buildContainers() {
-		log.info("Building containers.");
+		log.debug("Building containers.");
 		setFrameworkConfiguration(clusterModel.getFrameworkConfigurationModel());
 
 		for (ContainerModel containerModel : clusterModel.getContainerModelList()) {

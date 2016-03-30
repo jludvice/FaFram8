@@ -246,8 +246,8 @@ public class SshContainer extends Container {
 								.password(copy.getNode().getPassword())
 								.build())
 						// Same as node
-						.commands(new ArrayList<String>(copy.getCommands()))
-						.profiles(new ArrayList<String>(copy.getProfiles()))
+						.commands(new ArrayList<>(copy.getCommands()))
+						.profiles(new ArrayList<>(copy.getProfiles()))
 						.version(copy.getVersion())
 						.jvmOpts(copy.getJvmOpts())
 						.env(copy.getEnvs())

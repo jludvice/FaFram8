@@ -107,7 +107,7 @@ public class LocalNodeManager implements NodeManager {
 
 		// Use the subdir name to construct the product path
 		productPath = targetPath + SEP + folderName;
-		log.debug("Product path is " + productPath);
+		log.trace("Product path is " + productPath);
 		SystemProperty.set(FaframConstant.BASE_DIR, new File(jenkins ? System.getenv("WORKSPACE") : "").getAbsolutePath());
 		container.setFusePath(productPath);
 	}
@@ -153,16 +153,16 @@ public class LocalNodeManager implements NodeManager {
 	public void detectPlatformAndProduct() {
 		if (System.getProperty("os.name").startsWith("Windows")) {
 			windows = true;
-			log.debug("We're on Windows");
+			log.trace("We're on Windows");
 		} else {
-			log.debug("We're on Unix");
+			log.trace("We're on Unix");
 		}
 
 		if (SystemProperty.getFuseId().contains("a-mq")) {
-			log.debug("We're working with A-MQ");
+			log.trace("We're working with A-MQ");
 			amq = true;
 		} else {
-			log.debug("We're working with FUSE");
+			log.trace("We're working with FUSE");
 		}
 	}
 
@@ -260,7 +260,7 @@ public class LocalNodeManager implements NodeManager {
 	private void deleteTargetDir(boolean ignoreExceptions) {
 		if (!SystemProperty.isKeepFolder()) {
 			try {
-				log.debug("Deleting " + targetPath);
+				log.trace("Deleting " + targetPath);
 				FileUtils.forceDelete(new File(targetPath));
 			} catch (Exception e) {
 				if (!ignoreExceptions) {

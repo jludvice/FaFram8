@@ -111,14 +111,14 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 			if (container.isRoot()) {
 				final String ip = assignFloatingAddress(server.getId());
-				log.debug("Assigning public IP: " + ip + " for container: " + container.getName());
+				log.info("Assigning public IP: " + ip + " for container: " + container.getName());
 				container.getNode().setHost(ip);
 				container.getNode().setExecutor(container.getNode().createExecutor());
 				removeServerFromPool(server);
 			} else {
 				//fuseqe-lab has only 1 address type "fuseqe-lab-1" with only one address called NovaAddress
 				setLocalIPToContainer(container, server);
-				log.debug("Assigning local IP: " + server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant
+				log.info("Assigning local IP: " + server.getAddresses().getAddresses(SystemProperty.getExternalProperty(FaframConstant
 						.OPENSTACK_ADDRESS_TYPE)).get(0).getAddr() + " for container: " + container.getName());
 				removeServerFromPool(server);
 			}
@@ -468,8 +468,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 		int elapsed = 0;
 		final long timeout = step * 1000L;
 
-		log.info("Waiting for SSH connection ...");
-		final String preCommand = "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5" + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
+		log.debug("Waiting for SSH connection ...");
+		final String preCommand = "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
 		while (!connected) {
 			// Check if the time is up
 			if (elapsed > SystemProperty.getProvisionWaitTime()) {
@@ -484,7 +484,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				response = executor.executeCommand("echo $?");
 				if ("0".equals(response)) {
 					connected = true;
-					log.debug("Connected to remote SSH server {}", container.getNode().getHost());
+					log.trace("Connected to remote SSH server {}", container.getNode().getHost());
 					continue;
 				}
 			}

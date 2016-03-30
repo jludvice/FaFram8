@@ -68,7 +68,7 @@ public class SystemProperty {
 
 		// Check if such property exists - if yes do nothing
 		if (System.getProperty(property) == null) {
-			log.debug(String.format("Setting system property %s to value '%s'", property, value));
+			log.trace(String.format("Setting system property %s to value '%s'", property, value));
 			System.setProperty(property, value);
 			getSystemProperties().add(property);
 		}
@@ -95,7 +95,7 @@ public class SystemProperty {
 
 		for (String prop : getSystemProperties()) {
 			System.clearProperty(prop);
-			log.debug("System property " + prop + " cleared.");
+			log.trace("System property " + prop + " cleared.");
 		}
 
 		// Clear all the properties at the end so that they will not stay here when executing multiple tests

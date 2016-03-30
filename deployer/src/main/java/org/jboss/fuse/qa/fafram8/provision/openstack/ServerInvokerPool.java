@@ -30,23 +30,23 @@ public class ServerInvokerPool {
 	 * @param containers list of containers provided by ConfigurationParser
 	 */
 	public void spawnServers(List<Container> containers) {
-		log.info("Initializing ServerInvokerPool.");
+		log.debug("Initializing ServerInvokerPool.");
 		//TODO(ecervena): 5 threads in pool is only for proof of concept purposes. Figure out something smarter.
 		final ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
 		for (Container container : containers) {
-			log.info("Spawning invoker thread for container: " + container.getName());
+			log.trace("Spawning invoker thread for container: " + container.getName());
 			final Runnable serverInvoker = new ServerInvoker(container.getName());
 			executor.execute(serverInvoker);
 		}
 		executor.shutdown();
-		log.info("Waiting for ServerInvoker threads to finish a job.");
+		log.trace("Waiting for ServerInvoker threads to finish a job.");
 		try {
 			while (!executor.awaitTermination(LOG_WAIT_TIME, TimeUnit.SECONDS)) {
-				log.debug("Waiting for ServerInvoker threads to finish a job.");
+				log.trace("Waiting for ServerInvoker threads to finish a job.");
 			}
 		} catch (InterruptedException ie) {
 			throw new InvokerPoolInterruptedException(ie.getMessage());
 		}
-		log.info("ServerInvokerPool done.");
+		log.debug("ServerInvokerPool done.");
 	}
 }

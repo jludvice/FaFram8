@@ -30,6 +30,7 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.ProvisionProvider;
 import org.jboss.fuse.qa.fafram8.provision.provider.StaticProvider;
+import org.jboss.fuse.qa.fafram8.util.callables.Response;
 import org.jboss.fuse.qa.fafram8.validator.Validator;
 
 import org.junit.rules.ExternalResource;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -180,6 +182,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Add broker(s) to the broker list.
+	 *
 	 * @param brokers brokers array
 	 * @return this
 	 */
@@ -781,5 +784,19 @@ public class Fafram extends ExternalResource {
 				throw new FaframException("Invocation of maven target \"" + project + "\" failed.", e);
 			}
 		}
+	}
+
+	/**
+	 * Utility method for waiting on custom condition.
+	 * Check {@link org.jboss.fuse.qa.fafram8.util.callables.Response} and other classes
+	 * in this package.
+	 *
+	 * @param methodBlock callable which is executed every 3 seconds until it returns success
+	 * @param secondsTimeout repeat callable until it's success or timeout (in seconds)
+	 * @param <T> type of expected data response
+	 * @return {@link Response} wrapper with boolean success/fail and nullable data response
+	 */
+	public <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
+		return root.getExecutor().waitFor(methodBlock, secondsTimeout);
 	}
 }

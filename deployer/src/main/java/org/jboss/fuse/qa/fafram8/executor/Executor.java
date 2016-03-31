@@ -149,6 +149,14 @@ public class Executor {
 	}
 
 	/**
+	 * Reconnects the executor.
+	 */
+	public void reconnect() {
+		disconnect();
+		connect();
+	}
+
+	/**
 	 * Waits for the container to boot.
 	 */
 	public void waitForBoot() {

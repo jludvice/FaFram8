@@ -186,6 +186,8 @@ public class ContainerManager {
 			// Container is not provisioned in time
 			throw new FaframException("Container " + c.getName() + " did not provision in time");
 		}
+		// ENTESB-5110: Reconnect the client after fabric:create
+		c.getExecutor().reconnect();
 		uploadBundles(c);
 		executeStartupCommands(c);
 	}

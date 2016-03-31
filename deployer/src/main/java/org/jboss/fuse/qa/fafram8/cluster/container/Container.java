@@ -6,6 +6,8 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import javax.annotation.Nonnull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-public abstract class Container {
+public abstract class Container implements Comparable<Container> {
 	@Getter
 	@Setter
 	private String name;
@@ -368,5 +370,27 @@ public abstract class Container {
 	public Container directory(String workingDirectory) {
 		this.workingDirectory = workingDirectory;
 		return this;
+	}
+
+	@Override
+	public int compareTo(@Nonnull Container other) {
+		return this.getParentCount() - other.getParentCount();
+	}
+
+	/**
+	 * Gets the parent count of container.
+	 * @return parent count
+	 */
+	public int getParentCount() {
+		Container c = this;
+		int count = 0;
+		do {
+			if (c.getParent() == null) {
+				break;
+			}
+			count++;
+			c = c.getParent();
+		} while (c != null);
+		return count;
 	}
 }

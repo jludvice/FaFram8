@@ -168,6 +168,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram containers(Container... containers) {
+		Arrays.sort(containers);
 		ContainerManager.getContainerList().addAll(new ArrayList<>(Arrays.asList(containers)));
 		if (running) {
 			// == if we are adding the containers in the test method, we need to create them

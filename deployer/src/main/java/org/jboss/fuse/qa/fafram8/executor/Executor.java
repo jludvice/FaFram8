@@ -303,7 +303,7 @@ public class Executor {
 	 * @param status status
 	 */
 	public void waitForProvisionStatus(Container c, String status) {
-		waitForProvisioning(null, c, status);
+		waitForProvisioning(null, c, status, SystemProperty.getProvisionWaitTime());
 	}
 
 	/**
@@ -312,7 +312,7 @@ public class Executor {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		waitForProvisioning(containerName, null, "success");
+		waitForProvisioning(containerName, null, "success", SystemProperty.getProvisionWaitTime());
 	}
 
 	/**
@@ -322,7 +322,28 @@ public class Executor {
 	 * @param c Container instance
 	 */
 	public void waitForProvisioning(Container c) {
-		waitForProvisioning(null, c, "success");
+		waitForProvisioning(null, c, "success", SystemProperty.getProvisionWaitTime());
+	}
+
+	/**
+	 * Waits for the successful provisioning of container for defined period of time. It may restart the container if the provision status is
+	 * "requires full restart or if the provision status contains "NoNodeException".
+	 * @param c container
+	 * @param time time in seconds
+	 */
+	public void waitForProvisioning(Container c, int time) {
+		waitForProvisioning(null, c, "success", time);
+	}
+
+	/**
+	 * Waits for the defined provision status of the container for defined period of time. It may restart the container if the provision status is
+	 * "requires full restart or if the provision status contains "NoNodeException".
+	 * @param c container
+	 * @param status provision status
+	 * @param time time in seconds
+	 */
+	public void waitForProvisionStatus(Container c, String status, int time) {
+		waitForProvisioning(null, c, status, time);
 	}
 
 	/**
@@ -331,24 +352,26 @@ public class Executor {
 	 * @param containerName container name
 	 * @param c container
 	 * @param status status to wait on
+	 * @param time time in seconds
 	 */
-	public void waitForProvisioning(String containerName, Container c, String status) {
+	public void waitForProvisioning(String containerName, Container c, String status, int time) {
 		final String waitFor = c == null ? containerName : c.getName();
 
 		final int step = 3;
 		final long timeout = step * 1000L;
 		final long startTimeout = 10000L;
-		final int maxLength = 6;
 
 		// Wait before executing - sometimes the provision is triggered a bit later
 		sleep(startTimeout);
-		int retries = 0;
+
+		// Used to control the cycle
+		int elapsed = 0;
 		String provisionStatus = "";
 		boolean isSuccessful = false;
 		boolean restarted = false;
 
 		while (!isSuccessful) {
-			handleProvisionWaitTime(retries, waitFor, status, provisionStatus);
+			handleProvisionWaitTime(elapsed, waitFor, status, provisionStatus, time);
 
 			String reason = "";
 
@@ -365,9 +388,7 @@ public class Executor {
 				} catch (Exception ignored) {
 				}
 			}
-
-			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException")
-					|| provisionStatus.contains("Client is not started")) && c != null) {
+			if (StringUtils.containsAny(provisionStatus, "requires full restart", "NoNodeException", "Client is not started") && c != null) {
 				handleProvisionRetries(waitFor, status);
 				restarted = true;
 				log.warn("Container requires restart (provision status: " + provisionStatus + ")! Restarting...");
@@ -382,10 +403,10 @@ public class Executor {
 			}
 
 			if (!isSuccessful) {
-				log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - retries) + " seconds. " + (""
+				log.debug("Remaining time: " + (time - elapsed) + " seconds. " + (""
 						.equals(reason) ? "" : "(" + reason + ")") + ("".equals(provisionStatus) ? "" : "("
 						+ provisionStatus + ")"));
-				retries += step;
+				elapsed += step;
 				provisionStatus = "";
 				sleep(timeout);
 			}
@@ -417,8 +438,8 @@ public class Executor {
 	 * @param container container
 	 * @param status status to wait for
 	 */
-	private void handleProvisionWaitTime(int elapsed, String container, String status, String containerActualStatus) {
-		if (elapsed > SystemProperty.getProvisionWaitTime()) {
+	private void handleProvisionWaitTime(int elapsed, String container, String status, String containerActualStatus, int time) {
+		if (elapsed > time) {
 			log.error("Container " + container + " failed to provision to state \"" + status + "\" in time and ended in status:" + containerActualStatus);
 			throw new FaframException("Container " + container + " failed to provision to state \"" + status + "\" in time and ended in status:"
 					+ containerActualStatus);

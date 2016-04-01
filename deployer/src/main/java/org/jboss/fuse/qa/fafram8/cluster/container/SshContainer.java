@@ -153,8 +153,18 @@ public class SshContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override

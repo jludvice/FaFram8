@@ -148,12 +148,23 @@ public abstract class Container implements Comparable<Container> {
 	public abstract void waitForProvisioning();
 
 	/**
+	 * Waits for the successful provisioning for a given amount of time.
+	 * @param time time in seconds
+	 */
+	public abstract void waitForProvisioning(int time);
+	/**
 	 * Waits for defined provision status.
 	 *
 	 * @param status status
 	 */
 	public abstract void waitForProvisionStatus(String status);
 
+	/**
+	 * Waits for the defined provision status for a given amount of time.
+	 * @param status provision status
+	 * @param time time in seconds
+	 */
+	public abstract void waitForProvisionStatus(String status, int time);
 	/**
 	 * Executes a command in container.
 	 *

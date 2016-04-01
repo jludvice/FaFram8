@@ -764,6 +764,22 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Deletes the container.
+	 * @param containers containers array
+	 */
+	public void deleteContainers(Container... containers) {
+		for (Container c : containers) {
+			for (Container cl : ContainerManager.getContainerList()) {
+				if (c.equals(cl)) {
+					c.destroy();
+					ContainerManager.getContainerList().remove(c);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
 	 * Gets the container list.
 	 *
 	 * @return container list

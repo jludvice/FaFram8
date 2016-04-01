@@ -72,17 +72,17 @@ public class ChildContainer extends Container {
 		final StringBuilder arguments = new StringBuilder("");
 
 		for (String profile : super.getProfiles()) {
-			arguments.append(" --profile " + profile);
+			arguments.append(" --profile ").append(profile);
 		}
 
 		if (super.getVersion() != null) {
-			arguments.append(" --version " + super.getVersion());
+			arguments.append(" --version ").append(super.getVersion());
 		}
 
 		if (!super.getJvmOpts().isEmpty()) {
 			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
 			for (String rule : super.getJvmOpts()) {
-				jvmOpts.append(" " + rule);
+				jvmOpts.append(" ").append(rule);
 			}
 			jvmOpts.append("\"");
 			arguments.append(jvmOpts.toString());
@@ -90,7 +90,7 @@ public class ChildContainer extends Container {
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand(String.format("container-create-child %s %s %s", arguments.toString(), super.getParent().getName(), super.getName()));
+		getExecutor().executeCommand(String.format("container-create-child%s %s %s", arguments.toString(), super.getParent().getName(), super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
@@ -147,8 +147,18 @@ public class ChildContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override

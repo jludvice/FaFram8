@@ -147,6 +147,7 @@ public class RootContainer extends Container {
 			}
 		}
 		super.setCreated(false);
+		ContainerManager.getContainerList().remove(this);
 	}
 
 	@Override
@@ -183,8 +184,18 @@ public class RootContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		super.getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		super.getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		super.getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override

@@ -464,7 +464,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	private void canConnect(Executor executor, Container container) {
 		log.debug("Testing connection to: " + container.getNode().getHost());
 		Boolean connected = false;
-		final int step = 5;
+		final int step = 10;
 		int elapsed = 0;
 		final long timeout = step * 1000L;
 
@@ -489,7 +489,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				}
 			}
 			log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - elapsed) + " seconds. ");
-			elapsed += step + 5;
+			elapsed += step;
 			sleep(timeout);
 		}
 	}

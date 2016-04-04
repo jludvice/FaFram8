@@ -28,6 +28,7 @@ import org.openstack4j.model.compute.ServerCreate;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -257,6 +258,17 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * @param serverName name of the new node
 	 */
 	public void spawnNewServer(String serverName) {
+		spawnNewServer(serverName, SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_IMAGE));
+	}
+
+	/**
+	 * Create new OpenStack node. Method will create Server object model, boot it,
+	 * add to register and wait for active status.
+	 *
+	 * @param serverName name of the new node
+	 * @param imageID ID of image to spawn
+	 */
+	public void spawnNewServer(String serverName, String imageID) {
 		log.info("Spawning new server: "
 				+ SystemProperty.getOpenstackServerNamePrefix()
 				+ "-"
@@ -265,10 +277,11 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				.compute()
 				.servers()
 				.serverBuilder()
-				.image(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_IMAGE))
+				.image(imageID)
 				.name(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) + "-" + serverName)
 				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
 				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
+				.networks(Arrays.asList(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NETWORKS).split(",")))
 				.build();
 		final Server node = os.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT);
 		serverRegister.add(node);
@@ -339,7 +352,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * @return floating IP assigned to server
 	 */
 	public String assignFloatingAddress(String serverID) {
-		final FloatingIP ip = os.compute().floatingIps().allocateIP("public");
+		final FloatingIP ip = os.compute().floatingIps().allocateIP(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLOATING_IP_POOL));
 		floatingIPs.add(ip);
 		final Server server = os.compute().servers().get(serverID);
 		os.compute().floatingIps().addFloatingIP(server, ip.getFloatingIpAddress());

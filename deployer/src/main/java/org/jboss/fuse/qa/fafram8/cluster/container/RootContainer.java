@@ -15,6 +15,7 @@ import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -150,7 +151,8 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public void restart() {
+	public void restart(boolean force) {
+		// Force not used with root container
 		nodeManager.restart();
 		if (super.isFabric()) {
 			waitForProvisioning();
@@ -158,7 +160,8 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public void start() {
+	public void start(boolean force) {
+		// Force not used with root container
 		nodeManager.startFuse();
 		super.setOnline(true);
 		if (super.isFabric()) {
@@ -167,7 +170,8 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(boolean force) {
+		// Force not used with root container
 		nodeManager.stop();
 		super.setOnline(false);
 	}
@@ -245,10 +249,10 @@ public class RootContainer extends Container {
 						.fabric(root.isFabric())
 						.fabricCreateArguments(root.getFabricCreateArguments())
 						// The same as node
-						.commands(root.getCommands())
-						.bundles(root.getBundles())
-						.profiles(root.getProfiles())
-						.bundles(root.getBundles())
+						.commands(new ArrayList<>(root.getCommands()))
+						.bundles(new ArrayList<>(root.getBundles()))
+						.profiles(new ArrayList<>(root.getProfiles()))
+						.bundles(new ArrayList<>(root.getBundles()))
 						.jvmOpts(root.getJvmOpts())
 						.jvmMemOpts(root.getJvmMemOpts())
 						.directory(root.getWorkingDirectory());

@@ -455,7 +455,8 @@ public class Executor {
 	 */
 	private void handleRestart(boolean restart, Container c) {
 		if (restart) {
-			c.restart();
+			// Force restart in case of ensemble member for example
+			c.restart(true);
 			provisionRetries++;
 			waitForProvisioning(c);
 		}

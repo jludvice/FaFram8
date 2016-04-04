@@ -388,7 +388,8 @@ public class Executor {
 				} catch (Exception ignored) {
 				}
 			}
-			if (StringUtils.containsAny(provisionStatus, "requires full restart", "NoNodeException", "Client is not started") && c != null) {
+			if (("requires full restart".equals(provisionStatus) || provisionStatus.contains("NoNodeException") || provisionStatus.contains(
+					"Client is not started")) && c != null) {
 				handleProvisionRetries(waitFor, status);
 				restarted = true;
 				log.warn("Container requires restart (provision status: " + provisionStatus + ")! Restarting...");

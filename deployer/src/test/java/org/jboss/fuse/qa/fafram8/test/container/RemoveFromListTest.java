@@ -23,7 +23,7 @@ public class RemoveFromListTest {
 	@Test
 	public void removeFromListTest() {
 		assertEquals("Container list size", 2, ContainerManager.getContainerList().size());
-		fafram.getContainer("child").destroy();
+		fafram.deleteContainers(fafram.getContainer("child"));
 		assertEquals("Container list size", 1, ContainerManager.getContainerList().size());
 	}
 }

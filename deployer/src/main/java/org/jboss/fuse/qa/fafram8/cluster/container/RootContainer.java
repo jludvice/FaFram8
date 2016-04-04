@@ -15,7 +15,6 @@ import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -117,8 +116,8 @@ public class RootContainer extends Container {
 				ContainerManager.patchStandaloneBeforeFabric(this);
 
 				ContainerManager.setupFabric(this);
-
 				ContainerManager.patchFuse(this);
+				ContainerManager.executeStartupCommands(this);
 				super.setOnline(true);
 				super.setCreated(true);
 			}
@@ -231,12 +230,7 @@ public class RootContainer extends Container {
 							.password(root.getNode().getPassword())
 							.build();
 				}
-				// Add zookeeper commands because child/ssh container.stop() need them
-				final List<String> cmds = new ArrayList<>(root.getCommands());
-				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
-				if (!cmds.contains(zkCommand)) {
-					cmds.add(zkCommand);
-				}
+
 				// fuse executor is set when the container is being created
 				this.container = new RootContainer()
 						.name(root.getName())
@@ -251,10 +245,10 @@ public class RootContainer extends Container {
 						.fabric(root.isFabric())
 						.fabricCreateArguments(root.getFabricCreateArguments())
 						// The same as node
-						.commands(cmds)
-						.bundles(new ArrayList<>(root.getBundles()))
-						.profiles(new ArrayList<>(root.getProfiles()))
-						.bundles(new ArrayList<>(root.getBundles()))
+						.commands(root.getCommands())
+						.bundles(root.getBundles())
+						.profiles(root.getProfiles())
+						.bundles(root.getBundles())
 						.jvmOpts(root.getJvmOpts())
 						.jvmMemOpts(root.getJvmMemOpts())
 						.directory(root.getWorkingDirectory());
@@ -487,6 +481,13 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
+			// Add zookeeper commands because child/ssh container.stop() need them
+			if (container.isFabric()) {
+				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
+				if (!container.getCommands().contains(zkCommand)) {
+					container.getCommands().add(zkCommand);
+				}
+			}
 			return container;
 		}
 	}

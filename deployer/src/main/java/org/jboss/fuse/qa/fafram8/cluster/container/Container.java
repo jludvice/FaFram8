@@ -125,17 +125,42 @@ public abstract class Container implements Comparable<Container> {
 	/**
 	 * Restarts a container.
 	 */
-	public abstract void restart();
+	public void restart() {
+		restart(false);
+	}
+
+	/**
+	 * Restarts a container.
+	 * @param force force flag
+	 */
+	public abstract void restart(boolean force);
 
 	/**
 	 * Starts a container.
 	 */
-	public abstract void start();
+	public void start() {
+		start(false);
+	}
+
+	/**
+	 * Starts a container.
+	 * @param force force flag
+	 */
+	public abstract void start(boolean force);
+
+	/**
+	 * Stops a container.
+	 *
+	 * @param force force flag
+	 */
+	public abstract void stop(boolean force);
 
 	/**
 	 * Stops a container.
 	 */
-	public abstract void stop();
+	public void stop() {
+		stop(false);
+	}
 
 	/**
 	 * Kills a container.

@@ -9,6 +9,8 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.openstack.OSFactory;
 
+import java.util.Arrays;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -50,6 +52,7 @@ public class ServerInvoker implements Runnable {
 				.name(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) + "-" + nodeName)
 				.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
 				.keypairName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
+				.networks(Arrays.asList(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NETWORKS).split(",")))
 				.build();
 		//TODO(ecervena): do something smarter with server boot timeout
 		final Server server = os.compute().servers().bootAndWaitActive(serverCreate, BOOT_TIMEOUT);

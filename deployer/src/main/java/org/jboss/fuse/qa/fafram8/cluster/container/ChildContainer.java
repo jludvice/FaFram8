@@ -90,7 +90,8 @@ public class ChildContainer extends Container {
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand(String.format("container-create-child%s %s %s", arguments.toString(), super.getParent().getName(), super.getName()));
+		getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
+				super.getUser(), super.getPassword(), super.getParent().getName(), super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);

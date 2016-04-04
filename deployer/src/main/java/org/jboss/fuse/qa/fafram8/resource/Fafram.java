@@ -551,7 +551,7 @@ public class Fafram extends ExternalResource {
 	 * @param commands list of commands
 	 * @return this
 	 */
-	public Fafram command(String... commands) {
+	public Fafram commands(String... commands) {
 		ContainerManager.getCommands().addAll(Arrays.asList(commands));
 		return this;
 	}

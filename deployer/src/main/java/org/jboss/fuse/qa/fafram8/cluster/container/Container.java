@@ -125,17 +125,42 @@ public abstract class Container implements Comparable<Container> {
 	/**
 	 * Restarts a container.
 	 */
-	public abstract void restart();
+	public void restart() {
+		restart(false);
+	}
+
+	/**
+	 * Restarts a container.
+	 * @param force force flag
+	 */
+	public abstract void restart(boolean force);
 
 	/**
 	 * Starts a container.
 	 */
-	public abstract void start();
+	public void start() {
+		start(false);
+	}
+
+	/**
+	 * Starts a container.
+	 * @param force force flag
+	 */
+	public abstract void start(boolean force);
+
+	/**
+	 * Stops a container.
+	 *
+	 * @param force force flag
+	 */
+	public abstract void stop(boolean force);
 
 	/**
 	 * Stops a container.
 	 */
-	public abstract void stop();
+	public void stop() {
+		stop(false);
+	}
 
 	/**
 	 * Kills a container.
@@ -148,12 +173,23 @@ public abstract class Container implements Comparable<Container> {
 	public abstract void waitForProvisioning();
 
 	/**
+	 * Waits for the successful provisioning for a given amount of time.
+	 * @param time time in seconds
+	 */
+	public abstract void waitForProvisioning(int time);
+	/**
 	 * Waits for defined provision status.
 	 *
 	 * @param status status
 	 */
 	public abstract void waitForProvisionStatus(String status);
 
+	/**
+	 * Waits for the defined provision status for a given amount of time.
+	 * @param status provision status
+	 * @param time time in seconds
+	 */
+	public abstract void waitForProvisionStatus(String status, int time);
 	/**
 	 * Executes a command in container.
 	 *

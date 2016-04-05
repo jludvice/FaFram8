@@ -6,7 +6,6 @@ import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -413,8 +412,8 @@ public class SystemProperty {
 	 *
 	 * @return config path
 	 */
-	public static String getFaframConfigPath() {
-		return System.getProperty(FaframConstant.FAFRAM_CONFIG_PATH);
+	public static String getFaframConfigUrl() {
+		return System.getProperty(FaframConstant.FAFRAM_CONFIG_URL);
 	}
 
 	/**
@@ -544,9 +543,9 @@ public class SystemProperty {
 		try {
 			final List<URL> urls = new LinkedList<URL>();
 			// If defined get property file from SystemProperty
-			if (SystemProperty.getFaframConfigPath() != null) {
-				log.info("Loading Fafram configuration file on path: " + SystemProperty.getFaframConfigPath());
-				urls.add(new File(SystemProperty.getFaframConfigPath()).toURI().toURL());
+			if (SystemProperty.getFaframConfigUrl() != null) {
+				urls.add(new URL(SystemProperty.getFaframConfigUrl()));
+				log.info("Loading Fafram configuration file on path: " + SystemProperty.getFaframConfigUrl());
 			}
 			// Get the property files URLs from classpath
 			urls.addAll(Collections.list(ClassLoader.getSystemResources("fafram.properties")));
@@ -561,7 +560,6 @@ public class SystemProperty {
 				try (InputStream is = u.openStream()) {
 					// Load the properties
 					p.load(is);
-					is.close();
 				}
 			}
 		} catch (IOException e) {

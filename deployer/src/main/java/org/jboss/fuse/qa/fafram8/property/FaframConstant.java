@@ -109,7 +109,7 @@ public final class FaframConstant {
 	// Jira URL
 	public static final String JIRA_URL = "jira.url";
 
-	// Fabric "topology" configuration path for Cofiguration Parser
+	// Fabric "topology" configuration path for Configuration Parser
 	public static final String FABRIC_CONFIG_PATH = "fabric.config.path";
 
 	// Jira user
@@ -179,5 +179,5 @@ public final class FaframConstant {
 	public static final String OPENSTACK_FLOATING_IP_POOL = "openstack.floatingIpPool";
 
 	// Fafram properties file path
-	public static final String FAFRAM_CONFIG_PATH = "fafram.config.path";
+	public static final String FAFRAM_CONFIG_URL = "fafram.config.url";
 }

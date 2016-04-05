@@ -14,7 +14,7 @@ import java.io.File;
  * Created by avano on 14.1.16.
  */
 public class LocalCleanChildsTest {
-	private Fafram fafram = new Fafram().withFabric().command("container-create-child root test1", "container-create-child root test2");
+	private Fafram fafram = new Fafram().withFabric().commands("container-create-child root test1", "container-create-child root test2");
 
 	@Test
 	public void cleanChildsTest() {

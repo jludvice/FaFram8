@@ -80,6 +80,6 @@ public class ContainerBuildersTest {
 		Assert.assertEquals(template.getProfiles().size(), root2.getProfiles().size());
 		for(String s: root.getCommands())
 		System.out.println(s);
-		Assert.assertEquals(3,root.getCommands().size());
+		Assert.assertEquals(2,root.getCommands().size());
 	}
 }

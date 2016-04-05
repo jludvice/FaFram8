@@ -103,26 +103,26 @@ public class SshContainer extends Container {
 		}
 
 		log.info("Destroying container " + super.getName());
-		getExecutor().executeCommand("container-delete " + super.getName());
+		getExecutor().executeCommand("container-delete --force " + super.getName());
 		super.setCreated(false);
 	}
 
 	@Override
-	public void restart() {
-		stop();
-		start();
+	public void restart(boolean force) {
+		stop(force);
+		start(force);
 	}
 
 	@Override
-	public void start() {
-		getExecutor().executeCommand("container-start " + super.getName());
+	public void start(boolean force) {
+		getExecutor().executeCommand("container-start " + (force ? "--force " : "") + super.getName());
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 	}
 
 	@Override
-	public void stop() {
-		getExecutor().executeCommand("container-stop " + super.getName());
+	public void stop(boolean force) {
+		getExecutor().executeCommand("container-stop " + (force ? "--force " : "") + super.getName());
 		getExecutor().waitForContainerStop(this);
 		super.setOnline(false);
 	}
@@ -153,8 +153,18 @@ public class SshContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override

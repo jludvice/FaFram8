@@ -35,7 +35,7 @@ public class ContainerManager {
 	// List of bundles that will be installed into the _default_ root container only.
 	private static List<String> bundles = null;
 
-	// List of bundles that will be executed on the _default_ root container only.
+	// List of commands that will be executed on the _default_ root container only.
 	private static List<String> commands = null;
 
 	//List of all brokers in cluster
@@ -189,7 +189,6 @@ public class ContainerManager {
 		// ENTESB-5110: Reconnect the client after fabric:create
 		c.getExecutor().reconnect();
 		uploadBundles(c);
-		executeStartupCommands(c);
 	}
 
 	/**
@@ -203,7 +202,9 @@ public class ContainerManager {
 				c.executeCommand(command);
 			}
 		}
-		c.waitForProvisioning();
+		if (c.isFabric()) {
+			c.waitForProvisioning();
+		}
 	}
 
 	/**
@@ -274,7 +275,7 @@ public class ContainerManager {
 	 */
 	private static void createRootIfNecessary() {
 		if (ContainerManager.getContainerList().isEmpty()) {
-			final Container c = RootContainer.builder().defaultRoot().build();
+			final Container c = RootContainer.builder().defaultRoot().commands(getCommands().toArray(new String[0])).build();
 			log.info("Creating default root container");
 			ContainerManager.getContainerList().add(c);
 		}

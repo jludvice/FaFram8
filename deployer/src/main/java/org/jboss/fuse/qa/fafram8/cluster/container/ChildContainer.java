@@ -72,17 +72,17 @@ public class ChildContainer extends Container {
 		final StringBuilder arguments = new StringBuilder("");
 
 		for (String profile : super.getProfiles()) {
-			arguments.append(" --profile " + profile);
+			arguments.append(" --profile ").append(profile);
 		}
 
 		if (super.getVersion() != null) {
-			arguments.append(" --version " + super.getVersion());
+			arguments.append(" --version ").append(super.getVersion());
 		}
 
 		if (!super.getJvmOpts().isEmpty()) {
 			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
 			for (String rule : super.getJvmOpts()) {
-				jvmOpts.append(" " + rule);
+				jvmOpts.append(" ").append(rule);
 			}
 			jvmOpts.append("\"");
 			arguments.append(jvmOpts.toString());
@@ -90,7 +90,8 @@ public class ChildContainer extends Container {
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand(String.format("container-create-child %s %s %s", arguments.toString(), super.getParent().getName(), super.getName()));
+		getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
+				super.getUser(), super.getPassword(), super.getParent().getName(), super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
@@ -103,25 +104,25 @@ public class ChildContainer extends Container {
 		}
 
 		log.info("Destroying container " + super.getName());
-		getExecutor().executeCommand("container-delete " + super.getName());
+		getExecutor().executeCommand("container-delete --force " + super.getName());
 		super.setCreated(false);
 	}
 
 	@Override
-	public void restart() {
-		stop();
-		start();
+	public void restart(boolean force) {
+		stop(force);
+		start(force);
 	}
 
 	@Override
-	public void start() {
-		getExecutor().executeCommand("container-start " + super.getName());
+	public void start(boolean force) {
+		getExecutor().executeCommand("container-start " + (force ? "--force " : "") + super.getName());
 		getExecutor().waitForProvisioning(this);
 	}
 
 	@Override
-	public void stop() {
-		getExecutor().executeCommand("container-stop " + super.getName());
+	public void stop(boolean force) {
+		getExecutor().executeCommand("container-stop " + (force ? "--force " : "") + super.getName());
 		getExecutor().waitForContainerStop(this);
 		super.setOnline(false);
 	}
@@ -147,8 +148,18 @@ public class ChildContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override

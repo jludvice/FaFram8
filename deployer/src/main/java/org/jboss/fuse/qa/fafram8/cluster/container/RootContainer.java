@@ -117,8 +117,8 @@ public class RootContainer extends Container {
 				ContainerManager.patchStandaloneBeforeFabric(this);
 
 				ContainerManager.setupFabric(this);
-
 				ContainerManager.patchFuse(this);
+				ContainerManager.executeStartupCommands(this);
 				super.setOnline(true);
 				super.setCreated(true);
 			}
@@ -147,10 +147,12 @@ public class RootContainer extends Container {
 			}
 		}
 		super.setCreated(false);
+		ContainerManager.getContainerList().remove(this);
 	}
 
 	@Override
-	public void restart() {
+	public void restart(boolean force) {
+		// Force not used with root container
 		nodeManager.restart();
 		if (super.isFabric()) {
 			waitForProvisioning();
@@ -158,7 +160,8 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public void start() {
+	public void start(boolean force) {
+		// Force not used with root container
 		nodeManager.startFuse();
 		super.setOnline(true);
 		if (super.isFabric()) {
@@ -167,7 +170,8 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(boolean force) {
+		// Force not used with root container
 		nodeManager.stop();
 		super.setOnline(false);
 	}
@@ -183,8 +187,18 @@ public class RootContainer extends Container {
 	}
 
 	@Override
+	public void waitForProvisioning(int time) {
+		super.getExecutor().waitForProvisioning(this, time);
+	}
+
+	@Override
 	public void waitForProvisionStatus(String status) {
 		super.getExecutor().waitForProvisionStatus(this, status);
+	}
+
+	@Override
+	public void waitForProvisionStatus(String status, int time) {
+		super.getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	@Override
@@ -220,12 +234,7 @@ public class RootContainer extends Container {
 							.password(root.getNode().getPassword())
 							.build();
 				}
-				// Add zookeeper commands because child/ssh container.stop() need them
-				final List<String> cmds = new ArrayList<>(root.getCommands());
-				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
-				if (!cmds.contains(zkCommand)) {
-					cmds.add(zkCommand);
-				}
+
 				// fuse executor is set when the container is being created
 				this.container = new RootContainer()
 						.name(root.getName())
@@ -240,7 +249,7 @@ public class RootContainer extends Container {
 						.fabric(root.isFabric())
 						.fabricCreateArguments(root.getFabricCreateArguments())
 						// The same as node
-						.commands(cmds)
+						.commands(new ArrayList<>(root.getCommands()))
 						.bundles(new ArrayList<>(root.getBundles()))
 						.profiles(new ArrayList<>(root.getProfiles()))
 						.bundles(new ArrayList<>(root.getBundles()))
@@ -476,6 +485,13 @@ public class RootContainer extends Container {
 		 * @return rootcontainer instance
 		 */
 		public Container build() {
+			// Add zookeeper commands because child/ssh container.stop() need them
+			if (container.isFabric()) {
+				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
+				if (!container.getCommands().contains(zkCommand)) {
+					container.getCommands().add(zkCommand);
+				}
+			}
 			return container;
 		}
 	}

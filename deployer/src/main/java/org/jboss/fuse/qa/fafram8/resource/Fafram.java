@@ -551,7 +551,7 @@ public class Fafram extends ExternalResource {
 	 * @param commands list of commands
 	 * @return this
 	 */
-	public Fafram command(String... commands) {
+	public Fafram commands(String... commands) {
 		ContainerManager.getCommands().addAll(Arrays.asList(commands));
 		return this;
 	}
@@ -761,6 +761,22 @@ public class Fafram extends ExternalResource {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Deletes the container.
+	 * @param containers containers array
+	 */
+	public void deleteContainers(Container... containers) {
+		for (Container c : containers) {
+			for (Container cl : ContainerManager.getContainerList()) {
+				if (c.equals(cl)) {
+					c.destroy();
+					ContainerManager.getContainerList().remove(c);
+					break;
+				}
+			}
+		}
 	}
 
 	/**

@@ -6,11 +6,13 @@ import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -398,12 +400,21 @@ public class SystemProperty {
 	}
 
 	/**
-	 * Getter.
+	 * Get Fabric "topology" config path from fabric.config.path system property used by Configuration Parser.
 	 *
 	 * @return config path
 	 */
-	public static String getConfigPath() {
-		return System.getProperty(FaframConstant.CONFIG_PATH);
+	public static String getFabricConfigPath() {
+		return System.getProperty(FaframConstant.FABRIC_CONFIG_PATH);
+	}
+
+	/**
+	 * Get Fafram property config path from fafram.config.path system property.
+	 *
+	 * @return config path
+	 */
+	public static String getFaframConfigPath() {
+		return System.getProperty(FaframConstant.FAFRAM_CONFIG_PATH);
 	}
 
 	/**
@@ -421,7 +432,10 @@ public class SystemProperty {
 	 * @return server name prefix set by system property
 	 */
 	public static String getOpenstackServerNamePrefix() {
-		return System.getProperty(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8");
+		if (getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) != null) {
+			return getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX);
+		}
+		return "fafram8";
 	}
 
 	/**
@@ -528,8 +542,16 @@ public class SystemProperty {
 		final Properties p = new Properties();
 
 		try {
-			// Get the property files URLs
-			final List<URL> urls = Collections.list(ClassLoader.getSystemResources("fafram.properties"));
+			final List<URL> urls = new LinkedList<URL>();
+			// If defined get property file from SystemProperty
+			if (SystemProperty.getFaframConfigPath() != null) {
+				log.info("Loading Fafram configuration file on path: " + SystemProperty.getFaframConfigPath());
+				urls.add(new File(SystemProperty.getFaframConfigPath()).toURI().toURL());
+			}
+			// Get the property files URLs from classpath
+			urls.addAll(Collections.list(ClassLoader.getSystemResources("fafram.properties")));
+
+			log.debug("Fafram config path: " + urls.toString());
 
 			// Merge user-defined properties with default properties
 			// User-defined changes should be the first file and the fafram properties should be the second file
@@ -539,6 +561,7 @@ public class SystemProperty {
 				try (InputStream is = u.openStream()) {
 					// Load the properties
 					p.load(is);
+					is.close();
 				}
 			}
 		} catch (IOException e) {

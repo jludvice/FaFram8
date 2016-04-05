@@ -456,7 +456,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram config(String configPath) {
-		SystemProperty.set(FaframConstant.CONFIG_PATH, configPath);
+		SystemProperty.set(FaframConstant.FABRIC_CONFIG_PATH, configPath);
 		return this;
 	}
 
@@ -597,11 +597,11 @@ public class Fafram extends ExternalResource {
 	 * Configuration init.
 	 */
 	public void initConfiguration() {
-		if (SystemProperty.getConfigPath() != null) {
+		if (SystemProperty.getFabricConfigPath() != null) {
 			this.configurationParser = new ConfigurationParser();
 
 			try {
-				configurationParser.parseConfigurationFile(SystemProperty.getConfigPath());
+				configurationParser.parseConfigurationFile(SystemProperty.getFabricConfigPath());
 			} catch (Exception e) {
 				throw new FaframException("XML configuration parsing error.", e);
 			}

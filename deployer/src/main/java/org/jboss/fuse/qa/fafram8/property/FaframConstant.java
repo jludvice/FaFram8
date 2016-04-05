@@ -109,8 +109,8 @@ public final class FaframConstant {
 	// Jira URL
 	public static final String JIRA_URL = "jira.url";
 
-	// Fafram configuration path
-	public static final String CONFIG_PATH = "fafram.config.path";
+	// Fabric "topology" configuration path for Configuration Parser
+	public static final String FABRIC_CONFIG_PATH = "fabric.config.path";
 
 	// Jira user
 	public static final String JIRA_USER = "jira.user";
@@ -171,4 +171,13 @@ public final class FaframConstant {
 
 	// Path to java home that will be used for Fuse (root and containers)
 	public static final String JAVA_HOME = "fafram.java.home";
+
+	// Comma separated list of openstack tenant networks
+	public static final String OPENSTACK_NETWORKS = "openstack.networks";
+
+	// Openstack Floating IP pool ID
+	public static final String OPENSTACK_FLOATING_IP_POOL = "openstack.floatingIpPool";
+
+	// Fafram properties file path
+	public static final String FAFRAM_CONFIG_URL = "fafram.config.url";
 }

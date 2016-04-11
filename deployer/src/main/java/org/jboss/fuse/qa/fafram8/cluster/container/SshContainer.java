@@ -92,6 +92,9 @@ public class SshContainer extends Container {
 				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), properties, super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
+		super.setExecutor(super.createExecutor());
+		super.getExecutor().connect();
+		super.getNode().getExecutor().connect();
 		super.setOnline(true);
 	}
 
@@ -129,11 +132,6 @@ public class SshContainer extends Container {
 	@Override
 	public void kill() {
 		super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
-	}
-
-	@Override
-	public String executeCommand(String command) {
-		return super.getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
 	}
 
 	@Override

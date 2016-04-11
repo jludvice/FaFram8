@@ -10,7 +10,6 @@ import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.exception.InstanceAlreadyExistsException;
 import org.jboss.fuse.qa.fafram8.exception.OfflineEnvironmentException;
 import org.jboss.fuse.qa.fafram8.exception.UniqueServerNameException;
-import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
@@ -168,21 +167,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 		log.info("Loading iptables configuration files.");
 
-		final Executor executor = createExecutor(containerList);
-		executor.connect();
-
-		setCorrectIpTablesFilePath(executor);
-
-		// If the environment should be configured by custom iptables configuration file from localhost then copy the file to remote root node
-		if (!SystemProperty.isOffline()) {
-			try {
-				log.debug("Copying iptables configuration file on node: " + executor.getClient().toString());
-				((NodeSSHClient) executor.getClient()).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), this.ipTablesFilePath);
-			} catch (CopyFileException e) {
-				throw new FaframException("Problem with copying iptables configuration file to node: " + executor.getClient().getHost() + ".", e);
-			}
-		}
-
 		// For each container in container list execute and set a correct iptables configuration file
 		for (Container c : containerList) {
 			if (c instanceof ChildContainer) {
@@ -190,7 +174,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 				// and root. It doesn't make sense to do also for child containers.
 				continue;
 			}
-			executeIpTables(executor, c);
+			executeIpTables(c);
 		}
 
 		log.info("IPTables configuration files successfully loaded on all nodes! Environment configuration according to {} file.",
@@ -368,7 +352,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	private void setCorrectIpTablesFilePath(Executor executor) {
 		// This is special case when you want to use default offline configuration.
 		if (SystemProperty.isOffline()) {
-			// setting path to default iptablec configuration file in home folder of user
+			// setting path to default iptables configuration file in home folder of user
 			this.ipTablesFilePath = OFFLINE_IPTABLES_FILE;
 		} else {
 			// Otherwise you want to copy iptables configuration file from local machine to remote node -> create path to file on remote node
@@ -387,29 +371,29 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 * custom iptables configuration file is used then this methods also copies cofniguration file to specified node of
 	 * container.
 	 *
-	 * @param executor connected executor to root node
 	 * @param container container on which the iptables should be configured
 	 */
-	private void executeIpTables(Executor executor, Container container) {
+	private void executeIpTables(Container container) {
+		container.getNode().getExecutor().connect();
+		setCorrectIpTablesFilePath(container.getNode().getExecutor());
 		try {
 			// if offline environment then skip this. The iptables configuration should be present in the image itself.
 			if (!SystemProperty.isOffline()) {
-				// Copy iptables file already on root node to other nodes via the scp command (hack for nodes without public ip)
-				executor.executeCommand("scp -o StrictHostKeyChecking=no " + this.ipTablesFilePath + " " + container.getNode().getHost()
-						+ ":" + this.ipTablesFilePath);
+				((NodeSSHClient) container.getNode().getExecutor().getClient()).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), this
+						.ipTablesFilePath);
 			}
 
-			log.debug("Executing iptables configuration file on node: " + executor.toString());
+			log.debug("Executing iptables configuration file on node: " + container.getNode().getExecutor().toString());
 
-			final String response = executor.executeCommand("sudo cat " + this.ipTablesFilePath);
+			final String response = container.getNode().getExecutor().executeCommand("sudo cat " + this.ipTablesFilePath);
 
 			if (response.contains("No such file or directory")) {
 				throw new OfflineEnvironmentException(
 						"Configuration file for iptables" + " doesn't exists on node: " + container.getNode().getHost() + ".",
 						new FileNotFoundException("File " + this.ipTablesFilePath + " doesn't exists."));
 			}
-			executor.executeCommand("sudo iptables-restore " + this.ipTablesFilePath);
-			log.debug("Iptables successfully configured on node {}.", executor);
+			container.getNode().getExecutor().executeCommand("sudo iptables-restore " + this.ipTablesFilePath);
+			log.debug("Iptables successfully configured on node {}.", container.getNode().getExecutor());
 		} catch (Exception e) {
 			throw new FaframException("There was problem setting iptables on node: " + container.getNode().getHost(), e);
 		}

@@ -51,8 +51,8 @@ public class RemoteOpenstackSetJdkTest {
 		log.debug(fafram.executeNodeCommand("ps aux | grep " + root.getName()));
 		log.debug(fafram.executeNodeCommand("ps aux | grep " + rootChild.getName()));
 
-		assertTrue(ssh.executeCommand("exec ps aux | grep " + ssh.getName()).contains(Openstack.JDK8.getPath()));
-		assertTrue(sshChild.executeCommand("exec ps aux | grep " + sshChild.getName()).contains(Openstack.JDK8.getPath()));
+		assertTrue(ssh.executeNodeCommand("ps aux | grep " + ssh.getName()).contains(Openstack.JDK8.getPath()));
+		assertTrue(sshChild.executeNodeCommand("ps aux | grep " + sshChild.getName()).contains(Openstack.JDK8.getPath()));
 		assertTrue(fafram.executeNodeCommand("ps aux | grep " + root.getName()).contains(Openstack.JDK8.getPath()));
 		assertTrue(fafram.executeNodeCommand("ps aux | grep " + rootChild.getName()).contains(Openstack.JDK8.getPath()));
 	}

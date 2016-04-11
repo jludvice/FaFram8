@@ -124,23 +124,9 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Restarts a container.
-	 */
-	public void restart() {
-		restart(false);
-	}
-
-	/**
-	 * Restarts a container.
 	 * @param force force flag
 	 */
 	public abstract void restart(boolean force);
-
-	/**
-	 * Starts a container.
-	 */
-	public void start() {
-		start(false);
-	}
 
 	/**
 	 * Starts a container.
@@ -154,13 +140,6 @@ public abstract class Container implements Comparable<Container> {
 	 * @param force force flag
 	 */
 	public abstract void stop(boolean force);
-
-	/**
-	 * Stops a container.
-	 */
-	public void stop() {
-		stop(false);
-	}
 
 	/**
 	 * Kills a container.
@@ -190,13 +169,6 @@ public abstract class Container implements Comparable<Container> {
 	 * @param time time in seconds
 	 */
 	public abstract void waitForProvisionStatus(String status, int time);
-	/**
-	 * Executes a command in container.
-	 *
-	 * @param command command to execute
-	 * @return command response
-	 */
-	public abstract String executeCommand(String command);
 
 	/**
 	 * Executes multiple commands in container.
@@ -204,8 +176,54 @@ public abstract class Container implements Comparable<Container> {
 	 * @param commands commands array to execute
 	 * @return list of commands responses
 	 */
-
 	public abstract List<String> executeCommands(String... commands);
+
+	/**
+	 * Executes multiple commands in node shell.
+	 * @param commands commands array to execute
+	 * @return list of commands responses
+	 */
+	public abstract List<String> executeNodeCommands(String... commands);
+
+	/**
+	 * Executes a command in container.
+	 *
+	 * @param command command to execute
+	 * @return command response
+	 */
+	public String executeCommand(String command) {
+		return executeCommands(command).get(0);
+	}
+
+	/**
+	 * Executes a command in node shell.
+	 * @param command command to execute
+	 * @return command response
+	 */
+	public String executeNodeCommand(String command) {
+		return executeCommands(command).get(0);
+	}
+
+	/**
+	 * Restarts a container.
+	 */
+	public void restart() {
+		restart(false);
+	}
+
+	/**
+	 * Starts a container.
+	 */
+	public void start() {
+		start(false);
+	}
+
+	/**
+	 * Stops a container.
+	 */
+	public void stop() {
+		stop(false);
+	}
 
 	/**
 	 * Creates the executor from the specified attributes. It is used in builder and in OpenstackProvisionProvider.

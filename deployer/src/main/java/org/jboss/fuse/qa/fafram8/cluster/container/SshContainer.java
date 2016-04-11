@@ -72,7 +72,6 @@ public class SshContainer extends Container {
 
 		// If using static provider then clean
 		if ("StaticProvider".equals(SystemProperty.getProvider())) {
-
 			clean();
 		}
 
@@ -148,6 +147,11 @@ public class SshContainer extends Container {
 	}
 
 	@Override
+	public List<String> executeNodeCommands(String... commands) {
+		return super.getNode().getExecutor().executeCommands(commands);
+	}
+
+	@Override
 	public void waitForProvisioning() {
 		waitForProvisionStatus("success");
 	}
@@ -169,7 +173,7 @@ public class SshContainer extends Container {
 
 	@Override
 	public Executor getExecutor() {
-		return super.getParent().getExecutor();
+		return super.getExecutor();
 	}
 
 	/**

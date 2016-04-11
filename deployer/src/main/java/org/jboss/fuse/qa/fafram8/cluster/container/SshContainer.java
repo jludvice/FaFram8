@@ -128,22 +128,17 @@ public class SshContainer extends Container {
 
 	@Override
 	public void kill() {
-		if ("StaticProvider".equals(SystemProperty.getProvider())) {
-			super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
-		} else {
-			super.getParent().getNode().getExecutor().executeCommand("ssh -o StrictHostKeyChecking=no " + super.getNode().getUsername() + "@"
-					+ super.getNode().getHost() + " pkill -9 -f " + super.getName());
-		}
+		super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
 	}
 
 	@Override
 	public String executeCommand(String command) {
-		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+		return super.getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
 	}
 
 	@Override
 	public List<String> executeCommands(String... commands) {
-		return getExecutor().executeCommands(commands);
+		return super.getExecutor().executeCommands(commands);
 	}
 
 	@Override
@@ -173,7 +168,7 @@ public class SshContainer extends Container {
 
 	@Override
 	public Executor getExecutor() {
-		return super.getExecutor();
+		return super.getParent().getExecutor();
 	}
 
 	/**

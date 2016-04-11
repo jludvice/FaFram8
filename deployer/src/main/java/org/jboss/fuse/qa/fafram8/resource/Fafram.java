@@ -94,12 +94,13 @@ public class Fafram extends ExternalResource {
 			printLogo();
 			initConfiguration();
 			Validator.validate();
-			ContainerManager.initBrokers();
 			ContainerManager.configureRoots();
+			ContainerManager.initBrokers();
 			setDefaultModifiers();
 			prepareNodes(ContainerManager.getContainerList());
 			buildBundles();
 			Deployer.deploy();
+			ContainerManager.createEnsemble();
 		} catch (Exception ex) {
 			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 			provisionProvider.releaseResources();
@@ -188,7 +189,7 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram brokers(Broker... brokers) {
-		ContainerManager.getBrokers().addAll(new ArrayList<Broker>(Arrays.asList(brokers)));
+		ContainerManager.getBrokers().addAll(new ArrayList<>(Arrays.asList(brokers)));
 		if (running) {
 			ContainerManager.initBrokers(brokers);
 		}
@@ -577,6 +578,34 @@ public class Fafram extends ExternalResource {
 		SystemProperty.set(FaframConstant.JAVA_HOME, javaHomePath);
 		ModifierExecutor.addModifiers(setJavaHome(SystemProperty.getJavaHome()));
 
+		return this;
+	}
+
+	/**
+	 * Defines the ensemble members.
+	 * @param containers list of container names
+	 * @return this
+	 */
+	public Fafram ensemble(String... containers) {
+		ContainerManager.getEnsembleList().addAll(Arrays.asList(containers));
+		if (running) {
+			ContainerManager.createEnsemble();
+		}
+		return this;
+	}
+
+	/**
+	 * Defines the ensemble members.
+	 * @param containers list of containers.
+	 * @return this
+	 */
+	public Fafram ensemble(Container... containers) {
+		for (Container c : containers) {
+			ContainerManager.getEnsembleList().add(c.getName());
+		}
+		if (running) {
+			ContainerManager.createEnsemble();
+		}
 		return this;
 	}
 

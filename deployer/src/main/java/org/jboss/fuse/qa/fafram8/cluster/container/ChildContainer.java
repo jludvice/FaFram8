@@ -133,13 +133,13 @@ public class ChildContainer extends Container {
 	}
 
 	@Override
-	public String executeCommand(String command) {
-		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+	public List<String> executeCommands(String... commands) {
+		return getExecutor().executeCommands(commands);
 	}
 
 	@Override
-	public List<String> executeCommands(String... commands) {
-		return getExecutor().executeCommands(commands);
+	public List<String> executeNodeCommands(String... commands) {
+		return super.getParent().executeNodeCommands(commands);
 	}
 
 	@Override

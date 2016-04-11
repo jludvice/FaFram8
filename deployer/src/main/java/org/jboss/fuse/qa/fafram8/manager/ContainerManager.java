@@ -41,6 +41,8 @@ public class ContainerManager {
 	//List of all brokers in cluster
 	private static List<Broker> brokers = null;
 
+	private static List<String> ensembleList = null;
+
 	/**
 	 * Constructor.
 	 */
@@ -59,6 +61,7 @@ public class ContainerManager {
 			bundles = new ArrayList<>();
 			commands = new ArrayList<>();
 			brokers = new ArrayList<>();
+			ensembleList = new ArrayList<>();
 		}
 
 		return instance;
@@ -98,6 +101,17 @@ public class ContainerManager {
 	}
 
 	/**
+	 * Gets the ensemble list.
+	 *
+	 * @return list of container names
+	 */
+	public static List<String> getEnsembleList() {
+		// Force the initialization
+		getInstance();
+		return ensembleList;
+	}
+
+	/**
 	 * Gets the container by its name.
 	 *
 	 * @param name container name
@@ -124,7 +138,7 @@ public class ContainerManager {
 			}
 		}
 		// This should never happen
-		return null;
+		throw new FaframException("Root not found in container list!");
 	}
 
 	/**
@@ -155,6 +169,9 @@ public class ContainerManager {
 		}
 		for (int i = brokers.size() - 1; i >= 0; i--) {
 			brokers.remove(i);
+		}
+		for (int i = ensembleList.size() - 1; i >= 0; i--) {
+			ensembleList.remove(i);
 		}
 
 		log.debug("Container manager lists cleared");
@@ -275,7 +292,7 @@ public class ContainerManager {
 	 */
 	private static void createRootIfNecessary() {
 		if (ContainerManager.getContainerList().isEmpty()) {
-			final Container c = RootContainer.builder().defaultRoot().commands(getCommands().toArray(new String[0])).build();
+			final Container c = RootContainer.builder().defaultRoot().commands(getCommands().toArray(new String[getCommands().size()])).build();
 			log.info("Creating default root container");
 			ContainerManager.getContainerList().add(c);
 		}
@@ -346,6 +363,9 @@ public class ContainerManager {
 	 * All needed commands are put into commands and particular broker-profiles are assigned.
 	 */
 	public static void initBrokers() {
+		if (brokers.isEmpty()) {
+			return;
+		}
 		//Find the root
 		final Container root = getRoot();
 
@@ -355,6 +375,9 @@ public class ContainerManager {
 			// assign profiles to all commands
 			for (String containerName : b.getContainers()) {
 				final Container c = getContainer(containerName);
+				if (c == null) {
+					throw new FaframException("Container " + containerName + " not found!");
+				}
 				c.getProfiles().add(b.getProfileName());
 			}
 		}
@@ -370,6 +393,9 @@ public class ContainerManager {
 		final Container root = getRoot();
 
 		for (Broker b : brokers) {
+			if (b == null) {
+				continue;
+			}
 			b.setAssignContainer(true);
 			//execute all necessery commands
 			final List<String> createCommands = b.getCreateCommands();
@@ -377,11 +403,41 @@ public class ContainerManager {
 			// assign profiles to all commands
 			for (String containerName : b.getContainers()) {
 				final Container c = getContainer(containerName);
+				if (c == null) {
+					throw new FaframException("Container " + containerName + " not found!");
+				}
 				c.getProfiles().add(b.getProfileName());
 				//wait for provision
 				c.waitForProvisioning();
 			}
 		}
+	}
+
+	/**
+	 * Creates an ensemble - it gets the first root container from the ensemble list and executes ensemble-add command on it.
+	 */
+	public static void createEnsemble() {
+		if (ensembleList.isEmpty()) {
+			return;
+		}
+		Container ensembleRoot = null;
+		final StringBuilder ensembleString = new StringBuilder("");
+		for (String s : ensembleList) {
+			final Container c = getContainer(s);
+			if (c == null) {
+				throw new FaframException("Container " + s + " not found in container list");
+			}
+			if (c.isRoot() && ensembleRoot == null) {
+				ensembleRoot = c;
+			} else {
+				ensembleString.append(s).append(" ");
+			}
+		}
+		if (ensembleRoot == null) {
+			throw new FaframException("No root container found in the ensemble list!");
+		}
+
+		ensembleRoot.executeCommand("ensemble-add --force " + ensembleString.toString());
 	}
 }
 

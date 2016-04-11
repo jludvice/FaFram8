@@ -201,7 +201,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return command response
 	 */
 	public String executeNodeCommand(String command) {
-		return executeCommands(command).get(0);
+		return executeNodeCommands(command).get(0);
 	}
 
 	/**

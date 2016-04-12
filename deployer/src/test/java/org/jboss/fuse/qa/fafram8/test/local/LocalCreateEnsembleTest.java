@@ -11,6 +11,7 @@ import org.junit.After;
 import org.junit.Test;
 
 /**
+ * Test if ensemble can be created in rule / in test.
  * Created by avano on 11.4.16.
  */
 public class LocalCreateEnsembleTest {
@@ -19,7 +20,7 @@ public class LocalCreateEnsembleTest {
 	private final Container child1 = ChildContainer.builder().name("child1").parent(root).build();
 	private final Container child2 = ChildContainer.builder().name("child2").parent(root).build();
 
-//	@Test
+	@Test
 	public void ruleEnsembleTest() {
 		fafram = new Fafram().ensemble(root, child1, child2).containers(child1, child2, root).setup();
 		root.waitForProvisioning();

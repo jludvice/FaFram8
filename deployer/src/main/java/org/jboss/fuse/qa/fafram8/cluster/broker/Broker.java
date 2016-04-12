@@ -178,7 +178,7 @@ public class Broker {
 	 * @return proper value.
 	 */
 	private String mqServerPidModification(String key, String value) {
-		return "io.fabric8.mq.fabric.server-" + name + "/" + key + "=" + value + " ";
+		return "--pid io.fabric8.mq.fabric.server-" + name + "/" + key + "=" + value + " ";
 	}
 
 	/**

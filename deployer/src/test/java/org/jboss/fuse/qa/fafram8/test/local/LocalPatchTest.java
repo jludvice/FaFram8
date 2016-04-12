@@ -8,6 +8,7 @@ import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by avano on 2.9.15.
  */
 @Slf4j
+@Ignore
 public class LocalPatchTest {
 	private Fafram fafram;
 

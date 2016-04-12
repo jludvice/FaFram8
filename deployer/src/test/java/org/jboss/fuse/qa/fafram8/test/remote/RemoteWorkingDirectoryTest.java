@@ -42,9 +42,9 @@ public class RemoteWorkingDirectoryTest {
 	public static Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).containers(root, root2, ssh);
 
 	@Test
-	public void testWorkingDirecotory() throws Exception {
+	public void testWorkingDirectory() throws Exception {
 		assertTrue(root.getFusePath().contains(DIR));
-		assertTrue(ssh.executeCommand("exec ps aux | grep karaf.base").contains(DIR));
+		assertTrue(ssh.executeNodeCommand("ps aux | grep karaf.base").contains(DIR));
 
 		assertTrue(root2.getFusePath().contains("/home/fuse"));
 		assertFalse(root2.getFusePath().contains(DIR));
@@ -55,7 +55,7 @@ public class RemoteWorkingDirectoryTest {
 		final String sshDir = "/home/fuse/ssh/test/folder";
 		final Container ssh2 = SshContainer.builder().name("working-dir-ssh2").parent(root).node(ssh.getNode()).directory(sshDir).build();
 		ssh2.create();
-		assertTrue(ssh2.executeCommand("exec ps aux | grep karaf.base").contains(sshDir));
+		assertTrue(ssh2.executeNodeCommand("ps aux | grep karaf.base").contains(sshDir));
 	}
 
 	@AfterClass

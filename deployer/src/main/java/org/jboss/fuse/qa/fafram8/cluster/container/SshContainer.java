@@ -72,7 +72,6 @@ public class SshContainer extends Container {
 
 		// If using static provider then clean
 		if ("StaticProvider".equals(SystemProperty.getProvider())) {
-
 			clean();
 		}
 
@@ -93,6 +92,9 @@ public class SshContainer extends Container {
 				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), properties, super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
+		super.setExecutor(super.createExecutor());
+		super.getExecutor().connect();
+		super.getNode().getExecutor().connect();
 		super.setOnline(true);
 	}
 
@@ -129,22 +131,17 @@ public class SshContainer extends Container {
 
 	@Override
 	public void kill() {
-		if ("StaticProvider".equals(SystemProperty.getProvider())) {
-			super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
-		} else {
-			super.getParent().getNode().getExecutor().executeCommand("ssh -o StrictHostKeyChecking=no " + super.getNode().getUsername() + "@"
-					+ super.getNode().getHost() + " pkill -9 -f " + super.getName());
-		}
-	}
-
-	@Override
-	public String executeCommand(String command) {
-		return getExecutor().executeCommand("container-connect " + super.getName() + " " + command);
+		super.getNode().getExecutor().executeCommand("pkill -9 -f " + super.getName());
 	}
 
 	@Override
 	public List<String> executeCommands(String... commands) {
-		return getExecutor().executeCommands(commands);
+		return super.getExecutor().executeCommands(commands);
+	}
+
+	@Override
+	public List<String> executeNodeCommands(String... commands) {
+		return super.getNode().getExecutor().executeCommands(commands);
 	}
 
 	@Override

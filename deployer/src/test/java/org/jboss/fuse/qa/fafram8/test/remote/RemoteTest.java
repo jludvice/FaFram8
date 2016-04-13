@@ -33,7 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteCurl.class,
 		RemoteBundleUpload.class,
 		RemoteSetJdk.class,
-		RemoteKillingContainers.class
+		RemoteKillingContainers.class,
+		RemoteExecuteNodeCommand.class
 })
 @Slf4j
 public final class RemoteTest {

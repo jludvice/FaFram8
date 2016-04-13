@@ -46,7 +46,7 @@ public class BrokerTest {
 
 	@After
 	public void killContainers() {
-		ArrayList<Container> containers = new ArrayList<Container>();
+		final ArrayList<Container> containers = new ArrayList<Container>();
 		for (Container c : fafram.getContainerList()) {
 			if (!c.isRoot()) {
 				c.destroy();
@@ -97,8 +97,6 @@ public class BrokerTest {
 						Broker.builder(bTemplate).name("mesh1").containers("mesh1").build(),
 						Broker.builder(bTemplate).name("mesh2").containers("mesh2").build(),
 						Broker.builder(bTemplate).name("mesh3").containers("mesh3").build());
-
-		String result = fafram.getContainer("mesh1").executeCommand("bstat");
 
 		assertTrue(fafram.getContainer("mesh1").executeCommand("bstat").contains("mesh1"));
 		assertTrue(fafram.getContainer("mesh2").executeCommand("bstat").contains("mesh2"));

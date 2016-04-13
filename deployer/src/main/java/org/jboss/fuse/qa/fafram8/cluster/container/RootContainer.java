@@ -202,13 +202,18 @@ public class RootContainer extends Container {
 	}
 
 	@Override
-	public String executeCommand(String command) {
-		return super.getExecutor().executeCommand(command);
+	public List<String> executeCommands(String... commands) {
+		return super.getExecutor().executeCommands(commands);
 	}
 
 	@Override
-	public List<String> executeCommands(String... commands) {
-		return super.getExecutor().executeCommands(commands);
+	public List<String> executeNodeCommands(String... commands) {
+		if ("localhost".equals(super.getNode().getHost())) {
+			log.error("Execute node command is not supported on localhost");
+			return null;
+		}
+
+		return super.getNode().getExecutor().executeCommands(commands);
 	}
 
 	/**

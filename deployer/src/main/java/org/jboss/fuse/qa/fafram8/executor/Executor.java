@@ -121,7 +121,7 @@ public class Executor {
 			try {
 				client.connect(true);
 				connected = true;
-				log.info("Connected to remote SSH server");
+				log.info("Connected to SSH server");
 			} catch (VerifyFalseException ex) {
 				log.debug("Remaining time: " + (SystemProperty.getStartWaitTime() - elapsed) + " seconds. ");
 				elapsed += step;
@@ -397,7 +397,7 @@ public class Executor {
 			}
 
 			// If we are waiting for certain provision status and status is either error/success(opposite to wanted status) then terminate waitForProvision with exception
-			log.trace("Status: {} , ProvisionStatus: {}", status, provisionStatus);
+			log.trace("Waiting for: {} , current provision status: {}", status, provisionStatus);
 			if (!status.equals(provisionStatus) && (provisionStatus.contains("error") || provisionStatus.contains("success"))) {
 				log.error("Container {} did not provision to state \"{}\" but ended in state: \"{}\"", waitFor, status, provisionStatus);
 				throw new FaframException("Container " + waitFor + " failed to provision to state \"" + status + "\"  and ended in provision status \"" + provisionStatus + "\"");

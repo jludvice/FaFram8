@@ -49,4 +49,29 @@ public class ServerInvokerPool {
 		}
 		log.debug("ServerInvokerPool done.");
 	}
+
+	/**
+	 * Calling this method will spawn thread workers to create OpenStack nodes in parallel.
+	 *
+	 * @param machineNames list of machines names that should be spawned
+	 */
+	public void spawnServersByNames(List<String> machineNames) {
+		log.debug("Initializing ServerInvokerPool.");
+		final ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
+		for (String name : machineNames) {
+			log.trace("Spawning invoker thread for container: " + name);
+			final Runnable serverInvoker = new ServerInvoker(name);
+			executor.execute(serverInvoker);
+		}
+		executor.shutdown();
+		log.trace("Waiting for ServerInvoker threads to finish a job.");
+		try {
+			while (!executor.awaitTermination(LOG_WAIT_TIME, TimeUnit.SECONDS)) {
+				log.trace("Waiting for ServerInvoker threads to finish a job.");
+			}
+		} catch (InterruptedException ie) {
+			throw new InvokerPoolInterruptedException(ie.getMessage());
+		}
+		log.debug("ServerInvokerPool done.");
+	}
 }

@@ -16,7 +16,6 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.provision.openstack.OpenStackClient;
 import org.jboss.fuse.qa.fafram8.provision.openstack.ServerInvokerPool;
 import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
-import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.compute.FloatingIP;
@@ -111,19 +110,10 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			removeServerFromPool(server);
 		}
 
-		final Executor executor = createExecutor(containerList);
-		try {
-			// This will wait for startup of server for container
-			executor.connect();
-		} catch (FaframException ex) {
-			throw new FaframException("Connection couldn't be established after " + SystemProperty.getStartWaitTime()
-					+ " seconds to " + executor.getClient().getHost());
-		}
-
 		for (Container container : containerList) {
 			// Iterate over all container and try to connect to them (exclude child containers)
 			if (!(container instanceof ChildContainer)) {
-				canConnect(executor, container);
+				container.getNode().getExecutor().connect();
 			}
 		}
 		//TODO(ecervena): add ip assigment control
@@ -321,30 +311,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	}
 
 	/**
-	 * Creates executor to node with root container. Node of the root container has always assigned public IP.
-	 *
-	 * @param containerList list of containers
-	 * @return connected executor
-	 */
-	private Executor createExecutor(List<Container> containerList) {
-		Node rootNode = null;
-		for (Container c : containerList) {
-			if (c.isRoot()) {
-				rootNode = c.getNode();
-				break;
-			}
-		}
-
-		if (rootNode == null) {
-			throw new FaframException("There was no root container in container list when loading IP tables!");
-		}
-
-		final SSHClient sshClient =
-				new NodeSSHClient().defaultSSHPort().host(rootNode.getHost()).username(rootNode.getUsername()).password(rootNode.getPassword());
-		return new Executor(sshClient);
-	}
-
-	/**
 	 * Sets correct path and name to iptables configuration file depending on the type of environment.
 	 *
 	 * @param executor connected executor to root node
@@ -396,49 +362,6 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			log.debug("Iptables successfully configured on node {}.", container.getNode().getExecutor());
 		} catch (Exception e) {
 			throw new FaframException("There was problem setting iptables on node: " + container.getNode().getHost(), e);
-		}
-	}
-
-	/**
-	 * Tries to connect specified container's server and check if SSH server is online. Connection is tried through
-	 * root container's machine because servers that are intended for SSH containers don't have public IP addresses.
-	 * This complicates using SSH client for connecting to these machines.
-	 *
-	 * @param executor executor for machine that will contain root container
-	 * @param container that is tested for running SSH
-	 */
-	private void canConnect(Executor executor, Container container) {
-		log.debug("Testing connection to: " + container.getNode().getHost());
-		Boolean connected = false;
-		final int step = 10;
-		int elapsed = 0;
-		final long timeout = step * 1000L;
-
-		log.debug("Waiting for SSH connection ...");
-		final String preCommand =
-				"ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " + container.getNode().getUsername() + "@" + container.getNode().getHost() + " ";
-		while (!connected) {
-			// Check if the time is up
-			if (elapsed > SystemProperty.getProvisionWaitTime()) {
-				log.error("Connection couldn't be established after " + SystemProperty.getProvisionWaitTime() + " seconds to container with name "
-						+ "\"" + container.getName() + "\" with IP " + container.getNode().getHost());
-				throw new FaframException(
-						"Connection couldn't be established after " + SystemProperty.getProvisionWaitTime() + " seconds to container with name \""
-								+ container.getName() + "\" with IP " + container.getNode().getHost());
-			}
-
-			String response = executor.executeCommand(preCommand + "echo Connected");
-			if ("Connected".equals(response)) {
-				response = executor.executeCommand("echo $?");
-				if ("0".equals(response)) {
-					connected = true;
-					log.trace("Connected to remote SSH server {}", container.getNode().getHost());
-					continue;
-				}
-			}
-			log.debug("Remaining time: " + (SystemProperty.getProvisionWaitTime() - elapsed) + " seconds. ");
-			elapsed += step;
-			sleep(timeout);
 		}
 	}
 

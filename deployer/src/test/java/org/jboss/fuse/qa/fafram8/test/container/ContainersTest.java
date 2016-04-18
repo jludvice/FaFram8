@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
@@ -17,13 +18,13 @@ import org.junit.Test;
 public class ContainersTest {
 	@Rule
 	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).fuseZip(FaframTestBase.CURRENT_URL).containers(
-			RootContainer.builder().defaultRoot().name("test-root").build()
+			RootContainer.builder().defaultRoot().withFabric().name("test-root").build()
 	);
 
 	@Test
 	public void addContainerInTestTest() {
-		final Container root2 = RootContainer.builder().name("root2").build();
-		fafram.containers(root2);
-		assertEquals("Root2 response", "1", root2.executeCommand("echo 1"));
+		final Container ssh = SshContainer.builder().name("test-ssh").parentName("test-root").build();
+		fafram.containers(ssh);
+		assertEquals("SSH response", "1", ssh.executeCommand("echo 1"));
 	}
 }

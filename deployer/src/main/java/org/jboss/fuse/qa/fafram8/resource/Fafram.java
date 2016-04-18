@@ -770,6 +770,10 @@ public class Fafram extends ExternalResource {
 			}
 		}
 
+		// Do not allow provisioning on empty container list
+		if (temp.isEmpty()) {
+			return;
+		}
 		// Check if there are nodes with the defined names
 		provisionProvider.checkNodes(temp);
 		provisionProvider.createServerPool(temp);

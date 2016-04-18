@@ -49,8 +49,7 @@ public class RemoteTurnOffInternetTest {
 		String response = root.getNode().getExecutor().executeCommand("curl -vs google.com 2>&1");
 		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 
-		response = root.getNode().getExecutor().executeCommand(
-				"ssh fuse@" + ssh.getNode().getHost() + " curl -vs google.com 2>&1");
+		response = ssh.executeNodeCommand("curl -vs google.com 2>&1");
 		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 	}
 }

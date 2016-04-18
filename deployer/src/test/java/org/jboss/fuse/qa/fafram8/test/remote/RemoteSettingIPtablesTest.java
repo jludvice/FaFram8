@@ -46,7 +46,7 @@ public class RemoteSettingIPtablesTest {
 		String response = root.getNode().getExecutor().executeCommand("sudo iptables -L -n");
 		assertTrue(response.contains("ACCEPT     icmp --  0.0.0.0/0") && response.contains("state NEW tcp dpt:22"));
 
-		response = root.getNode().getExecutor().executeCommand("ssh fuse@" + ssh.getNode().getHost() + " sudo iptables -L -n");
+		response = ssh.executeNodeCommand("sudo iptables -L -n");
 		assertTrue(response.contains("ACCEPT     icmp --  0.0.0.0/0") && response.contains("state NEW tcp dpt:22"));
 	}
 }

@@ -18,12 +18,12 @@ import org.junit.Test;
 public class ContainersTest {
 	@Rule
 	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).fuseZip(FaframTestBase.CURRENT_URL).containers(
-			RootContainer.builder().defaultRoot().withFabric().name("test-root").build()
+			RootContainer.builder().defaultRoot().withFabric().name("cintest-root").build()
 	);
 
 	@Test
 	public void addContainerInTestTest() {
-		final Container ssh = SshContainer.builder().name("test-ssh").parentName("test-root").build();
+		final Container ssh = SshContainer.builder().name("test-ssh").parentName("cintest-root").build();
 		fafram.containers(ssh);
 		assertEquals("SSH response", "1", ssh.executeCommand("echo 1"));
 	}

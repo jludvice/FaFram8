@@ -1,7 +1,15 @@
 package org.jboss.fuse.qa.fafram8.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.apache.commons.io.FileUtils;
+
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Command history singleton. Holds the executed commands and responses and it is able to dump all the data into a file.
@@ -9,7 +17,8 @@ import java.util.Map;
  */
 public class CommandHistory {
 	private static CommandHistory instance = null;
-	private static Map<String, String> history = null;
+	private static File file = null;
+	private static SimpleDateFormat dateFormat = null;
 
 	/**
 	 * Constructor.
@@ -25,53 +34,33 @@ public class CommandHistory {
 	public static CommandHistory getInstance() {
 		if (instance == null) {
 			instance = new CommandHistory();
-			history = new LinkedHashMap<>();
+			dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+			file = new File(Paths.get(SystemProperty.getArchiveTarget(), dateFormat.format(new Date()) + ".txt").toAbsolutePath().toString());
 		}
 
 		return instance;
 	}
 
 	/**
-	 * Adds the cmd-response pair to the map.
-	 *
-	 * @param cmd command
-	 * @param res response
+	 * Logs the command and it's response into a file.
 	 */
-	public static void add(String cmd, String res) {
+	public static void log(String cmd, String response) {
 		// Force initialization
 		CommandHistory.getInstance();
 
-		history.put(cmd, res);
-	}
-
-	/**
-	 * Cleans the map.
-	 */
-	public static void clean() {
-		history.clear();
-	}
-
-	/**
-	 * Dumps the command-response values into a string.
-	 *
-	 * @return command-response values in string
-	 */
-	public static String dumpCommands() {
-		// Force initialization
-		CommandHistory.getInstance();
-
-		final StringBuilder sb = new StringBuilder();
-		for (String key : history.keySet()) {
-			sb.append("Command:  ");
-			sb.append(key);
-			sb.append("\n");
-			sb.append("Response: ");
-			sb.append(history.get(key));
-			sb.append("\n");
-			sb.append("---------------------------------------------------------------");
-			sb.append("\n");
+		final StringBuilder builder = new StringBuilder();
+		builder.append(dateFormat.format(new Date()))
+				.append("\n")
+				.append(cmd)
+				.append("\n")
+				.append(response)
+				.append("\n")
+				.append("------------------------------------------------------------------")
+				.append("\n");
+		try {
+			FileUtils.write(file, builder.toString());
+		} catch (IOException e) {
+			throw new FaframException(e);
 		}
-
-		return sb.toString();
 	}
 }

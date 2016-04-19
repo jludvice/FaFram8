@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by avano on 2.9.15.
  */
 @Slf4j
-@Ignore
+@Ignore("Patching won't be probably necessary and it was not touched since it was implemented")
 public class LocalPatchTest {
 	private Fafram fafram;
 

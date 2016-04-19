@@ -22,7 +22,7 @@ public class RemoteCurl {
 
 	@Before
 	public void init() {
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_HTTP_URL);
 	}
 
 	@Test

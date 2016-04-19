@@ -6,13 +6,11 @@ import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
-import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -28,7 +26,7 @@ public class OpenstackXmlProvisionTest {
 	@BeforeClass
 	public static void init() {
 		System.setProperty(FaframConstant.KEEP_OS_RESOURCES, "false");
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_URL);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_HTTP_URL);
 	}
 
 	@AfterClass

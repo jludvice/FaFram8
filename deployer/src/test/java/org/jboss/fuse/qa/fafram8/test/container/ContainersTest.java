@@ -17,7 +17,7 @@ import org.junit.Test;
  */
 public class ContainersTest {
 	@Rule
-	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).fuseZip(FaframTestBase.CURRENT_URL).containers(
+	public Fafram fafram = new Fafram().provider(FaframProvider.OPENSTACK).fuseZip(FaframTestBase.CURRENT_HTTP_URL).containers(
 			RootContainer.builder().defaultRoot().withFabric().name("cintest-root").build()
 	);
 

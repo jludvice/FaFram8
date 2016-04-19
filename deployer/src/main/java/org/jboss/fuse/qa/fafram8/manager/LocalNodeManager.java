@@ -185,13 +185,6 @@ public class LocalNodeManager implements NodeManager {
 			cleanChildContainers();
 			stop(ignoreExceptions);
 			deleteTargetDir(ignoreExceptions);
-			if (windows) {
-				try {
-					Runtime.getRuntime().exec("taskkill /f /im cmd.exe");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
 		} else {
 			// If the instance is not running - if the 8181 port is occupied or we suppress start
 			if (SystemProperty.suppressStart()) { // If there are some files

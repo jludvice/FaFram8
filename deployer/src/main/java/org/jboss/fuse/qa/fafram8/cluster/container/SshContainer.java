@@ -96,6 +96,8 @@ public class SshContainer extends Container {
 		super.getExecutor().connect();
 		super.getNode().getExecutor().connect();
 		super.setOnline(true);
+		// Set the fuse path
+		super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
 	}
 
 	@Override

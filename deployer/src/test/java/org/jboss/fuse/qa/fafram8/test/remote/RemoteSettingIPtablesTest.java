@@ -12,6 +12,7 @@ import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -33,7 +34,7 @@ public class RemoteSettingIPtablesTest {
 
 	@BeforeClass
 	public static void before() {
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:/home/fuse/storage/fuse/jboss-fuse-full-6.2.1.redhat-084.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 	}
 
 	@After
@@ -46,7 +47,7 @@ public class RemoteSettingIPtablesTest {
 		String response = root.getNode().getExecutor().executeCommand("sudo iptables -L -n");
 		assertTrue(response.contains("ACCEPT     icmp --  0.0.0.0/0") && response.contains("state NEW tcp dpt:22"));
 
-		response = root.getNode().getExecutor().executeCommand("ssh fuse@" + ssh.getNode().getHost() + " sudo iptables -L -n");
+		response = ssh.executeNodeCommand("sudo iptables -L -n");
 		assertTrue(response.contains("ACCEPT     icmp --  0.0.0.0/0") && response.contains("state NEW tcp dpt:22"));
 	}
 }

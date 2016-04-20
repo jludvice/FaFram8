@@ -12,6 +12,7 @@ import org.jboss.fuse.qa.fafram8.exceptions.VerifyFalseException;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,7 +37,7 @@ public class RemoteTurnOffInternetTest {
 
 	@BeforeClass
 	public static void before() {
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:/home/fuse/storage/fuse/jboss-fuse-full-6.2.1.redhat-084.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 	}
 
 	@AfterClass
@@ -49,8 +50,7 @@ public class RemoteTurnOffInternetTest {
 		String response = root.getNode().getExecutor().executeCommand("curl -vs google.com 2>&1");
 		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 
-		response = root.getNode().getExecutor().executeCommand(
-				"ssh fuse@" + ssh.getNode().getHost() + " curl -vs google.com 2>&1");
+		response = ssh.executeNodeCommand("curl -vs google.com 2>&1");
 		assertTrue(response.contains("Failed to connect") && response.contains("Network is unreachable"));
 	}
 }

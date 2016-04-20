@@ -6,11 +6,9 @@ import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
-import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
-import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -25,7 +23,7 @@ public class RemoteExecuteNodeCommand {
 	private Container ssh = SshContainer.builder().name("build-excommand-container").parent(root).build();
 
 	@Rule
-	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_URL).provider(FaframProvider.OPENSTACK).containers(root, ssh);
+	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_HTTP_URL).provider(FaframProvider.OPENSTACK).containers(root, ssh);
 
 	@Test
 	public void executeNodeCommandTest() throws Exception {

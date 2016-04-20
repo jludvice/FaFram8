@@ -10,6 +10,7 @@ import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -39,7 +40,7 @@ public class RemoteSettingJvmOptsTest {
 
 	@BeforeClass
 	public static void before() {
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:/home/fuse/storage/fuse/jboss-fuse-full-6.2.1.redhat-084.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 	}
 
 	@After

@@ -111,6 +111,7 @@ public class RootContainer extends Container {
 			nodeManager.detectPlatformAndProduct();
 			nodeManager.prepareZip();
 			nodeManager.unzipArtifact(this);
+			super.setCreated(true);
 			nodeManager.prepareFuse(super.getNode().getHost());
 			if (!SystemProperty.suppressStart()) {
 				nodeManager.startFuse();
@@ -120,7 +121,6 @@ public class RootContainer extends Container {
 				ContainerManager.patchFuse(this);
 				ContainerManager.executeStartupCommands(this);
 				super.setOnline(true);
-				super.setCreated(true);
 			}
 		} catch (FaframException ex) {
 			ex.printStackTrace();

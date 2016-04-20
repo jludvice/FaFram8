@@ -58,7 +58,7 @@ public class Executor {
 		try {
 			final String response = client.executeCommand(cmd, false);
 			log.trace("Response: " + response);
-			CommandHistory.add(cmd, response);
+			CommandHistory.log(cmd, response);
 			return response;
 		} catch (KarafSessionDownException e) {
 			log.error("Karaf session is down!");

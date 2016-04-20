@@ -10,6 +10,7 @@ import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.AfterClass;
 import org.junit.ClassRule;
@@ -27,7 +28,7 @@ public class RemoteWorkingDirectoryTest {
 	private static final String DIR = "/home/fuse/bin";
 
 	static {
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:/home/fuse/storage/fuse/jboss-fuse-full-6.2.1.redhat-084.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 		System.setProperty(FaframConstant.WORKING_DIRECTORY, DIR);
 	}
 

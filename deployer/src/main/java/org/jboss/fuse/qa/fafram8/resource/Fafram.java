@@ -1,7 +1,6 @@
 package org.jboss.fuse.qa.fafram8.resource;
 
 import static org.jboss.fuse.qa.fafram8.modifier.impl.ArchiveModifier.registerArchiver;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.CommandHistoryModifier.saveCommandHistory;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.FileModifier.moveFile;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JavaHomeModifier.setJavaHome;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setDefaultJvmMemOpts;
@@ -664,7 +663,6 @@ public class Fafram extends ExternalResource {
 		}
 
 		ModifierExecutor.addPostModifiers(
-				saveCommandHistory(),
 				registerArchiver()
 		);
 	}

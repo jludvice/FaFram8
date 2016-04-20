@@ -95,6 +95,8 @@ public class ChildContainer extends Container {
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
+		// Set the fuse path
+		super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
 	}
 
 	@Override

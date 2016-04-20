@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
-import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
@@ -24,7 +23,7 @@ public class TwoRootsTest {
 	private Container root1 = RootContainer.builder(TEMPLATE).name("tworoots1").commands("profile-create root1").build();
 	private Container root2 = RootContainer.builder(TEMPLATE).name("tworoots2").profiles("gateway-http").build();
 	@Rule
-	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_URL).provider(FaframProvider.OPENSTACK)
+	public Fafram fafram = new Fafram().fuseZip(FaframTestBase.CURRENT_HTTP_URL).provider(FaframProvider.OPENSTACK)
 			.containers(root1, root2);
 
 	@Test

@@ -2,15 +2,17 @@ package org.jboss.fuse.qa.fafram8.test.remote;
 
 import static org.junit.Assert.assertTrue;
 
+import org.apache.commons.lang.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
-import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.property.Openstack;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
+import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -26,17 +28,17 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteOpenstackSetJdkTest {
-	private final Container root = RootContainer.builder().name("test-jdk-root").withFabric().build();
-	private final Container ssh = SshContainer.builder().name("test-jdk-ssh").parent(root).build();
-	private final Container rootChild = ChildContainer.builder().name("test-jdk-child").parent(root).build();
-	private final Container sshChild = ChildContainer.builder().name("test-jdk-ssh-child").parent(ssh).build();
+	private final Container root = RootContainer.builder().name("root-jdk-test").withFabric().build();
+	private final Container ssh = SshContainer.builder().name("ssh-jdk-test").parent(root).build();
+	private final Container rootChild = ChildContainer.builder().name("root-child-jdk-test").parent(root).build();
+	private final Container sshChild = ChildContainer.builder().name("ssh-child-jdk-test").parent(ssh).build();
 
 	@Rule
 	public Fafram fafram = new Fafram().withFabric().provider(FaframProvider.OPENSTACK).containers(root, ssh, rootChild, sshChild).jdk(Openstack.JDK8);
 
 	@BeforeClass
 	public static void before() {
-		System.setProperty(FaframConstant.FUSE_ZIP, "file:/home/fuse/storage/fuse/jboss-fuse-full-6.2.1.redhat-084.zip");
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 	}
 
 	@After
@@ -46,14 +48,15 @@ public class RemoteOpenstackSetJdkTest {
 
 	@Test
 	public void testSettingJavaHomeForSshContainer() throws Exception {
-		log.debug(ssh.executeCommand("exec ps aux | grep " + ssh.getName()));
-		log.debug(sshChild.executeCommand("exec ps aux | grep " + sshChild.getName()));
+		log.debug(ssh.executeNodeCommand("ps aux | grep " + ssh.getName()));
+		log.debug(sshChild.executeNodeCommand("ps aux | grep " + sshChild.getName()));
 		log.debug(fafram.executeNodeCommand("ps aux | grep " + root.getName()));
 		log.debug(fafram.executeNodeCommand("ps aux | grep " + rootChild.getName()));
 
 		assertTrue(ssh.executeNodeCommand("ps aux | grep " + ssh.getName()).contains(Openstack.JDK8.getPath()));
 		assertTrue(sshChild.executeNodeCommand("ps aux | grep " + sshChild.getName()).contains(Openstack.JDK8.getPath()));
-		assertTrue(fafram.executeNodeCommand("ps aux | grep " + root.getName()).contains(Openstack.JDK8.getPath()));
+		assertTrue(fafram.executeNodeCommand("ps aux | grep \"karaf.base=" + StringUtils.removeEnd(root.getFusePath(), "/") + "\"")
+				.contains(Openstack.JDK8.getPath()));
 		assertTrue(fafram.executeNodeCommand("ps aux | grep " + rootChild.getName()).contains(Openstack.JDK8.getPath()));
 	}
 }

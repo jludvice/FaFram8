@@ -4,10 +4,17 @@ package org.jboss.fuse.qa.fafram8.test.base;
  * Fafram test base class. This class has common constants/methods useful for all the tests.
  * Created by avano on 5.1.16.
  */
-public class FaframTestBase {
-	public static final String CURRENT_URL = "http://download.eng.rdu2.redhat.com/brewroot/repos/jb-fuse-6.2-build/" +
-			"latest/maven/org/jboss/fuse/jboss-fuse-full/" + System.getProperty("fuse.version") + "/jboss-fuse-full-"
+public final class FaframTestBase {
+	public static final String CURRENT_HTTP_URL = "http://download.eng.rdu2.redhat.com/brewroot/repos/jb-fuse-6.2-build/"
+			+ "latest/maven/org/jboss/fuse/jboss-fuse-full/" + System.getProperty("fuse.version") + "/jboss-fuse-full-"
 			+ System.getProperty("fuse.version") + ".zip";
+	public static final String CURRENT_LOCAL_URL = "file:/mnt/fuseqe-shared/fuse/jboss-fuse-full-6.2.1.redhat-084.zip";
+
+	/**
+	 * Constructor.
+	 */
+	private FaframTestBase() {
+	}
 
 	/**
 	 * Returns the url to the specified version.

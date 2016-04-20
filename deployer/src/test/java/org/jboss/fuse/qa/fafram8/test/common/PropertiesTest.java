@@ -29,7 +29,7 @@ public class PropertiesTest {
 		assertEquals("Property", "myPrefix",
 				SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX));
 		// Default property
-		assertEquals("Property", "ecervena", SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR));
+		assertEquals("Property", "fuseqe-lab", SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR));
 	}
 
 	@AfterClass

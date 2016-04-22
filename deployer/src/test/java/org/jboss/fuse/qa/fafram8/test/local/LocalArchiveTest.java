@@ -26,11 +26,16 @@ public class LocalArchiveTest {
 	public void testA() {
 		final Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
 		final String baseDir = SystemProperty.getBaseDir();
-		final String dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir);
+		final String dirStructure;
+		if (System.getenv("WORKSPACE") != null) {
+			final String[] path = fafram.getProductPath().split(File.separator);
+			dirStructure = path[path.length - 2] + File.separator + path[path.length - 1];
+		} else {
+			dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir + "/target");
+		}
 		fafram.tearDown();
 		if (System.getenv("WORKSPACE") != null) {
-			firstTestPath = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc",
-					"users.properties").toAbsolutePath().toString();
+			firstTestPath = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc", "users.properties").toAbsolutePath().toString();
 		} else {
 			firstTestPath = Paths.get(baseDir, "target", "archived", dirStructure, "etc", "users.properties").toAbsolutePath().toString();
 		}
@@ -41,12 +46,17 @@ public class LocalArchiveTest {
 	public void testB() {
 		final Fafram fafram = new Fafram().suppressStart().archive("etc/users.properties").setup();
 		final String baseDir = SystemProperty.getBaseDir();
-		final String dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir);
+		final String dirStructure;
+		if (System.getenv("WORKSPACE") != null) {
+			final String[] path = fafram.getProductPath().split(File.separator);
+			dirStructure = path[path.length - 2] + File.separator + path[path.length - 1];
+		} else {
+			dirStructure = StringUtils.substringAfter(fafram.getProductPath(), baseDir + "/target");
+		}
 		fafram.tearDown();
 		final String path;
 		if (System.getenv("WORKSPACE") != null) {
-			path = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc",
-					"users.properties").toAbsolutePath().toString();
+			path = Paths.get(baseDir, "deployer/target/archived", dirStructure, "etc", "users.properties").toAbsolutePath().toString();
 		} else {
 			path = Paths.get(baseDir, "target", "archived", dirStructure, "etc", "users.properties").toAbsolutePath().toString();
 		}

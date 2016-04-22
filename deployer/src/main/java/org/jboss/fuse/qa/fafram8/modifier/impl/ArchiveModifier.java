@@ -7,6 +7,7 @@ import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,9 +65,7 @@ public class ArchiveModifier extends Modifier {
 				final Path p = Paths.get(ModifierExecutor.getContainer().getFusePath(), fileName);
 				log.debug("Archiving file {}", fileName);
 				//create target directory structure
-				final Path target = Paths.get(archiveTargetPath.toString(), StringUtils.substringBetween(
-						Paths.get(ModifierExecutor.getContainer().getFusePath(), fileName).toAbsolutePath().toString(), SystemProperty.getBaseDir(), fileName),
-						fileName).toAbsolutePath();
+				final Path target = getTargetPath(fileName);
 				Files.createDirectories(target.getParent());
 				// for instance copy
 				// from: $FUSE_HOME/data/log/fuse.log
@@ -93,5 +92,25 @@ public class ArchiveModifier extends Modifier {
 	 */
 	public static ArchiveModifier registerArchiver() {
 		return new ArchiveModifier();
+	}
+
+	/**
+	 * Constructs the path to the target file path.
+	 * @param fileName file name to use
+	 * @return absolute target path
+	 */
+	private Path getTargetPath(String fileName) {
+		if (System.getenv("WORKSPACE") == null) {
+			return Paths.get(archiveTargetPath.toString(), StringUtils.substringBetween(
+					Paths.get(ModifierExecutor.getContainer().getFusePath(), fileName).toAbsolutePath().toString(),
+					Paths.get(SystemProperty.getBaseDir(), "target").toAbsolutePath().toString(),
+					fileName),
+					fileName).toAbsolutePath();
+		} else {
+			// Jenkins env
+			final String[] path = Paths.get(ModifierExecutor.getContainer().getFusePath()).toAbsolutePath().toString().split(File.separator);
+			final String folder = path[path.length - 2] + File.separator + path[path.length - 1];
+			return Paths.get(archiveTargetPath.toString(), folder, fileName).toAbsolutePath();
+		}
 	}
 }

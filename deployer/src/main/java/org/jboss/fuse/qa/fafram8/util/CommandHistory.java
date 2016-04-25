@@ -43,6 +43,9 @@ public class CommandHistory {
 
 	/**
 	 * Logs the command and it's response into a file.
+	 *
+	 * @param cmd command
+	 * @param response response
 	 */
 	public static void log(String cmd, String response) {
 		// Force initialization

@@ -368,7 +368,7 @@ public class SystemProperty {
 	 * @return archive pattern
 	 */
 	public static String getArchivePattern() {
-		return System.getProperty(FaframConstant.ARCHIVE_PATTERN, ",");
+		return System.getProperty(FaframConstant.ARCHIVE_PATTERN, "data/log/*,");
 	}
 
 	/**

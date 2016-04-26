@@ -95,8 +95,8 @@ public class Fafram extends ExternalResource {
 			Validator.validate();
 			ContainerManager.configureRoots();
 			ContainerManager.initBrokers();
-			setDefaultModifiers();
 			prepareNodes(ContainerManager.getContainerList());
+			setDefaultModifiers();
 			buildBundles();
 			Deployer.deploy();
 			ContainerManager.createEnsemble();
@@ -662,9 +662,9 @@ public class Fafram extends ExternalResource {
 			ModifierExecutor.addModifiers(setDefaultJvmMemOpts());
 		}
 
-		ModifierExecutor.addPostModifiers(
-				registerArchiver()
-		);
+		if ("localhost".equals(getRoot().getNode().getHost())) {
+			ModifierExecutor.addPostModifiers(registerArchiver());
+		}
 	}
 
 	/**

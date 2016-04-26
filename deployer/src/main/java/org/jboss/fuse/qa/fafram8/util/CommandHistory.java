@@ -11,10 +11,13 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Command history singleton. Holds the executed commands and responses and it is able to dump all the data into a file.
  * Created by avano on 24.11.15.
  */
+@Slf4j
 public class CommandHistory {
 	private static CommandHistory instance = null;
 	private static File file = null;
@@ -61,7 +64,7 @@ public class CommandHistory {
 				.append("------------------------------------------------------------------")
 				.append("\n");
 		try {
-			FileUtils.write(file, builder.toString());
+			FileUtils.write(file, builder.toString(), true);
 		} catch (IOException e) {
 			throw new FaframException(e);
 		}

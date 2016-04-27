@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,7 +59,9 @@ public class Fafram extends ExternalResource {
 	private ConfigurationParser configurationParser;
 
 	// Default root container used for .executeCommand() etc.
-	private Container root;
+	@Setter
+	@Getter
+	private Container rootContainer;
 
 	// Flag if the fafram has already finished the initialization and it's running
 	// Used in .containers method
@@ -118,7 +121,7 @@ public class Fafram extends ExternalResource {
 		}
 
 		// Save the first root we find - used in .executeCommand() and probably some more methods
-		root = getRoot();
+		rootContainer = getRoot();
 
 		running = true;
 
@@ -674,7 +677,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeNodeCommand(String command) {
-		return root.getNode().getExecutor().executeCommand(command);
+		return rootContainer.getNode().getExecutor().executeCommand(command);
 	}
 
 	/**
@@ -684,7 +687,7 @@ public class Fafram extends ExternalResource {
 	 * @return list of commands responses
 	 */
 	public List<String> executeNodeCommands(String... commands) {
-		return root.getNode().getExecutor().executeCommands(commands);
+		return rootContainer.getNode().getExecutor().executeCommands(commands);
 	}
 
 	/**
@@ -694,7 +697,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeCommand(String command) {
-		return root.executeCommand(command);
+		return rootContainer.executeCommand(command);
 	}
 
 	/**
@@ -704,7 +707,7 @@ public class Fafram extends ExternalResource {
 	 * @return list of commands responses
 	 */
 	public List<String> executeCommands(String... commands) {
-		return root.executeCommands(commands);
+		return rootContainer.executeCommands(commands);
 	}
 
 	/**
@@ -722,7 +725,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		root.getExecutor().waitForProvisioning(containerName);
+		rootContainer.getExecutor().waitForProvisioning(containerName);
 	}
 
 	/**
@@ -732,23 +735,14 @@ public class Fafram extends ExternalResource {
 	 * @param status patch status (true/false)
 	 */
 	public void waitForPatch(String patchName, boolean status) {
-		root.getExecutor().waitForPatchStatus(patchName, status);
-	}
-
-	/**
-	 * Gets the "root" container (first root container found in the container list, see getRoot() method).
-	 *
-	 * @return container
-	 */
-	public Container getRootContainer() {
-		return root;
+		rootContainer.getExecutor().waitForPatchStatus(patchName, status);
 	}
 
 	/**
 	 * Restarts the container.
 	 */
 	public void restart() {
-		root.restart();
+		rootContainer.restart();
 	}
 
 	/**
@@ -845,6 +839,6 @@ public class Fafram extends ExternalResource {
 	 * @return {@link Response} wrapper with boolean success/fail and nullable data response
 	 */
 	public <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
-		return root.getExecutor().waitFor(methodBlock, secondsTimeout);
+		return rootContainer.getExecutor().waitFor(methodBlock, secondsTimeout);
 	}
 }

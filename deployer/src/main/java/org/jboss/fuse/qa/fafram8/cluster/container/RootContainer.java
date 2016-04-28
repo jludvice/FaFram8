@@ -108,7 +108,6 @@ public class RootContainer extends Container {
 
 		nodeManager.checkRunningContainer();
 		try {
-			nodeManager.detectPlatformAndProduct();
 			nodeManager.prepareZip();
 			nodeManager.unzipArtifact(this);
 			super.setCreated(true);
@@ -468,8 +467,6 @@ public class RootContainer extends Container {
 			container.setName(SystemProperty.getDefaultRootName());
 			container.setUser(SystemProperty.getFuseUser());
 			container.setPassword(SystemProperty.getFusePassword());
-			container.setCommands(ContainerManager.getCommands());
-			container.setBundles(ContainerManager.getBundles());
 			return this;
 		}
 

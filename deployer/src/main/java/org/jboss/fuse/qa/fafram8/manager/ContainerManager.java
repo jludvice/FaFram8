@@ -285,6 +285,14 @@ public class ContainerManager {
 				c.getNode().setHost(SystemProperty.getHost());
 			}
 		}
+		// Set the bundles and commands to the first root found
+		for (Container c : containerList) {
+			if (c instanceof RootContainer) {
+				c.setCommands(ContainerManager.getCommands());
+				c.setBundles(ContainerManager.getBundles());
+				break;
+			}
+		}
 	}
 
 	/**

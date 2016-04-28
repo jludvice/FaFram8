@@ -264,7 +264,8 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Provides deployment with Fabric environment.
+	 * Provides deployment with Fabric environment. If you have a multinode environment, use .withFabric directly on the root container you want to
+	 * create fabric on.
 	 *
 	 * @return this
 	 */
@@ -273,7 +274,8 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Provide deployment with Fabric provision.
+	 * Provide deployment with Fabric provision. If you have a multinode environment, use .withFabric directly on the root container you want to
+	 * create fabric on.
 	 *
 	 * @param opts fabric create options
 	 * @return this
@@ -388,7 +390,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines hostname/IP address for remote running.
+	 * Defines hostname/IP address for remote running. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param host hostname or ip to remote host for running Fuse
 	 * @return this
@@ -399,7 +401,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines host username.
+	 * Defines host username. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param username username for remote host machine
 	 * @return this
@@ -410,7 +412,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines host password.
+	 * Defines host password. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param password password for remote machine
 	 * @return this
@@ -442,7 +444,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets the default container name.
+	 * Sets the default container name. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param name name
 	 * @return this
@@ -550,6 +552,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
+	 * If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param commands list of commands
 	 * @return this
@@ -560,7 +563,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets path to java directory with predefined path on Openstack machine.
+	 * Sets path to java directory with predefined path on Openstack machine. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param openstack enum Openstack defining path to different jdks
 	 * @return this
@@ -571,7 +574,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets path to java directory that will be used by all containers.
+	 * Sets path to java directory that will be used by all containers. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param javaHomePath file path to java home
 	 * @return this

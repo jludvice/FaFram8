@@ -534,11 +534,12 @@ public class Executor {
 	 *
 	 * @param time time in millis
 	 */
-	private void sleep(long time) {
+	private static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -613,11 +614,7 @@ public class Executor {
 						TimeUnit.MILLISECONDS.toSeconds(deadline - System.currentTimeMillis()),
 						methodBlock, e.getMessage(), e);
 			}
-			try {
-				Thread.sleep(DEFAULT_TIMEOUT_PERIOD);
-			} catch (InterruptedException e) {
-				log.error("InterruptedException when sleeping for next waitFor run.", e);
-			}
+			sleep(DEFAULT_TIMEOUT_PERIOD);
 		}
 		log.warn("Time is up, fail of {} in {} seconds.", methodBlock, secondsTimeout);
 		return response;

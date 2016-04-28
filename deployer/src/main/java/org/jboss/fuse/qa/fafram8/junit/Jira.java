@@ -15,5 +15,5 @@ public @interface Jira {
 	/**
 	 * Default annotation method.
 	 */
-	String value();
+	String[] value();
 }

@@ -285,6 +285,14 @@ public class ContainerManager {
 				c.getNode().setHost(SystemProperty.getHost());
 			}
 		}
+		// Set the bundles and commands to the first root found
+		for (Container c : containerList) {
+			if (c instanceof RootContainer) {
+				c.getCommands().addAll(ContainerManager.getCommands());
+				c.getBundles().addAll(ContainerManager.getBundles());
+				break;
+			}
+		}
 	}
 
 	/**
@@ -436,7 +444,8 @@ public class ContainerManager {
 		if (ensembleRoot == null) {
 			throw new FaframException("No root container found in the ensemble list!");
 		}
-
+		// Maybe this will solve the insufficient roles that happen sometimes
+		ensembleRoot.getExecutor().reconnect();
 		ensembleRoot.executeCommand("ensemble-add --force " + ensembleString.toString());
 	}
 }

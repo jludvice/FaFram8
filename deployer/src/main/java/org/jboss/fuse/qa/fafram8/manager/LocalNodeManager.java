@@ -150,23 +150,6 @@ public class LocalNodeManager implements NodeManager {
 	}
 
 	@Override
-	public void detectPlatformAndProduct() {
-		if (System.getProperty("os.name").startsWith("Windows")) {
-			windows = true;
-			log.trace("We're on Windows");
-		} else {
-			log.trace("We're on Unix");
-		}
-
-		if (SystemProperty.getFuseId().contains("a-mq")) {
-			log.trace("We're working with A-MQ");
-			amq = true;
-		} else {
-			log.trace("We're working with FUSE");
-		}
-	}
-
-	@Override
 	public void kill() {
 	}
 

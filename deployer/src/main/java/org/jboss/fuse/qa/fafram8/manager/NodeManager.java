@@ -62,11 +62,6 @@ public interface NodeManager {
 	void checkRunningContainer();
 
 	/**
-	 * Detects platform and product.
-	 */
-	void detectPlatformAndProduct();
-
-	/**
 	 * Kills the container.
 	 */
 	void kill();

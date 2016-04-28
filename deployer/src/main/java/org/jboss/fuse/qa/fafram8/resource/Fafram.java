@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,7 +59,9 @@ public class Fafram extends ExternalResource {
 	private ConfigurationParser configurationParser;
 
 	// Default root container used for .executeCommand() etc.
-	private Container root;
+	@Setter
+	@Getter
+	private Container rootContainer;
 
 	// Flag if the fafram has already finished the initialization and it's running
 	// Used in .containers method
@@ -118,7 +121,7 @@ public class Fafram extends ExternalResource {
 		}
 
 		// Save the first root we find - used in .executeCommand() and probably some more methods
-		root = getRoot();
+		rootContainer = getRoot();
 
 		running = true;
 
@@ -261,7 +264,8 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Provides deployment with Fabric environment.
+	 * Provides deployment with Fabric environment. If you have a multinode environment, use .withFabric directly on the root container you want to
+	 * create fabric on.
 	 *
 	 * @return this
 	 */
@@ -270,7 +274,8 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Provide deployment with Fabric provision.
+	 * Provide deployment with Fabric provision. If you have a multinode environment, use .withFabric directly on the root container you want to
+	 * create fabric on.
 	 *
 	 * @param opts fabric create options
 	 * @return this
@@ -385,7 +390,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines hostname/IP address for remote running.
+	 * Defines hostname/IP address for remote running. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param host hostname or ip to remote host for running Fuse
 	 * @return this
@@ -396,7 +401,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines host username.
+	 * Defines host username. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param username username for remote host machine
 	 * @return this
@@ -407,7 +412,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines host password.
+	 * Defines host password. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param password password for remote machine
 	 * @return this
@@ -439,7 +444,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets the default container name.
+	 * Sets the default container name. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param name name
 	 * @return this
@@ -547,6 +552,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Adds command into list of commands which should be executed right after fabric create / at the end of initialization.
+	 * If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param commands list of commands
 	 * @return this
@@ -557,7 +563,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets path to java directory with predefined path on Openstack machine.
+	 * Sets path to java directory with predefined path on Openstack machine. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param openstack enum Openstack defining path to different jdks
 	 * @return this
@@ -568,7 +574,7 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Sets path to java directory that will be used by all containers.
+	 * Sets path to java directory that will be used by all containers. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param javaHomePath file path to java home
 	 * @return this
@@ -674,7 +680,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeNodeCommand(String command) {
-		return root.getNode().getExecutor().executeCommand(command);
+		return rootContainer.getNode().getExecutor().executeCommand(command);
 	}
 
 	/**
@@ -684,7 +690,7 @@ public class Fafram extends ExternalResource {
 	 * @return list of commands responses
 	 */
 	public List<String> executeNodeCommands(String... commands) {
-		return root.getNode().getExecutor().executeCommands(commands);
+		return rootContainer.getNode().getExecutor().executeCommands(commands);
 	}
 
 	/**
@@ -694,7 +700,7 @@ public class Fafram extends ExternalResource {
 	 * @return command response
 	 */
 	public String executeCommand(String command) {
-		return root.executeCommand(command);
+		return rootContainer.executeCommand(command);
 	}
 
 	/**
@@ -704,7 +710,7 @@ public class Fafram extends ExternalResource {
 	 * @return list of commands responses
 	 */
 	public List<String> executeCommands(String... commands) {
-		return root.executeCommands(commands);
+		return rootContainer.executeCommands(commands);
 	}
 
 	/**
@@ -722,7 +728,7 @@ public class Fafram extends ExternalResource {
 	 * @param containerName container name
 	 */
 	public void waitForProvisioning(String containerName) {
-		root.getExecutor().waitForProvisioning(containerName);
+		rootContainer.getExecutor().waitForProvisioning(containerName);
 	}
 
 	/**
@@ -732,23 +738,14 @@ public class Fafram extends ExternalResource {
 	 * @param status patch status (true/false)
 	 */
 	public void waitForPatch(String patchName, boolean status) {
-		root.getExecutor().waitForPatchStatus(patchName, status);
-	}
-
-	/**
-	 * Gets the "root" container (first root container found in the container list, see getRoot() method).
-	 *
-	 * @return container
-	 */
-	public Container getRootContainer() {
-		return root;
+		rootContainer.getExecutor().waitForPatchStatus(patchName, status);
 	}
 
 	/**
 	 * Restarts the container.
 	 */
 	public void restart() {
-		root.restart();
+		rootContainer.restart();
 	}
 
 	/**
@@ -845,6 +842,6 @@ public class Fafram extends ExternalResource {
 	 * @return {@link Response} wrapper with boolean success/fail and nullable data response
 	 */
 	public <T> Response<T> waitFor(Callable<Response<T>> methodBlock, long secondsTimeout) {
-		return root.getExecutor().waitFor(methodBlock, secondsTimeout);
+		return rootContainer.getExecutor().waitFor(methodBlock, secondsTimeout);
 	}
 }

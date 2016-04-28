@@ -26,6 +26,9 @@ import net.rcarz.jiraclient.Version;
  */
 @Slf4j
 public class FaframTestRunner extends BlockJUnit4ClassRunner {
+	private JiraClient jiraClient;
+	private StringBuilder statusLine;
+
 	/**
 	 * Constructor.
 	 *
@@ -34,6 +37,8 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 	 */
 	public FaframTestRunner(Class<?> klass) throws InitializationError {
 		super(klass);
+		jiraClient = createClient();
+		statusLine = new StringBuilder();
 	}
 
 	@Override
@@ -45,32 +50,19 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 			return;
 		}
 
-		final JiraClient jiraClient = createClient();
+		boolean skip = false;
 
-		Issue issue;
-
-		try {
-			issue = jiraClient.getIssue(jira.value());
-		} catch (JiraException e) {
-			log.error("Jira Exception caught: " + e.getLocalizedMessage());
-			notifier.fireTestFailure(new Failure(describeChild(method), e));
-			return;
-		}
-
-		if ((StringUtils.equalsIgnoreCase(issue.getStatus().toString(), "resolved")
-				|| StringUtils.equalsIgnoreCase(issue.getStatus().toString(), "closed"))) {
-			if (matchVersion(issue)) {
-				log.info("Starting " + method.getName() + String.format(" (JIRA %s is %s)", jira.value().toUpperCase(), issue.getStatus().toString()));
-				super.runChild(method, notifier);
-			} else {
-				log.info(String.format("Skipping %s (JIRA %s is %s, but major fix version is not a current version %s)", method.getName(),
-						jira.value()
-						.toUpperCase(), issue.getStatus().toString(), SystemProperty.getFuseVersion()));
-				notifier.fireTestIgnored(describeChild(method));
+		for (String jiraId : jira.value()) {
+			if (!handleJira(method, notifier, jiraId)) {
+				skip = true;
+				break;
 			}
-		} else {
-			log.info(String.format("Skipping %s (JIRA %s is %s)", method.getName(), jira.value().toUpperCase(), issue.getStatus().toString()));
-			notifier.fireTestIgnored(describeChild(method));
+		}
+		if (!skip) {
+			statusLine.deleteCharAt(statusLine.length() - 1);
+			log.info(String.format("Starting %s (%s)", method.getName(), statusLine.toString()));
+			statusLine = new StringBuilder();
+			super.runChild(method, notifier);
 		}
 	}
 
@@ -101,7 +93,43 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 	}
 
 	/**
+	 * Handles the jira status.
+	 * @param method current method
+	 * @param notifier run notifier
+	 * @param jiraValue jira ID
+	 * @return true if the test should be run, false otherwise
+	 */
+	private boolean handleJira(FrameworkMethod method, RunNotifier notifier, String jiraValue) {
+		Issue issue;
+		try {
+			issue = jiraClient.getIssue(jiraValue);
+		} catch (JiraException e) {
+			log.error("Jira Exception caught: " + e.getLocalizedMessage());
+			notifier.fireTestFailure(new Failure(describeChild(method), e));
+			return false;
+		}
+
+		if (!((StringUtils.equalsIgnoreCase(issue.getStatus().toString(), "resolved")
+				|| StringUtils.equalsIgnoreCase(issue.getStatus().toString(), "closed")))) {
+			log.info(String.format("Ignoring %s (JIRA %s is %s)", method.getName(), jiraValue.toUpperCase(), issue.getStatus().toString()));
+			notifier.fireTestIgnored(describeChild(method));
+			return false;
+		} else {
+			if (matchVersion(issue)) {
+				statusLine.append(String.format("JIRA %s is %s", jiraValue.toUpperCase(), issue.getStatus().toString()));
+				statusLine.append(",");
+				return true;
+			} else {
+				log.info(String.format("Ignoring %s, versions do not match (Current version < Fix version)", method.getName()));
+				notifier.fireTestIgnored(describeChild(method));
+				return false;
+			}
+		}
+	}
+
+	/**
 	 * Creates the jira client instance.
+	 *
 	 * @return jira client instance
 	 */
 	private JiraClient createClient() {

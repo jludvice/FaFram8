@@ -29,7 +29,7 @@ public final class Deployer {
 	 */
 	public static void deploy() {
 		for (Container c : ContainerManager.getContainerList()) {
-			if (!c.isOnline()) {
+			if (!c.isCreated()) {
 				c.create();
 			}
 		}

@@ -40,6 +40,7 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
+							<createSourcesJar>true</createSourcesJar>
 							<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
 							<artifactSet>
 								<includes>

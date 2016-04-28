@@ -65,9 +65,9 @@ public class RemoteNodeManager implements NodeManager {
 
 		// Jar can't unzip to specified directory, so we need to change the dir first
 		if (productZipPath.contains(getFolder())) {
-			log.trace(executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")"));
+			executor.executeCommand("cd " + getFolder() + "; jar xf $(basename " + productZipPath + ")");
 		} else {
-			log.trace(executor.executeCommand("cd " + getFolder() + "; jar xf " + productZipPath));
+			executor.executeCommand("cd " + getFolder() + "; jar xf " + productZipPath);
 		}
 
 		// Problem if WORKING_DIRECTORY is set because then the first command doesn't work
@@ -162,11 +162,6 @@ public class RemoteNodeManager implements NodeManager {
 			log.error("Port 8101 is not free! Other karaf instance may be running. Shutting down...");
 			throw new FaframException("Port 8101 is not free! Other karaf instance may be running.");
 		}
-	}
-
-	@Override
-	public void detectPlatformAndProduct() {
-		// Do nothing
 	}
 
 	@Override

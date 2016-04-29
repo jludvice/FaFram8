@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Container manager class. This class is responsible for all actions related to containers - setting up fabric,
  * patching, etc.
- * <p>
+ * <p/>
  * Created by avano on 2.9.15.
  */
 @Slf4j
@@ -231,17 +231,26 @@ public class ContainerManager {
 	 */
 	public static void uploadBundles(Container c) {
 		if (c.getBundles() != null && !c.getBundles().isEmpty()) {
-			final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(c.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
-
 			for (String bundle : c.getBundles()) {
-				final MavenPomInvoker bundleInstaller = new MavenPomInvoker(bundle,
-						"http://" + c.getUser() + ":" + c.getPassword() + "@" + mavenProxy);
-				try {
-					bundleInstaller.installFile();
-				} catch (URISyntaxException | MavenInvocationException e) {
-					throw new BundleUploadException(e);
-				}
+				uploadBundle(c, bundle);
 			}
+		}
+	}
+
+	/**
+	 * Uploads bundle to fabric maven proxy on container (remote). The container should be root with fabric and its own maven upload proxy.
+	 *
+	 * @param projectPath path to pom.xml of the project that should be uploaded to root container
+	 */
+	public static void uploadBundle(Container c, String projectPath) {
+		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(c.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
+
+		final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath,
+				"http://" + c.getUser() + ":" + c.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", c.getNode().getHost()));
+		try {
+			bundleInstaller.installFile();
+		} catch (URISyntaxException | MavenInvocationException e) {
+			throw new BundleUploadException(e);
 		}
 	}
 
@@ -293,7 +302,6 @@ public class ContainerManager {
 				c.getNode().setHost(SystemProperty.getHost());
 			}
 		}
-
 	}
 
 	/**

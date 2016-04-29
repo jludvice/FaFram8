@@ -152,7 +152,9 @@ public class RootContainer extends Container {
 	@Override
 	public void restart(boolean force) {
 		// Force not used with root container
+		executeCommand("system-property karaf.restart.jvm true");
 		nodeManager.restart();
+		super.getExecutor().connect();
 		if (super.isFabric()) {
 			waitForProvisioning();
 		}

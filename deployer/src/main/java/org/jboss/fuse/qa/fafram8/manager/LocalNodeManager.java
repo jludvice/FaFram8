@@ -31,7 +31,7 @@ public class LocalNodeManager implements NodeManager {
 	@Getter
 	private Executor executor;
 	// Is windows?
-	private boolean windows = false;
+	private boolean windows = System.getProperty("os.name").startsWith("Windows");
 
 	// Is AMQ?
 	private boolean amq = false;

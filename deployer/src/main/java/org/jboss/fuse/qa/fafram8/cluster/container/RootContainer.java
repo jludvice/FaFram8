@@ -5,13 +5,8 @@ import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.addJvmOpts
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootName;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.shared.invoker.MavenInvocationException;
-
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
-import org.jboss.fuse.qa.fafram8.exception.BundleUploadException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
-import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
@@ -21,7 +16,6 @@ import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -229,20 +223,11 @@ public class RootContainer extends Container {
 	/**
 	 * Uploads bundles to fabric maven proxy on root container (remote).
 	 *
-	 * @param c container to execute on
+	 * @param projectPaths list of paths to pom.xml files of different projects for upload
 	 */
-	public void uploadBundle(String projectPath) {
-		if (super.isFabric()) {
-			final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(super.getExecutor().executeCommand("fabric:info | grep upload"), ":"), "://").trim();
-
-			StringUtils.substringAfter()
-			final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath,
-					"http://" + super.getUser() + ":" + super.getPassword() + "@" + mavenProxy);
-			try {
-				bundleInstaller.installFile();
-			} catch (URISyntaxException | MavenInvocationException e) {
-				throw new BundleUploadException(e);
-			}
+	public void uploadBundles(String... projectPaths) {
+		for (String projectPath : projectPaths) {
+			ContainerManager.uploadBundle(this, projectPath);
 		}
 	}
 
@@ -287,7 +272,6 @@ public class RootContainer extends Container {
 						.commands(new ArrayList<>(root.getCommands()))
 						.bundles(new ArrayList<>(root.getBundles()))
 						.profiles(new ArrayList<>(root.getProfiles()))
-						.bundles(new ArrayList<>(root.getBundles()))
 						.jvmOpts(root.getJvmOpts())
 						.jvmMemOpts(root.getJvmMemOpts())
 						.directory(root.getWorkingDirectory());

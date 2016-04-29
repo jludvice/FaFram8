@@ -33,9 +33,6 @@ public class LocalNodeManager implements NodeManager {
 	// Is windows?
 	private boolean windows = System.getProperty("os.name").startsWith("Windows");
 
-	// Is AMQ?
-	private boolean amq = false;
-
 	// Flag if this instance was already stopped
 	private boolean stopped = true;
 
@@ -135,7 +132,7 @@ public class LocalNodeManager implements NodeManager {
 				log.info("Starting container");
 			} else {
 				// If we run artifact from mvn
-				log.info("Starting " + (amq ? "A-MQ" : "Fuse") + " " + SystemProperty.getFuseVersion());
+				log.info("Starting Fuse " + SystemProperty.getFuseVersion());
 			}
 			productProcess = Runtime.getRuntime().exec(executablePath);
 			stopped = false;
@@ -205,7 +202,7 @@ public class LocalNodeManager implements NodeManager {
 				log.info("Stopping container");
 			} else {
 				// If we run artifact from mvn
-				log.info("Stopping " + (amq ? "A-MQ" : "Fuse") + " " + SystemProperty.getFuseVersion());
+				log.info("Stopping Fuse " + SystemProperty.getFuseVersion());
 			}
 			Runtime.getRuntime().exec(executablePath).waitFor();
 			executor.waitForShutdown();
@@ -251,8 +248,9 @@ public class LocalNodeManager implements NodeManager {
 		restart = true;
 		stop(false);
 		// If start fails, the flag will remain set so the shutdown will be called (see stop())
-		startFuse();
+		// Root restarts are done using the system property, so no need to call .start() here
 		restart = false;
+		stopped = false;
 	}
 
 	/**

@@ -434,16 +434,6 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
-	 * Defines that remote Fuse and its cluster shouldn't be deleted and Fafram should only connect to existing Fuse.
-	 *
-	 * @return this
-	 */
-	public Fafram onlyConnect() {
-		SystemProperty.set(FaframConstant.CLEAN, "false");
-		return this;
-	}
-
-	/**
 	 * Sets the default container name. If you have a multinode environment, use appropriate methods directly on the containers.
 	 *
 	 * @param name name

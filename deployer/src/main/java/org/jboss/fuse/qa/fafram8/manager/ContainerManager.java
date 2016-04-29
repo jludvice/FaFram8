@@ -276,6 +276,14 @@ public class ContainerManager {
 	 */
 	public static void configureRoots() {
 		createRootIfNecessary();
+		// Set the bundles and commands to the first root found
+		for (Container c : containerList) {
+			if (c instanceof RootContainer) {
+				c.getCommands().addAll(ContainerManager.getCommands());
+				c.getBundles().addAll(ContainerManager.getBundles());
+				break;
+			}
+		}
 		if (!SystemProperty.getProvider().toLowerCase().contains("static")) {
 			return;
 		}
@@ -285,14 +293,7 @@ public class ContainerManager {
 				c.getNode().setHost(SystemProperty.getHost());
 			}
 		}
-		// Set the bundles and commands to the first root found
-		for (Container c : containerList) {
-			if (c instanceof RootContainer) {
-				c.getCommands().addAll(ContainerManager.getCommands());
-				c.getBundles().addAll(ContainerManager.getBundles());
-				break;
-			}
-		}
+
 	}
 
 	/**

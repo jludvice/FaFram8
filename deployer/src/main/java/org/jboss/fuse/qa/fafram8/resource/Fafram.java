@@ -93,6 +93,7 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram setup() {
 		try {
+			SystemProperty.checkKeepAllProperty();
 			printLogo();
 			initConfiguration();
 			Validator.validate();
@@ -459,9 +460,9 @@ public class Fafram extends ExternalResource {
 	 * Turns environment to offline mode. For this purpose the "iptables-no-internet" configuration file is used which
 	 * should be located in specified user's home folder on all nodes. This file is loaded into the iptables on all nodes
 	 * specified in FaFram.
-	 * <p>
+	 * <p/>
 	 * This method can be used only with ecervena snapshots on OpenStack or snapshots that contain mentioned folder.
-	 * <p>
+	 * <p/>
 	 * By default the snapshot used for spawning containers using the OpenStack provider contains this file.
 	 *
 	 * @return this
@@ -474,11 +475,11 @@ public class Fafram extends ExternalResource {
 	/**
 	 * Loads up a custom iptables configuration file from local host and uploads it to remote hosts and executes them.
 	 * This method sets up the environment to environment defined in provided the configuration file.
-	 * <p>
+	 * <p/>
 	 * This option should be only used on OpenStack machines with sudo command configured to be used without password
 	 * otherwise it won't work. Also the snapshots should have exchanged ssh key to be able to connect between them
 	 * without password.
-	 * <p>
+	 * <p/>
 	 * At the moment this method is only experimental and should be used with caution. Cleaning up the iptables after
 	 * the test is not completed yet.
 	 *
@@ -578,6 +579,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Defines the ensemble members.
+	 *
 	 * @param containers list of container names
 	 * @return this
 	 */
@@ -591,6 +593,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Defines the ensemble members.
+	 *
 	 * @param containers list of containers.
 	 * @return this
 	 */
@@ -783,6 +786,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Deletes the container.
+	 *
 	 * @param containers containers array
 	 */
 	public void deleteContainers(Container... containers) {

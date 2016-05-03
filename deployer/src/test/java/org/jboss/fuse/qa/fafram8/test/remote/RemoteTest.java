@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 		RemoteAddUser.class,
 		RemoteFabric.class,
 		RemoteFaframJvmMemOpts.class,
-		RemoteOnlyConnect.class,
 		RemoteProperties.class,
 		RemoteReplaceFile.class,
 		RemoteRootName.class,

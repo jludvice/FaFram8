@@ -467,7 +467,7 @@ public class SystemProperty {
 	/**
 	 * Getter.
 	 *
-	 * @return provider property
+	 * @return skipBrokerWait property
 	 */
 	public static Boolean skipBrokerWait() {
 		return Boolean.parseBoolean(System.getProperty(FaframConstant.SKIP_BROKER_WAIT, "false"));
@@ -503,11 +503,23 @@ public class SystemProperty {
 	/**
 	 * Getter.
 	 *
-	 * @return openstack wait time
+	 * @return keepContainers propery
 	 */
 	public static boolean isKeepContainers() {
 		return System.getProperty(FaframConstant.KEEP_CONTAINERS) != null
 				&& Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_CONTAINERS));
+	}
+
+	/**
+	 * Checks if keepAll property is set if it is then it sets keepOsResources and keepContainers properties to true.
+	 */
+	public static void checkKeepAllProperty() {
+		final Boolean keep = System.getProperty(FaframConstant.KEEP_ALL) != null
+				&& Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_ALL));
+		if (keep) {
+			forceSet(FaframConstant.KEEP_CONTAINERS, "true");
+			forceSet(FaframConstant.KEEP_OS_RESOURCES, "true");
+		}
 	}
 
 	/**

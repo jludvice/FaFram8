@@ -57,9 +57,6 @@ public final class FaframConstant {
 	// Patch install wait time
 	public static final String PATCH_WAIT_TIME = "patch.wait.time";
 
-	// Keep folder
-	public static final String KEEP_FOLDER = "keepFolder";
-
 	// Name of the working folder on remote host
 	public static final String FAFRAM_FOLDER = "fafram.folder";
 
@@ -75,6 +72,15 @@ public final class FaframConstant {
 
 	// If "true" OpenStackProvisionManager will not release OS nodes after test
 	public static final String KEEP_OS_RESOURCES = "keep.os.resources";
+
+	// Keep folder
+	public static final String KEEP_FOLDER = "keepFolder";
+
+	// Keep containers running after the test
+	public static final String KEEP_CONTAINERS = "keepContainers";
+
+	// Sets KEEP_OS_RESOURCES and KEEP_CONTAINERS to true
+	public static final String KEEP_ALL = "keepAll";
 
 	// Patches folder
 	public static final String PATCH_DIR = "fafram.patch.dir";
@@ -165,9 +171,6 @@ public final class FaframConstant {
 
 	// Openstack machine boot wait time
 	public static final String OPENSTACK_WAIT_TIME = "openstack.wait.time";
-
-	// Keep containers running after the test
-	public static final String KEEP_CONTAINERS = "keepContainers";
 
 	// Path to java home that will be used for Fuse (root and containers)
 	public static final String JAVA_HOME = "fafram.java.home";

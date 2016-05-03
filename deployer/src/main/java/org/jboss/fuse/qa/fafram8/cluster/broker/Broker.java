@@ -160,12 +160,6 @@ public class Broker {
 		if (!"".equals(networksPassword)) {
 			cmd.append(" --network-password ").append(networksPassword);
 		}
-		if (!"".equals(data)) {
-			cmd.append(" --data ").append(data);
-		}
-		if (!"".equals(kind)) {
-			cmd.append(" --kind ").append(kind);
-		}
 		cmd.append(" ").append(name);
 		return cmd.toString();
 	}

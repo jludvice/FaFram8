@@ -13,6 +13,7 @@ import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
+import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
 import java.util.ArrayList;
@@ -70,7 +71,8 @@ public class RootContainer extends Container {
 	public void create() {
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
-		log.info("Creating container " + this);
+		final String logMsg = (SystemProperty.isClean()) ? "Creating " : "Connecting to ";
+		log.info(logMsg + this);
 
 		// Instantiate the node manager based on node.getHost()
 		if ("localhost".equals(super.getNode().getHost())) {
@@ -104,27 +106,28 @@ public class RootContainer extends Container {
 
 		if (SystemProperty.isClean()) {
 			nodeManager.clean();
-		}
+			nodeManager.checkRunningContainer();
+			try {
+				nodeManager.prepareZip();
+				nodeManager.unzipArtifact(this);
+				super.setCreated(true);
+				nodeManager.prepareFuse(super.getNode().getHost());
+				if (!SystemProperty.suppressStart()) {
+					nodeManager.startFuse();
+					ContainerManager.patchStandaloneBeforeFabric(this);
 
-		nodeManager.checkRunningContainer();
-		try {
-			nodeManager.prepareZip();
-			nodeManager.unzipArtifact(this);
-			super.setCreated(true);
-			nodeManager.prepareFuse(super.getNode().getHost());
-			if (!SystemProperty.suppressStart()) {
-				nodeManager.startFuse();
-				ContainerManager.patchStandaloneBeforeFabric(this);
-
-				ContainerManager.setupFabric(this);
-				ContainerManager.patchFuse(this);
-				ContainerManager.executeStartupCommands(this);
-				super.setOnline(true);
+					ContainerManager.setupFabric(this);
+					ContainerManager.patchFuse(this);
+					ContainerManager.executeStartupCommands(this);
+					super.setOnline(true);
+				}
+			} catch (FaframException ex) {
+				ex.printStackTrace();
+				nodeManager.stopAndClean(true);
+				throw new FaframException(ex);
 			}
-		} catch (FaframException ex) {
-			ex.printStackTrace();
-			nodeManager.stopAndClean(true);
-			throw new FaframException(ex);
+		} else {
+			super.getExecutor().connect();
 		}
 	}
 
@@ -218,6 +221,17 @@ public class RootContainer extends Container {
 	}
 
 	/**
+	 * Uploads bundles to fabric maven proxy on root container (remote).
+	 *
+	 * @param projectPaths list of paths to pom.xml files of different projects for upload
+	 */
+	public void uploadBundles(String... projectPaths) {
+		for (String projectPath : projectPaths) {
+			ContainerManager.uploadBundle(this, projectPath);
+		}
+	}
+
+	/**
 	 * Root builder class - this class returns the RootContainer object and it is the only way the root container should be built.
 	 */
 	public static class RootBuilder {
@@ -258,7 +272,6 @@ public class RootContainer extends Container {
 						.commands(new ArrayList<>(root.getCommands()))
 						.bundles(new ArrayList<>(root.getBundles()))
 						.profiles(new ArrayList<>(root.getProfiles()))
-						.bundles(new ArrayList<>(root.getBundles()))
 						.jvmOpts(root.getJvmOpts())
 						.jvmMemOpts(root.getJvmMemOpts())
 						.directory(root.getWorkingDirectory());
@@ -480,6 +493,16 @@ public class RootContainer extends Container {
 		 */
 		public RootBuilder directory(String workingDirectory) {
 			container.setWorkingDirectory(workingDirectory);
+			return this;
+		}
+
+		/**
+		 * Defines that remote Fuse and its cluster shouldn't be deleted and Fafram should only connect to existing Fuse.
+		 *
+		 * @return this
+		 */
+		public RootBuilder onlyConnect() {
+			SystemProperty.set(FaframConstant.CLEAN, "false");
 			return this;
 		}
 

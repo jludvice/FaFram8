@@ -71,7 +71,7 @@ public class RootContainer extends Container {
 	public void create() {
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
-		final String logMsg = (super.getOnlyConnect()) ? "Connecting to " : "Creating ";
+		final String logMsg = (super.isOnlyConnect()) ? "Connecting to " : "Creating ";
 		log.info(logMsg + this);
 
 		// Instantiate the node manager based on node.getHost()
@@ -104,7 +104,7 @@ public class RootContainer extends Container {
 		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
 				setRootName(this, super.getNode().getHost()), addJvmOptsAndRandomSource(super.getJvmOpts()));
 
-		if (!super.getOnlyConnect()) {
+		if (!super.isOnlyConnect()) {
 			nodeManager.clean();
 			nodeManager.checkRunningContainer();
 			try {

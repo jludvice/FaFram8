@@ -116,7 +116,7 @@ public abstract class Container implements Comparable<Container> {
 	// Default value is set to false
 	@Getter
 	@Setter
-	private Boolean onlyConnect = false;
+	private boolean onlyConnect = false;
 
 	// SSH port of Fuse instance. This parameter is used only when using onlyConnect feature for connecting to running Fuse instance
 	// This port is used when creating executor for Fuse

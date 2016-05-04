@@ -71,7 +71,7 @@ public class RootContainer extends Container {
 	public void create() {
 		// Create fuse executor
 		super.setExecutor(super.createExecutor());
-		final String logMsg = (SystemProperty.isClean()) ? "Creating " : "Connecting to ";
+		final String logMsg = (super.getOnlyConnect()) ? "Connecting to " : "Creating ";
 		log.info(logMsg + this);
 
 		// Instantiate the node manager based on node.getHost()
@@ -104,7 +104,7 @@ public class RootContainer extends Container {
 		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
 				setRootName(this, super.getNode().getHost()), addJvmOptsAndRandomSource(super.getJvmOpts()));
 
-		if (SystemProperty.isClean()) {
+		if (!super.getOnlyConnect()) {
 			nodeManager.clean();
 			nodeManager.checkRunningContainer();
 			try {
@@ -497,12 +497,27 @@ public class RootContainer extends Container {
 		}
 
 		/**
-		 * Defines that remote Fuse and its cluster shouldn't be deleted and Fafram should only connect to existing Fuse.
+		 * Defines that remote Fuse shouldn't be deleted and Fafram should only connect to running instance.
+		 * You can specify SSH port for connecting to running instance.
+		 *
+		 * @param port port number for running Fuse instance
+		 * @return this
+		 */
+		public RootBuilder onlyConnect(int port) {
+			SystemProperty.set(FaframConstant.CLEAN, "false");
+			container.setOnlyConnect(true);
+			container.setFuseSshPort(port);
+			return this;
+		}
+
+		/**
+		 * Defines that remote Fuse shouldn't be deleted and Fafram should only connect to running instance.
+		 * Default option when you want to use default SSH port for Fuse.
 		 *
 		 * @return this
 		 */
 		public RootBuilder onlyConnect() {
-			SystemProperty.set(FaframConstant.CLEAN, "false");
+			onlyConnect(container.getFuseSshPort());
 			return this;
 		}
 

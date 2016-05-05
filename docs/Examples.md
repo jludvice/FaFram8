@@ -27,9 +27,9 @@ container together with other containers, you need to explicitly define this beh
 ```
 @Rule
 public Fafram fafram = new Fafram().containers(
-	RootContainer.builder().defaultRoot().withFabric().build,
-	ChildContainer.builder().name("child").parentName("root").build
-)
+	RootContainer.builder().defaultRoot().withFabric().build(),
+	ChildContainer.builder().name("child").parentName("root").build()
+);
 ```
 
 Using the same approach you can define more child containers and even SSH containers.

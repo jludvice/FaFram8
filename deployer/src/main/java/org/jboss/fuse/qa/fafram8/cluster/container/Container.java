@@ -112,6 +112,18 @@ public abstract class Container implements Comparable<Container> {
 	@Setter
 	private String fusePath;
 
+	// Property for deciding if we should clean environment or only try to connect to running instance
+	// Default value is set to false
+	@Getter
+	@Setter
+	private boolean onlyConnect = false;
+
+	// SSH port of Fuse instance. This parameter is used only when using onlyConnect feature for connecting to running Fuse instance
+	// This port is used when creating executor for Fuse
+	@Getter
+	@Setter
+	private int fuseSshPort = 8101;
+
 	/**
 	 * Creates a container.
 	 */
@@ -233,7 +245,7 @@ public abstract class Container implements Comparable<Container> {
 	public Executor createExecutor() {
 		final SSHClient fuseClient = new FuseSSHClient()
 				.host(this.getNode().getHost())
-				.fuseSSHPort()
+				.port(this.getFuseSshPort())
 				.username(this.getUser())
 				.password(this.getPassword());
 		return new Executor(fuseClient);

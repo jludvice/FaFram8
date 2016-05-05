@@ -118,6 +118,7 @@ public class ModifierExecutor {
 	 * Executes the post modifiers.
 	 */
 	public static void executePostModifiers() {
+		ModifierExecutor.getInstance();
 		executePostModifiers(null);
 	}
 

@@ -134,20 +134,48 @@ Fafram8 supports uploading bundles from local machine to remote deployment of Fu
 
 The project for uploading must have specific configuration in its _pom.xml_:
 
-	<distributionManagement>
-            <repository>
-                <id>fuse-maven-proxy</id>
-                <name>fuse-maven-proxy</name>
-                <url>${mvn.proxy.upload.url}</url>
-            </repository>
-    </distributionManagement>
+ ```
+<distributionManagement>
+      <repository>
+        <id>fuse-maven-proxy</id>
+        <name>fuse-maven-proxy</name>
+        <url>${mvn.proxy.upload.url}</url>
+     </repository>
+</distributionManagement>
+ ```
 
 When the project is configured correctly then you need to add path to _pom.xml_ using the _bundles(String... commands)_ method on _Fafram_ class. Also it is possible to specify multiple paths to different projects.
 
-	@Rule
-    	public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml", "test/project/pom.xml");
+ ```
+@Rule
+public Fafram fafram = new Fafram().withFabric().bundle("src/test/resources/blank-project/pom.xml", "test/project/pom.xml");
+ ```
 
 Bundles are uploaded to fabric maven proxy before execution of commands specified by _command(String... commands)_ method. This can be leverage for example when editing profiles and adding your custom bundles.
+
+It is also possible to upload bundle to maven proxy right in the test after Fafram8 created its environment. Only restriction is that you need to know to which container of the cluster you can upload the bundle meaning you need to know on which container is maven proxy is located (in most use cases it will be on the root container).
+
+```
+@Rule
+public Fafram fafram = new Fafram().withFabric().provider(FaframProvider.OPENSTACK).containers(RootContainer.builder().defaultRoot().withFabric().build());
+
+@Test
+public void testUploadBundleFromTest() throws Exception {
+	((RootContainer) fafram.getContainer("root")).uploadBundles("src/test/resources/blank-project/pom.xml");
+	fafram.executeCommand("osgi:install mvn:org.jboss.fuse.qa.test/useless-artifact/1.0");
+}
+```
+
+#### Connecting to already running Fuse instance
+Using Fafram8 you are able to connect to running Fuse instance and work with it. For this feature it is required to create dummy root container and specify IP address in its node and add _onlyConnect()_ method if you want to connect to container using 8101 port which is the default Fuse SSH port or _onlyConnect(int port)_ method when connecting to container running on different SSH port.
+
+```
+@Rule
+Fafram fafram = new Fafram().containers(RootContainer.builder().name("dummy-container").node("1.1.1.1").onlyConnect().build())
+
+@Rule
+Fafram fafram = new Fafram().containers(RootContainer.builder().name("dummy-container").node("1.1.1.1").onlyConnect(8103).build())
+```
 
 ### Loading iptables and offline mode
 **This is experimental feature and it requires that you know what are you doing and also that you are prepared to bear the consequences!**
@@ -272,8 +300,8 @@ Fafram8 provides support for building custom Maven project with custom goals and
   ```
  Map<String, String> properties = new HashMap<>();
  properties.put("custom.property", "faframIsGreat");
-  List<String> goals = new ArrayList<>();
-  goals.add("install");
+ List<String> goals = new ArrayList<>();
+ goals.add("install");
 
  MavenPomInvoker.buildMvnProject("/home/user/path/pom.xml", properties, "clean", "package");
 

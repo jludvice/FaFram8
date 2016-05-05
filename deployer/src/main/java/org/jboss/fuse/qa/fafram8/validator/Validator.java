@@ -63,7 +63,7 @@ public final class Validator {
 			if (c.getNode() == null) {
 				throw new ValidatorException("Root container (" + c.getName() + ") node is null!");
 			}
-			validateZip(SystemProperty.getHost());
+			validateZip(c.getNode().getHost() == null ? SystemProperty.getHost() : c.getNode().getHost());
 			validateHost();
 		} else {
 			validateZip(null);
@@ -92,7 +92,7 @@ public final class Validator {
 	 * @param c child container
 	 */
 	private static void validateChildContainer(Container c) {
-		if ("".equals(c.getName())) {
+		if ("".equals(c.getName()) || c.getName() == null) {
 			throw new ValidatorException("Child name can't be empty!");
 		}
 

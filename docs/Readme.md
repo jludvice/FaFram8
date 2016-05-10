@@ -216,10 +216,10 @@ The workflow or properties can be modified using system properties. Full list of
 * fafram.suppress.start - Testing purposes only - do not start fuse for the tests that do not need it
 * fafram.archive.target - Target dir where the archived artifacts will be stored
 * fafram.archive.pattern - Archive pattern equal to the jenkins archive pattern
-* fafram.base.dir - base dir of the project - on localhost it's "" and on jenkins it's System.getenv("WORKSPACE")
+* fafram.base.dir - Base dir of the project - on localhost it's "" and on jenkins it's System.getenv("WORKSPACE")
 * keep.os.resources - If "true" OpenStackProvisionManager will not release OS nodes after test
-* broker.start.wait.time - broker start wait time
-* fafram.skip.broker.wait - skips the initial waiting for the broker
+* broker.start.wait.time - Broker start wait time
+* fafram.skip.broker.wait - Skips the initial waiting for the broker
 * jira.url - JIRA url
 * jira.user - JIRA user
 * jira.password - JIRA password
@@ -231,10 +231,11 @@ The workflow or properties can be modified using system properties. Full list of
 * openstack.flavor - openstack flavor
 * openstack.keypair - openstack keypair
 * openstack.addressType - openstack address type
-* fafram.offline - flag for offline environment
-* iptables.conf.file.path - path to iptables file that should be applied before starting fuse
-* fafram.default.root.name - default container name (defaults to root)
-* keepContainers - flag if the containers should be kept running
+* fafram.offline - Flag for offline environment
+* iptables.conf.file.path - Path to iptables file that should be applied before starting fuse
+* fafram.default.root.name - Default container name (defaults to root)
+* keepContainers - Flag if the containers should be kept running
+* keepAll - Combination of `keepContainers` and `keep.os.resources`
 
 ### Patches
 
@@ -349,7 +350,7 @@ container automatically and use it, you need to include this in your pom.xml fil
 			<dependency>
 				<groupId>org.jboss.fuse.qa</groupId>
 				<artifactId>fafram8</artifactId>
-				<version>0.3</version>
+				<version>fafram version</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>

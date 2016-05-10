@@ -33,7 +33,7 @@ public class LocalCreateEnsembleTest {
 
 	@Test
 	public void inTestEnsembleTest() {
-		fafram = new Fafram().containers(child2, root, child1).setup();
+		fafram = new Fafram().containers(child2, root, child1).addUser("fafram", "fafram", "admin").setup();
 		fafram.ensemble("root", "child1", "child2");
 		root.waitForProvisioning();
 		child1.waitForProvisioning();

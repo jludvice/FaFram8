@@ -233,7 +233,7 @@ public class LocalNodeManager implements NodeManager {
 	private void deleteTargetDir(boolean ignoreExceptions) {
 		if (!SystemProperty.isKeepFolder()) {
 			try {
-				log.trace("Deleting " + targetPath);
+				log.debug("Deleting " + targetPath);
 				FileUtils.forceDelete(new File(targetPath));
 			} catch (Exception e) {
 				if (!ignoreExceptions) {

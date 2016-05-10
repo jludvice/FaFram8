@@ -553,14 +553,14 @@ public class SystemProperty {
 		final Properties p = new Properties();
 
 		try {
-			final List<URL> urls = new LinkedList<URL>();
+			final List<URL> urls = new LinkedList<>();
 			// If defined get property file from SystemProperty
 			if (SystemProperty.getFaframConfigUrl() != null) {
 				urls.add(new URL(SystemProperty.getFaframConfigUrl()));
 				log.info("Loading Fafram configuration file on path: " + SystemProperty.getFaframConfigUrl());
 			}
 			// Get the property files URLs from classpath
-			urls.addAll(Collections.list(ClassLoader.getSystemResources("fafram.properties")));
+			urls.addAll(Collections.list(SystemProperty.class.getClassLoader().getResources("fafram.properties")));
 
 			log.debug("Fafram config path: " + urls.toString());
 

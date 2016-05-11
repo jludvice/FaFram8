@@ -511,6 +511,15 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 *
+	 * @return comma seprated list of commands for execution
+	 */
+	public static String getAdditionalCommands() {
+		return System.getProperty(FaframConstant.ADDITIONAL_COMMANDS, "");
+	}
+
+	/**
 	 * Checks if keepAll property is set if it is then it sets keepOsResources and keepContainers properties to true.
 	 */
 	public static void checkKeepAllProperty() {

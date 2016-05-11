@@ -219,6 +219,12 @@ public class ContainerManager {
 				c.executeCommand(command);
 			}
 		}
+
+		// Execute additional commands provided by system property
+		for (String command : SystemProperty.getAdditionalCommands().split(";")) {
+			c.executeCommand(command);
+		}
+
 		if (c.isFabric()) {
 			c.waitForProvisioning();
 		}

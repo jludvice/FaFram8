@@ -236,6 +236,7 @@ The workflow or properties can be modified using system properties. Full list of
 * fafram.default.root.name - Default container name (defaults to root)
 * keepContainers - Flag if the containers should be kept running
 * keepAll - Combination of `keepContainers` and `keep.os.resources`
+* additional.commands - Semicolon separated list of commands that should be executed (useful for small hotfixy specific for builds with problems etc.)
 
 ### Patches
 

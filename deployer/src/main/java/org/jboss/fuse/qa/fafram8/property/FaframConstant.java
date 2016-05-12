@@ -183,4 +183,7 @@ public final class FaframConstant {
 
 	// Fafram properties file path
 	public static final String FAFRAM_CONFIG_URL = "fafram.config.url";
+
+	// Semicolon separated list of commands that should be executed
+	public static final String ADDITIONAL_COMMANDS = "additional.commands";
 }

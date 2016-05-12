@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,14 +40,12 @@ public class NodeSSHClient extends SSHClient {
 			channel.setInputStream(null);
 			((ChannelExec) channel).setErrStream(System.err);
 
-			final InputStream in = channel.getInputStream();
-
-			channel.connect();
-
-			returnString = convertStreamToString(in);
-
+			try (InputStream in = channel.getInputStream()) {
+				channel.connect();
+				returnString = convertStreamToString(in);
+			}
 			returnString = returnString.replaceAll("\u001B\\[[;\\d]*m", "").trim();
-
+			channel.disconnect();
 			return returnString;
 		} catch (JSchException ex) {
 			log.error("Cannot execute ssh command: \"" + command + "\"", ex);
@@ -87,37 +84,58 @@ public class NodeSSHClient extends SSHClient {
 	}
 
 	/**
-	 * TODO(rjakubco): experimental method not used at the moment
 	 * Convert remote file to String.
 	 *
 	 * @param remotePath absolute path to remote file
-	 * @return content of rmeote file as String
-	 * @throws IOException if there is problem in sftp
+	 * @return content of remote file as String
 	 * @throws CopyFileException if copy fails
 	 */
-	public String readFileFromRemote(String remotePath) throws IOException, CopyFileException {
+	public String readFileFromRemote(String remotePath) throws CopyFileException {
 		log.info("Reading file from remote machine path " + remotePath);
 
-		ChannelSftp sftpChannel;
-		InputStream stream = null;
-		String file = null;
+		final ChannelSftp sftpChannel;
+		String propertyFileString = "";
+
 		try {
 			sftpChannel = (ChannelSftp) session.openChannel("sftp");
-			stream = sftpChannel.get(remotePath);
 			sftpChannel.connect();
-			file = IOUtils.toString(new InputStreamReader(stream, "UTF-8"));
+			try (InputStream stream = sftpChannel.get(remotePath)) {
+				propertyFileString = IOUtils.toString(stream);
+			}
+			sftpChannel.disconnect();
+		} catch (RuntimeException ex) {
+			log.error("Exception thrown during reading file from remote machine ", ex);
+			throw ex;
+		} catch (Exception ex) {
+			log.error("Exception thrown during reading file from remote machine ", ex);
+			throw new CopyFileException(ex);
+		}
+		return propertyFileString;
+	}
+
+	/**
+	 * Writes input stream to file on remote machine.
+	 *
+	 * @param stream input stream that should be uploaded
+	 * @param remotePath path to file on remote
+	 * @throws CopyFileException if there was problem with uploading the file
+	 */
+	public void writeFileToRemote(InputStream stream, String remotePath) throws CopyFileException {
+		log.info("Writing file to remote machine path " + remotePath);
+
+		try {
+			final ChannelSftp sftpChannel = (ChannelSftp) session.openChannel("sftp");
+			sftpChannel.connect();
+			sftpChannel.cd(StringUtils.substringBeforeLast(remotePath, "/"));
+			sftpChannel.put(stream, StringUtils.substringAfterLast(remotePath, "/"));
 
 			sftpChannel.disconnect();
 		} catch (RuntimeException ex) {
+			log.error("Exception thrown during uploading file to remote machine ", ex);
 			throw ex;
 		} catch (Exception ex) {
-			log.error("Exception thrown during uploading file to remote machine");
+			log.error("Exception thrown during uploading file to remote machine ", ex);
 			throw new CopyFileException(ex);
-		} finally {
-			if (stream != null) {
-				stream.close();
-			}
 		}
-		return file;
 	}
 }

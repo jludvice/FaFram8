@@ -245,9 +245,9 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram modifyProperty(String file, String key, String value, boolean extend) {
 		if (extend) {
-			ModifierExecutor.addModifiers(putProperty(file, key, value));
-		} else {
 			ModifierExecutor.addModifiers(extendProperty(file, key, value));
+		} else {
+			ModifierExecutor.addModifiers(putProperty(file, key, value));
 		}
 
 		return this;

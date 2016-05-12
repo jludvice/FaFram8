@@ -351,9 +351,9 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 			log.debug("Executing iptables configuration file on node: " + container.getNode().getExecutor().toString());
 
-			final String response = container.getNode().getExecutor().executeCommand("sudo cat " + this.ipTablesFilePath);
+			final String response = container.getNode().getExecutor().executeCommand("stat " + this.ipTablesFilePath);
 
-			if (response.contains("No such file or directory")) {
+			if (response == null || response.isEmpty()) {
 				throw new OfflineEnvironmentException(
 						"Configuration file for iptables" + " doesn't exists on node: " + container.getNode().getHost() + ".",
 						new FileNotFoundException("File " + this.ipTablesFilePath + " doesn't exists."));

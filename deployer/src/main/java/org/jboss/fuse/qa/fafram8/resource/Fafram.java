@@ -811,6 +811,14 @@ public class Fafram extends ExternalResource {
 	}
 
 	/**
+	 * Gets the broker list.
+	 * @return broker list
+	 */
+	public List<Broker> getBrokerList() {
+		return ContainerManager.getBrokers();
+	}
+
+	/**
 	 * Builds defined bundles with specific maven goals on local host.
 	 */
 	public void buildBundles() {

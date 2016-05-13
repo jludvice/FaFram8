@@ -2,6 +2,7 @@ package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
+import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
@@ -23,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ToString
 public abstract class Container implements Comparable<Container> {
+	public static final int DEFAULT_FUSE_PORT = 8101;
+
 	@Getter
 	@Setter
 	private String name;
@@ -122,7 +125,7 @@ public abstract class Container implements Comparable<Container> {
 	// This port is used when creating executor for Fuse
 	@Getter
 	@Setter
-	private int fuseSshPort = 8101;
+	private int fuseSshPort = DEFAULT_FUSE_PORT;
 
 	/**
 	 * Creates a container.
@@ -451,11 +454,13 @@ public abstract class Container implements Comparable<Container> {
 		Container c = this;
 		int count = 0;
 		do {
-			if (c.getParent() == null) {
+			final Container currentParent = c.getParent() == null ? (c.getParentName() == null ? null
+					: ContainerManager.getContainer(c.getParentName())) : c.getParent();
+			if (currentParent == null) {
 				break;
 			}
 			count++;
-			c = c.getParent();
+			c = currentParent;
 		} while (c != null);
 		return count;
 	}

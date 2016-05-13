@@ -246,6 +246,7 @@ public class ContainerManager {
 	/**
 	 * Uploads bundle to fabric maven proxy on container (remote). The container should be root with fabric and its own maven upload proxy.
 	 *
+	 * @param c container to upload the bundle to
 	 * @param projectPath path to pom.xml of the project that should be uploaded to root container
 	 */
 	public static void uploadBundle(Container c, String projectPath) {

@@ -37,6 +37,7 @@ import org.junit.rules.ExternalResource;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -172,8 +173,8 @@ public class Fafram extends ExternalResource {
 	 * @return this
 	 */
 	public Fafram containers(Container... containers) {
-		Arrays.sort(containers);
 		ContainerManager.getContainerList().addAll(new ArrayList<>(Arrays.asList(containers)));
+		Collections.sort(ContainerManager.getContainerList());
 		if (running) {
 			// == if we are adding the containers in the test method, we need to create them
 			// Validate the containers

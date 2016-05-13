@@ -246,14 +246,14 @@ public class ContainerManager {
 	/**
 	 * Uploads bundle to fabric maven proxy on container (remote). The container should be root with fabric and its own maven upload proxy.
 	 *
-	 * @param c container to upload the bundle to
+	 * @param container container to which bundle should be uploaded
 	 * @param projectPath path to pom.xml of the project that should be uploaded to root container
 	 */
-	public static void uploadBundle(Container c, String projectPath) {
-		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(c.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
+	public static void uploadBundle(Container container, String projectPath) {
+		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(container.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
 
 		final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath,
-				"http://" + c.getUser() + ":" + c.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", c.getNode().getHost()));
+				"http://" + container.getUser() + ":" + container.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", container.getNode().getHost()));
 		try {
 			bundleInstaller.installFile();
 		} catch (URISyntaxException | MavenInvocationException e) {

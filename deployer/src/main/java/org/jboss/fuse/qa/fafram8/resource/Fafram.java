@@ -661,10 +661,7 @@ public class Fafram extends ExternalResource {
 		if (!SystemProperty.skipDefaultJvmOpts()) {
 			ModifierExecutor.addModifiers(setDefaultJvmMemOpts());
 		}
-
-		if ("localhost".equals(getRoot().getNode().getHost())) {
-			ModifierExecutor.addPostModifiers(registerArchiver());
-		}
+		ModifierExecutor.addPostModifiers(registerArchiver());
 	}
 
 	/**

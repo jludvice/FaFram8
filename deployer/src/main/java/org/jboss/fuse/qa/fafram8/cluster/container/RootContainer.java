@@ -133,7 +133,11 @@ public class RootContainer extends Container {
 
 	@Override
 	public void destroy() {
-		ModifierExecutor.executePostModifiers();
+		if ("localhost".equals(super.getNode().getHost())) {
+			ModifierExecutor.executePostModifiers();
+		} else {
+			ModifierExecutor.executePostModifiers(super.getNode().getExecutor());
+		}
 
 		if (!super.isCreated()) {
 			return;

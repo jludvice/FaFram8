@@ -105,7 +105,6 @@ public class RemoteNodeManager implements NodeManager {
 	public void stopAndClean(boolean ignoreExceptions) {
 		// For remote deployment just clean modifiers and System properties
 		SystemProperty.clearAllProperties();
-		ModifierExecutor.executePostModifiers();
 		ModifierExecutor.clearAllModifiers();
 	}
 

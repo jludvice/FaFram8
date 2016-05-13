@@ -155,7 +155,7 @@ public final class PropertyModifier extends Modifier {
 
 		final NodeSSHClient sshClient = (NodeSSHClient) super.getExecutor().getClient();
 
-		final String response = super.getExecutor().executeCommand("stat " + path);
+		final String response = super.getExecutor().executeCommandSilently("stat " + path);
 		if (!(response == null || response.isEmpty())) {
 			// Load file from remote if exists
 			try (StringReader stringReader = new StringReader(sshClient.readFileFromRemote(path))) {

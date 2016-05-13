@@ -351,7 +351,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 			log.debug("Executing iptables configuration file on node: " + container.getNode().getExecutor().toString());
 
-			final String response = container.getNode().getExecutor().executeCommand("stat " + this.ipTablesFilePath);
+			final String response = container.getNode().getExecutor().executeCommandSilently("stat " + this.ipTablesFilePath);
 
 			if (response == null || response.isEmpty()) {
 				throw new OfflineEnvironmentException(

@@ -70,6 +70,27 @@ public class Executor {
 	}
 
 	/**
+	 * Executes a command.
+	 *
+	 * @param cmd command
+	 * @return command response
+	 */
+	@SuppressWarnings("TryWithIdenticalCatches")
+	public String executeCommandSilently(String cmd) {
+		try {
+			final String response = client.executeCommand(cmd, true);
+			CommandHistory.log(cmd, response);
+			return response;
+		} catch (KarafSessionDownException e) {
+			log.error("Karaf session is down!");
+		} catch (SSHClientException e) {
+			log.error("SSHClient exception thrown: " + e);
+		}
+
+		return null;
+	}
+
+	/**
 	 * Executes multiple commands.
 	 *
 	 * @param commands commands array

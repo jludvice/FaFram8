@@ -1,17 +1,23 @@
 package org.jboss.fuse.qa.fafram8.modifier.impl;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.DirectoryScanner;
 
+import org.jboss.fuse.qa.fafram8.exception.FaframException;
+import org.jboss.fuse.qa.fafram8.exceptions.CopyFileException;
 import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.ssh.NodeSSHClient;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -82,7 +88,26 @@ public class ArchiveModifier extends Modifier {
 	 * Archives files on remote.
 	 */
 	private void archiveRemoteFiles() {
-		// TODO(avano): probably get from all machines using jsch scp
+		final String randomFolder = super.getExecutor().getClient().getHost() + "-" + UUID.randomUUID().toString().substring(0, 6);
+		final NodeSSHClient sshClient = (NodeSSHClient) super.getExecutor().getClient();
+
+		for (String s : archiveFiles) {
+			final String response = super.getExecutor().executeCommand(
+					"find " + ModifierExecutor.getContainer().getFusePath() + " -type f -wholename \""
+							+ ModifierExecutor.getContainer().getFusePath() + s + "\"");
+			if (!(response == null || response.isEmpty())) {
+				for (String filePath : response.split("\n")) {
+					try {
+						final File archivedFile = Paths.get(archiveTargetPath.toAbsolutePath().toString(), randomFolder,
+								StringUtils.substringAfterLast(filePath, File.separator)).toFile();
+						FileUtils.writeStringToFile(archivedFile, sshClient.readFileFromRemote(filePath));
+					} catch (IOException | CopyFileException e) {
+						log.error("Failed to archived file {} from remote machine {}!", filePath, sshClient, e);
+						throw new FaframException("Failed to archived file " + filePath + " from remote machine " + sshClient + "!", e);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -96,6 +121,7 @@ public class ArchiveModifier extends Modifier {
 
 	/**
 	 * Constructs the path to the target file path.
+	 *
 	 * @param fileName file name to use
 	 * @return absolute target path
 	 */

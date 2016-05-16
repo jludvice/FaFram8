@@ -126,9 +126,9 @@ public class StaticProvider implements ProvisionProvider {
 				// Copy iptables configuration file from local to all remote nodes
 				((NodeSSHClient) sshClient).copyFileToRemote(SystemProperty.getIptablesConfFilePath(), remoteFilePath);
 
-				final String response = executor.executeCommand("sudo cat " + SystemProperty.getIptablesConfFilePath());
+				final String response = executor.executeCommandSilently("stat " + SystemProperty.getIptablesConfFilePath());
 
-				if (response.contains("No such file or directory")) {
+				if (response == null || response.isEmpty()) {
 					throw new OfflineEnvironmentException("Configuration file for iptables"
 							+ " doesn't exists on node: " + c.getNode().getHost() + ".",
 							new FileNotFoundException("File " + SystemProperty.getIptablesConfFilePath() + " doesn't exists."));

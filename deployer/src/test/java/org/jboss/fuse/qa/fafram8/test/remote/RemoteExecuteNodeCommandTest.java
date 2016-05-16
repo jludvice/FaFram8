@@ -18,7 +18,7 @@ import java.util.List;
  * Test if a command can be executed on remote node.
  * Created by avano on 11.4.16.
  */
-public class RemoteExecuteNodeCommand {
+public class RemoteExecuteNodeCommandTest {
 	private Container root = RootContainer.builder().defaultRoot().name("build-excommand-root").withFabric().build();
 	private Container ssh = SshContainer.builder().name("build-excommand-container").parent(root).build();
 

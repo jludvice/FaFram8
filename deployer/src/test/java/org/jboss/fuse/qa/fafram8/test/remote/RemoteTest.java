@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
+		RemoteArchive.class,
 		RemoteAddUser.class,
 		RemoteFabric.class,
 		RemoteFaframJvmMemOpts.class,
@@ -31,9 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 		Remote.class,
 		RemoteCurl.class,
 		RemoteBundleUpload.class,
-		RemoteSetJdk.class,
-		RemoteKillingContainers.class,
-		RemoteExecuteNodeCommand.class
+		RemoteSetJdk.class
 })
 @Slf4j
 public final class RemoteTest {
@@ -57,7 +56,7 @@ public final class RemoteTest {
 
 		log.info("Testing node on Openstack spawned on IP address " + ipAddress);
 
-		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_HTTP_URL);
+		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_LOCAL_URL);
 		System.setProperty(FaframConstant.HOST, ipAddress);
 
 		Thread.sleep(30000);

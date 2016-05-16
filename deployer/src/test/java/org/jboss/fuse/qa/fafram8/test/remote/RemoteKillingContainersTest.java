@@ -9,11 +9,9 @@ import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.property.FaframProvider;
-import org.jboss.fuse.qa.fafram8.provision.provider.OpenStackProvisionProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 import org.jboss.fuse.qa.fafram8.test.base.FaframTestBase;
 
-import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -25,11 +23,9 @@ import lombok.extern.slf4j.Slf4j;
  * @author : Roman Jakubco (rjakubco@redhat.com)
  */
 @Slf4j
-public class RemoteKillingContainers {
+public class RemoteKillingContainersTest {
 	private static String childName = "build-child-container";
 	private static String sshName = "build-ssh-container";
-
-	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
 
 	private Container root = RootContainer.builder().defaultRoot().name("build-root").withFabric().build();
 	private Container child = ChildContainer.builder().name(childName).parent(root).build();
@@ -53,10 +49,5 @@ public class RemoteKillingContainers {
 		root.kill();
 
 		assertNull(fafram.executeCommand("list"));
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		osm.releaseResources();
 	}
 }

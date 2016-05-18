@@ -50,9 +50,8 @@ public final class RemoteTest {
 	@BeforeClass
 	public static void before() throws InterruptedException {
 		log.info("Spawning testing node...");
-		osm.getOs().spawnNewServer(SERVER_NAME);
 
-		ipAddress = osm.getOs().assignFloatingAddress(osm.getOs().getServerByName(SERVER_NAME).getId());
+		ipAddress = osm.getClient().assignFloatingAddress(osm.getClient().spawnNewServer(SERVER_NAME).getId());
 
 		log.info("Testing node on Openstack spawned on IP address " + ipAddress);
 

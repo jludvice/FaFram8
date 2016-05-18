@@ -106,11 +106,6 @@ public final class OpenStackClient {
 	// List of all created OpenStack nodes a.k.a. servers
 	private static final List<Server> serverRegister = new LinkedList<>();
 
-//	// List of available OpenStack nodes which are not assigned to container yet
-//	@SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-//	@Deprecated
-//	private static List<Server> serverPool = new LinkedList<>();
-
 	private static final String OS4_PROPERTIES = "OS4.properties";
 	private static final String OS7_PROPERTIES = "OS7.properties";
 
@@ -187,6 +182,7 @@ public final class OpenStackClient {
 
 		for (Future<Server> future : futureServerSet) {
 			final Server server = future.get();
+			log.debug("Spawned server " + server.getName());
 			servers.add(server);
 			serverRegister.add(server);
 		}
@@ -239,7 +235,7 @@ public final class OpenStackClient {
 	public Server getServerFromRegister(String serverName) {
 		final List<Server> registerList = new LinkedList<>();
 		for (Server s : serverRegister) {
-			if (s.getName().contains(serverName)) {
+			if (s.getName().equals(serverName)) {
 				registerList.add(s);
 			}
 		}
@@ -314,8 +310,16 @@ public final class OpenStackClient {
 	 *
 	 * @param serverName name of the new node
 	 */
-	public void spawnNewServer(String serverName) {
-		spawnNewServer(serverName, this.getImage());
+
+	/**
+	 * Create new OpenStack node. Method will create Server object model, boot it,
+	 * add to register and wait for active status.
+	 *
+	 * @param serverName name of the new node
+	 * @return spawned server
+	 */
+	public Server spawnNewServer(String serverName) {
+		return spawnNewServer(serverName, this.getImage());
 	}
 
 	/**
@@ -324,8 +328,9 @@ public final class OpenStackClient {
 	 *
 	 * @param serverName name of the new node
 	 * @param imageID ID of image to spawn
+	 * @return spawned server
 	 */
-	public void spawnNewServer(String serverName, String imageID) {
+	public Server spawnNewServer(String serverName, String imageID) {
 		log.info("Spawning new server: " + this.namePrefix + "-" + serverName);
 		final ServerCreate server = osClient.compute().servers().serverBuilder().image(imageID)
 				.name(this.namePrefix + "-" + serverName)
@@ -334,6 +339,7 @@ public final class OpenStackClient {
 				.networks(Arrays.asList(this.networks.split(","))).build();
 		final Server node = osClient.compute().servers().bootAndWaitActive(server, BOOT_TIMEOUT);
 		serverRegister.add(node);
+		return node;
 	}
 
 	/**
@@ -356,33 +362,6 @@ public final class OpenStackClient {
 	public void deleteServer(String serverName) {
 		osClient.compute().servers().delete(getServerByName(serverName).getId());
 	}
-
-//	/**
-//	 * Register server to OpenStackClient "register".
-//	 *
-//	 * @param server server
-//	 */
-//	public static void registerServer(Server server) {
-//		serverRegister.add(server);
-//	}
-
-//	/**
-//	 * Add server to pool.
-//	 *
-//	 * @param server representation of OpenStack node object
-//	 */
-//	public static void addServerToPool(Server server) {
-//		serverPool.add(server);
-//	}
-//
-//	/**
-//	 * Remove server from pool.
-//	 *
-//	 * @param server representation of openstack node object
-//	 */
-//	public static void removeServerFromPool(Server server) {
-//		serverPool.remove(server);
-//	}
 
 	/**
 	 * Builder class.

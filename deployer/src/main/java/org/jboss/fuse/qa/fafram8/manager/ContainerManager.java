@@ -222,7 +222,9 @@ public class ContainerManager {
 
 		// Execute additional commands provided by system property
 		for (String command : SystemProperty.getAdditionalCommands().split(";")) {
-			c.executeCommand(command);
+			if (!command.isEmpty()) {
+				c.executeCommand(command);
+			}
 		}
 
 		if (c.isFabric()) {

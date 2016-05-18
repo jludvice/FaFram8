@@ -92,13 +92,20 @@ public class ChildContainer extends Container {
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
+		super.getParent().getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
 				super.getUser(), super.getPassword(), super.getParent().getName(), super.getName()));
 		super.setCreated(true);
-		getExecutor().waitForProvisioning(this);
+		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 		// Set node object
 		super.setNode(super.getParent().getNode());
+		// Create a new executor
+		final Executor executor = super.createExecutor();
+		final String port = StringUtils.substringAfterLast(super.getParent().executeCommand("zk:get /fabric/registry/containers/config/"
+				+ super.getName() + "/ssh").trim(), ":");
+		executor.getClient().setPort(Integer.parseInt(port));
+		executor.connect();
+		super.setExecutor(executor);
 		// Set the fuse path
 		try {
 			super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
@@ -114,7 +121,7 @@ public class ChildContainer extends Container {
 		}
 
 		log.info("Destroying container " + super.getName());
-		getExecutor().executeCommand("container-delete --force " + super.getName());
+		super.getParent().getExecutor().executeCommand("container-delete --force " + super.getName());
 		super.setCreated(false);
 	}
 
@@ -126,20 +133,20 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void start(boolean force) {
-		getExecutor().executeCommand("container-start " + (force ? "--force " : "") + super.getName());
-		getExecutor().waitForProvisioning(this);
+		super.getParent().getExecutor().executeCommand("container-start " + (force ? "--force " : "") + super.getName());
+		super.getParent().getExecutor().waitForProvisioning(this);
 	}
 
 	@Override
 	public void stop(boolean force) {
-		getExecutor().executeCommand("container-stop " + (force ? "--force " : "") + super.getName());
-		getExecutor().waitForContainerStop(this);
+		super.getParent().getExecutor().executeCommand("container-stop " + (force ? "--force " : "") + super.getName());
+		super.getParent().getExecutor().waitForContainerStop(this);
 		super.setOnline(false);
 	}
 
 	@Override
 	public void kill() {
-		super.getParent().getExecutor().executeCommand("exec pkill -9 -f " + super.getName());
+		super.getExecutor().executeCommand("exec pkill -9 -f " + super.getName());
 	}
 
 	@Override
@@ -149,7 +156,7 @@ public class ChildContainer extends Container {
 		for (int i = 0; i < commands.length; i++) {
 			prefixedCommands[i] = prefix + " " + commands[i];
 		}
-		return getExecutor().executeCommands(prefixedCommands);
+		return super.getExecutor().executeCommands(prefixedCommands);
 	}
 
 	@Override
@@ -164,22 +171,17 @@ public class ChildContainer extends Container {
 
 	@Override
 	public void waitForProvisioning(int time) {
-		getExecutor().waitForProvisioning(this, time);
+		super.getParent().getExecutor().waitForProvisioning(this, time);
 	}
 
 	@Override
 	public void waitForProvisionStatus(String status) {
-		getExecutor().waitForProvisionStatus(this, status);
+		super.getParent().getExecutor().waitForProvisionStatus(this, status);
 	}
 
 	@Override
 	public void waitForProvisionStatus(String status, int time) {
-		getExecutor().waitForProvisionStatus(this, status, time);
-	}
-
-	@Override
-	public Executor getExecutor() {
-		return super.getParent().getExecutor();
+		super.getParent().getExecutor().waitForProvisionStatus(this, status, time);
 	}
 
 	/**

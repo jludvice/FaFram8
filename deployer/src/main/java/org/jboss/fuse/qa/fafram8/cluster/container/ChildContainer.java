@@ -1,5 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
@@ -95,6 +97,8 @@ public class ChildContainer extends Container {
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
+		// Set node object
+		super.setNode(super.getParent().getNode());
 		// Set the fuse path
 		try {
 			super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);

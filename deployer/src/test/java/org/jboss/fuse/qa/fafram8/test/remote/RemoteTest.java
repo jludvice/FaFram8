@@ -42,7 +42,7 @@ public final class RemoteTest {
 	@Getter
 	private static String ipAddress;
 
-	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
+	private static OpenStackProvisionProvider osm = OpenStackProvisionProvider.getInstance();
 
 	private RemoteTest() {
 	}
@@ -50,9 +50,9 @@ public final class RemoteTest {
 	@BeforeClass
 	public static void before() throws InterruptedException {
 		log.info("Spawning testing node...");
-		osm.spawnNewServer(SERVER_NAME);
+		osm.getOs().spawnNewServer(SERVER_NAME);
 
-		ipAddress = osm.assignFloatingAddress(osm.getServerByName(SERVER_NAME).getId());
+		ipAddress = osm.getOs().assignFloatingAddress(osm.getOs().getServerByName(SERVER_NAME).getId());
 
 		log.info("Testing node on Openstack spawned on IP address " + ipAddress);
 

@@ -380,7 +380,7 @@ public class Fafram extends ExternalResource {
 				provisionProvider = new StaticProvider();
 				break;
 			case OPENSTACK:
-				provisionProvider = new OpenStackProvisionProvider();
+				provisionProvider = OpenStackProvisionProvider.getInstance();
 				break;
 			default:
 				log.warn("Provider not found! Using default static provider!");
@@ -810,6 +810,7 @@ public class Fafram extends ExternalResource {
 
 	/**
 	 * Gets the broker list.
+	 *
 	 * @return broker list
 	 */
 	public List<Broker> getBrokerList() {

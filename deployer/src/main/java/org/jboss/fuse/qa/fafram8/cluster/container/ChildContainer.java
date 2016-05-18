@@ -96,7 +96,11 @@ public class ChildContainer extends Container {
 		getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
 		// Set the fuse path
-		super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
+		try {
+			super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
+		} catch (Exception ex) {
+			log.warn("Setting fuse path failed, it won't be available", ex);
+		}
 	}
 
 	@Override

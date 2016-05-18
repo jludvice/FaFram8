@@ -61,7 +61,7 @@ public final class AccessRightsModifier extends Modifier {
 	 */
 	private void remoteExecute() {
 		for (String path : paths) {
-			super.getExecutor().executeCommand("chmod +x " + ModifierExecutor.getContainer().getFusePath() + path);
+			super.getExecutor().executeCommandSilently("chmod +x " + ModifierExecutor.getContainer().getFusePath() + path);
 		}
 	}
 }

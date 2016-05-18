@@ -250,7 +250,8 @@ public class ContainerManager {
 	 * @param projectPath path to pom.xml of the project that should be uploaded to root container
 	 */
 	public static void uploadBundle(Container container, String projectPath) {
-		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(container.executeCommand("fabric:info | grep upload"), ":"), "://").trim();
+		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(container.getExecutor().executeCommandSilently(
+				"fabric:info | grep upload"), ":"), "://").trim();
 
 		final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath,
 				"http://" + container.getUser() + ":" + container.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", container.getNode().getHost()));

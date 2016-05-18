@@ -101,14 +101,14 @@ public class ChildContainer extends Container {
 		super.setNode(super.getParent().getNode());
 		// Create a new executor
 		final Executor executor = super.createExecutor();
-		final String port = StringUtils.substringAfterLast(super.getParent().executeCommand("zk:get /fabric/registry/containers/config/"
-				+ super.getName() + "/ssh").trim(), ":");
+		final String port = StringUtils.substringAfterLast(super.getParent().getExecutor().executeCommandSilently(
+				"zk:get /fabric/registry/containers/config/" + super.getName() + "/ssh").trim(), ":");
 		executor.getClient().setPort(Integer.parseInt(port));
 		executor.connect();
 		super.setExecutor(executor);
 		// Set the fuse path
 		try {
-			super.setFusePath(executeCommand("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
+			super.setFusePath(super.getExecutor().executeCommandSilently("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
 		} catch (Exception ex) {
 			log.warn("Setting fuse path failed, it won't be available", ex);
 		}

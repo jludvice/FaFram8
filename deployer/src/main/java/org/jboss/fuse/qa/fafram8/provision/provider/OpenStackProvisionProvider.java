@@ -19,7 +19,10 @@ import org.openstack4j.model.compute.Server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -34,30 +37,36 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class OpenStackProvisionProvider implements ProvisionProvider {
-	// Authenticated OpenStackClient instance
+	// static property holding created OpenStackProvisionProvider singleton
 	private static OpenStackProvisionProvider provider = null;
 
+	// Authenticated OpenStackClient instance
 	@Getter
-	private static OpenStackClient os = null;
+	private static OpenStackClient client = null;
 
 	private static final String OFFLINE_IPTABLES_FILE = "iptables-no-internet";
 
 	private String ipTablesFilePath;
 
 	public OpenStackProvisionProvider() {
-		if (os == null) {
-			os = OpenStackClient.builder()
+		if (client == null) {
+			if (SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) == null) {
+				final DateFormat df = new SimpleDateFormat("HHmmddMMyyyy");
+				SystemProperty.set(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8." + df.format(new Date()));
+			}
+
+			client = OpenStackClient.builder()
 					.url(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_URL))
 					.tenant(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_TENANT))
 					.user(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_USER))
 					.password(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_PASSWORD))
 					.image(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_IMAGE))
-					.namePrefix(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX))
 					.flavor(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLAVOR))
 					.keypair(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_KEYPAIR))
 					.networks(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NETWORKS))
 					.addressType(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_ADDRESS_TYPE))
 					.floatingIpPool(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_FLOATING_IP_POOL))
+					.namePrefix(SystemProperty.getOpenstackServerNamePrefix())
 					.build();
 		}
 	}
@@ -92,7 +101,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			containerNames.add(container.getName());
 		}
 		try {
-			os.spawnServersByNames(containerNames);
+			client.spawnServersByNames(containerNames);
 		} catch (ExecutionException | InterruptedException e) {
 			throw new FaframException("Cannot create OpenStack infrastructure.", e);
 		}
@@ -110,8 +119,9 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			throw new EmptyContainerListException("Container list is empty!");
 		}
 		for (Container container : containerList) {
+			// No longer parse System properties because they could be cleared. Work only with properties set on client
 			final Server server =
-					os.getServerByName(SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) + "-" + container.getName());
+					client.getServerFromRegister(client.getNamePrefix() + "-" + container.getName());
 			if (container.getNode() == null) {
 				// We dont have any info, use the defaults
 				container.setNode(Node.builder().port(SystemProperty.getHostPort()).username(SystemProperty.getHostUser())
@@ -119,8 +129,8 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			}
 			container.getNode().setNodeId(server.getId());
 
-			final String ip = os.assignFloatingAddress(server.getId());
-			log.info("Assigning public IP: " + ip + " for container: " + container.getName());
+			final String ip = client.assignFloatingAddress(server.getId());
+			log.info("Assigning public IP: " + ip + " for container: " + container.getName() + " on machine: " + server.getName());
 			container.getNode().setHost(ip);
 			container.getNode().setExecutor(container.getNode().createExecutor());
 		}
@@ -143,7 +153,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 			log.warn("Keeping OpenStack resources. Don't forget to release them later!");
 			return;
 		}
-		os.releaseResources();
+		client.releaseResources();
 	}
 
 	@Override
@@ -178,7 +188,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	@Override
 	public void checkNodes(List<Container> containerList) {
 		for (Container c : containerList) {
-			if (os.getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
+			if (client.getServers(SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName()).size() != 0) {
 				throw new InstanceAlreadyExistsException(
 						"Instance " + SystemProperty.getOpenstackServerNamePrefix() + "-" + c.getName() + " already exists!");
 			}

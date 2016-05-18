@@ -34,8 +34,7 @@ public class RemoteOnlyConnectTest {
 	static {
 		log.info("Spawning testing node...");
 		final String serverName = "only-connect-" + new Date().getTime();
-		osm.getOs().spawnNewServer(serverName);
-		ipAddress = osm.getOs().assignFloatingAddress(osm.getOs().getServerByName(serverName).getId());
+		ipAddress = osm.getClient().assignFloatingAddress(osm.getClient().spawnNewServer(serverName).getId());
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_HTTP_URL);
 	}
 

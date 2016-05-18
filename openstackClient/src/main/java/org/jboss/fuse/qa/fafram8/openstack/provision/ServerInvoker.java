@@ -45,7 +45,6 @@ public class ServerInvoker implements Callable {
 	 */
 	@Override
 	public Server call() {
-		// TODO(ecervena): why is this duplicated in OpenStackProvisionProvider.spawnNewServer()?
 		log.info("Creating server inside thread for container: " + nodeName);
 		final OSClient os = OSFactory.clientFromAccess(client.getOsClient().getAccess());
 		final ServerCreate serverCreate = os
@@ -58,7 +57,6 @@ public class ServerInvoker implements Callable {
 				.keypairName(client.getKeypair())
 				.networks(Arrays.asList(client.getNetworks().split(",")))
 				.build();
-		//TODO(ecervena): do something smarter with server boot timeout
 		return os.compute().servers().bootAndWaitActive(serverCreate, BOOT_TIMEOUT);
 	}
 }

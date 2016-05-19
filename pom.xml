@@ -35,6 +35,7 @@
 		<module>sshClient</module>
 		<module>deployer</module>
 		<module>fafram</module>
+		<module>openstackClient</module>
 	</modules>
 
 	<distributionManagement>

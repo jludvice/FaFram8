@@ -28,14 +28,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteOnlyConnectTest {
-	private static OpenStackProvisionProvider osm = new OpenStackProvisionProvider();
+	private static OpenStackProvisionProvider osm = OpenStackProvisionProvider.getInstance();
 	private static String ipAddress;
 
 	static {
 		log.info("Spawning testing node...");
 		final String serverName = "only-connect-" + new Date().getTime();
-		osm.spawnNewServer(serverName);
-		ipAddress = osm.assignFloatingAddress(osm.getServerByName(serverName).getId());
+		ipAddress = osm.getClient().assignFloatingAddress(osm.getClient().spawnNewServer(serverName).getId());
 		System.setProperty(FaframConstant.FUSE_ZIP, FaframTestBase.CURRENT_HTTP_URL);
 	}
 

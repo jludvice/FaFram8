@@ -1,6 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
+import org.jboss.fuse.qa.fafram8.cluster.resolver.Resolver;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
@@ -83,7 +84,11 @@ public class SshContainer extends Container {
 			// Decide if working directory was set on ssh and if not set the system property as default
 			final String path = "".equals(super.getWorkingDirectory()) ? SystemProperty.getWorkingDirectory() : super.getWorkingDirectory();
 			log.debug("Working directory was set. Setting working directory \"{}\" for container \"{}\".", path, super.getName());
-			properties = properties + " --path " + path;
+			properties += " --path " + path;
+		}
+
+		if (super.getCreateOptions() != null && !super.getCreateOptions().isEmpty()) {
+			properties += " " + super.getCreateOptions();
 		}
 
 		log.info("Creating container " + this);
@@ -456,6 +461,28 @@ public class SshContainer extends Container {
 		 */
 		public SshBuilder directory(String workingDirectory) {
 			container.setWorkingDirectory(workingDirectory);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param resolver one of resolver enum
+		 * @return this
+		 */
+		public SshBuilder resolver(Resolver resolver) {
+			container.setCreateOptions(container.getCreateOptions() + " --resolver " + resolver + " ");
+			return this;
+		}
+
+		/**
+		 * Setter for additional create options that does not have special method.
+		 *
+		 * @param options options string
+		 * @return this
+		 */
+		public SshBuilder options(String options) {
+			container.setCreateOptions(container.getCreateOptions() + options + " ");
 			return this;
 		}
 

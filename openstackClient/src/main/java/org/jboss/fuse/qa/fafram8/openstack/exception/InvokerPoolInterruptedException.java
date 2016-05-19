@@ -1,4 +1,4 @@
-package org.jboss.fuse.qa.fafram8.exception;
+package org.jboss.fuse.qa.fafram8.openstack.exception;
 
 /**
  * Invoker pool interrupted exception class.

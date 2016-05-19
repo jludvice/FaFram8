@@ -51,13 +51,16 @@ public class Executor {
 	 * Executes a command.
 	 *
 	 * @param cmd command
+	 * @param silent do not log if true
 	 * @return command response
 	 */
 	@SuppressWarnings("TryWithIdenticalCatches")
-	public String executeCommand(String cmd) {
+	private String executeCommand(String cmd, boolean silent) {
 		try {
-			final String response = client.executeCommand(cmd, false);
-			log.debug("Response: " + response);
+			final String response = client.executeCommand(cmd, silent);
+			if (!silent) {
+				log.debug("Response: " + response);
+			}
 			CommandHistory.log(cmd, response);
 			return response;
 		} catch (KarafSessionDownException e) {
@@ -77,17 +80,17 @@ public class Executor {
 	 */
 	@SuppressWarnings("TryWithIdenticalCatches")
 	public String executeCommandSilently(String cmd) {
-		try {
-			final String response = client.executeCommand(cmd, true);
-			CommandHistory.log(cmd, response);
-			return response;
-		} catch (KarafSessionDownException e) {
-			log.error("Karaf session is down!");
-		} catch (SSHClientException e) {
-			log.error("SSHClient exception thrown: " + e);
-		}
+		return executeCommand(cmd, true);
+	}
 
-		return null;
+	/**
+	 * Executes a command.
+	 *
+	 * @param cmd command
+	 * @return command response
+	 */
+	public String executeCommand(String cmd) {
+		return executeCommand(cmd, false);
 	}
 
 	/**

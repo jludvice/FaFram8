@@ -145,7 +145,7 @@ public final class Downloader {
 			case "http":
 				log.info(executor.executeCommand("curl -L -s -o " + nodeManager.getFolder()
 						+ SEP + "fuse.zip " + SystemProperty.getFuseZip()));
-				location = executor.executeCommand("ls -d -1 " + nodeManager.getFolder() + SEP + "*");
+				location = executor.executeCommandSilently("ls -d -1 " + nodeManager.getFolder() + SEP + "*");
 				break;
 			case "scp":
 				// impossible to provide password to scp command without third party library ssh-pass

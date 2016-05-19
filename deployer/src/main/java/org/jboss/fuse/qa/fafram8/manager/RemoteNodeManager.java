@@ -73,8 +73,8 @@ public class RemoteNodeManager implements NodeManager {
 		// Problem if WORKING_DIRECTORY is set because then the first command doesn't work
 
 		productPath = "".equals(SystemProperty.getWorkingDirectory())
-				? executor.executeCommand("ls -d $PWD" + SEP + getFolder() + SEP + "*" + SEP).trim()
-				: executor.executeCommand("ls -d " + getFolder() + SEP + "*" + SEP).trim();
+				? executor.executeCommandSilently("ls -d $PWD" + SEP + getFolder() + SEP + "*" + SEP).trim()
+				: executor.executeCommandSilently("ls -d " + getFolder() + SEP + "*" + SEP).trim();
 
 		log.trace("Product path is " + productPath);
 
@@ -157,7 +157,7 @@ public class RemoteNodeManager implements NodeManager {
 
 	@Override
 	public void checkRunningContainer() {
-		if (!executor.executeCommand("ps aux | grep karaf.base | grep -v grep").isEmpty()) {
+		if (!executor.executeCommandSilently("ps aux | grep karaf.base | grep -v grep").isEmpty()) {
 			log.error("Port 8101 is not free! Other karaf instance may be running. Shutting down...");
 			throw new FaframException("Port 8101 is not free! Other karaf instance may be running.");
 		}

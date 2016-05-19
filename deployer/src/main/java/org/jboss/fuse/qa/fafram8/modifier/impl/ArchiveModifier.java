@@ -88,7 +88,8 @@ public class ArchiveModifier extends Modifier {
 	 * Archives files on remote.
 	 */
 	private void archiveRemoteFiles() {
-		final String randomFolder = super.getExecutor().getClient().getHost() + "-" + UUID.randomUUID().toString().substring(0, 6);
+		final int endIndex = 6;
+		final String randomFolder = super.getExecutor().getClient().getHost() + "-" + UUID.randomUUID().toString().substring(0, endIndex);
 		final NodeSSHClient sshClient = (NodeSSHClient) super.getExecutor().getClient();
 
 		for (String s : archiveFiles) {

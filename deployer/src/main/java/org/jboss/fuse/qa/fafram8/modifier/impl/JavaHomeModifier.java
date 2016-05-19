@@ -96,10 +96,10 @@ public final class JavaHomeModifier extends Modifier {
 		if ((System.getProperty("os.name").startsWith("Windows"))) {
 			// Changes to win
 			content = content.replaceAll("export", "SET");
-			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path + ".bat");
+			super.getExecutor().executeCommandSilently("printf \"" + content + "\" >> " + path + ".bat");
 		} else {
 			// Print content into the files
-			super.getExecutor().executeCommand("printf \"" + content + "\" >> " + path);
+			super.getExecutor().executeCommandSilently("printf \"" + content + "\" >> " + path);
 		}
 	}
 }

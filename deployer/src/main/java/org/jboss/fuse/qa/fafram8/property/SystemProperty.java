@@ -520,6 +520,15 @@ public class SystemProperty {
 	}
 
 	/**
+	 * Getter.
+	 *
+	 * @return flag if default repositories should be used
+	 */
+	public static boolean useDefaultRepositories() {
+		return System.getProperty(FaframConstant.USE_DEFAULT_REPOSITORIES) != null;
+	}
+
+	/**
 	 * Checks if keepAll property is set if it is then it sets keepOsResources and keepContainers properties to true.
 	 */
 	public static void checkKeepAllProperty() {

@@ -186,4 +186,7 @@ public final class FaframConstant {
 
 	// Semicolon separated list of commands that should be executed
 	public static final String ADDITIONAL_COMMANDS = "additional.commands";
+
+	// Flag if default repositories should be used
+	public static final String USE_DEFAULT_REPOSITORIES = "use.default.repositories";
 }

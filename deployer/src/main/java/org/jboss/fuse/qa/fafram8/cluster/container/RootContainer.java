@@ -562,6 +562,11 @@ public class RootContainer extends Container {
 				if (!container.getCommands().contains(zkCommand)) {
 					container.getCommands().add(zkCommand);
 				}
+				if (!SystemProperty.useDefaultRepositories()) {
+					container.getCommands().add("fabric:profile-edit --pid io.fabric8.agent/org.ops4j.pax.url.mvn.repositories='file:${runtime.home}/"
+							+ "${karaf.default.repository}@snapshots@id=karaf-default, file:${runtime.data}/maven/upload@snapshots@id=fabric-upload' "
+							+ "default");
+				}
 			}
 			return container;
 		}

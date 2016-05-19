@@ -237,6 +237,7 @@ The workflow or properties can be modified using system properties. Full list of
 * keepContainers - Flag if the containers should be kept running
 * keepAll - Combination of `keepContainers` and `keep.os.resources`
 * additional.commands - Semicolon separated list of commands that should be executed (useful for small hotfixy specific for builds with problems etc.)
+* use.default.repositores - Flag if the default fabric repositories should be used
 
 ### Patches
 

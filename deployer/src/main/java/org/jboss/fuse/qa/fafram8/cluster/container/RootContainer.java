@@ -11,6 +11,7 @@ import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.manager.LocalNodeManager;
 import org.jboss.fuse.qa.fafram8.manager.NodeManager;
 import org.jboss.fuse.qa.fafram8.manager.RemoteNodeManager;
+import org.jboss.fuse.qa.fafram8.modifier.Modifier;
 import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
@@ -20,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -31,6 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 public class RootContainer extends Container {
 	// Node manager instance - sets up the container on the host
 	private NodeManager nodeManager;
+	@Setter
+	@Getter
+	private Modifier usersMod = null;
 
 	/**
 	 * Constructor.
@@ -90,11 +96,16 @@ public class RootContainer extends Container {
 		}
 
 		ModifierExecutor.setContainer(this);
-		// Add the modifiers
-		if (!SystemProperty.skipDefaultUser()) {
+		// If we shouldn't skip default user and the usersMod is null == we dont add specific user to the container, so add fafram/fafram
+		if (usersMod == null && !SystemProperty.skipDefaultUser()) {
 			// Add default user which is now fafram/fafram with only role Administrator for more transparent tests
 			ModifierExecutor.addModifiers(
 					putProperty(super.getNode().getHost(), "etc/users.properties", super.getUser(), super.getPassword() + ",Administrator"));
+		// If we should skip default user and the usersMod is set, use usersMod, otherwise the modifier from Fafram.addUser() will be used
+		} else if (usersMod != null) {
+			usersMod.setHost(super.getNode().getHost());
+			ModifierExecutor.addModifiers(usersMod);
+			usersMod = null;
 		}
 
 		if (!super.getJvmMemOpts().isEmpty()) {
@@ -241,47 +252,42 @@ public class RootContainer extends Container {
 	public static class RootBuilder {
 		// Container instance
 		private Container container;
-
 		/**
 		 * Constructor.
 		 *
 		 * @param root container that will be copied
 		 */
 		public RootBuilder(Container root) {
-			if (root != null) {
-				Node node = null;
-				if (root.getNode() != null) {
-					node = Node.builder()
-							.host(root.getNode().getHost())
-							.port(root.getNode().getPort())
-							.username(root.getNode().getUsername())
-							.password(root.getNode().getPassword())
-							.build();
-				}
-
-				// fuse executor is set when the container is being created
-				this.container = new RootContainer()
-						.name(root.getName())
-						.user(root.getUser())
-						.password(root.getPassword())
-						.root(true)
-						// We need to create a new instance of the node for the cloning case, otherwise all clones
-						// would have the same object instance
-						.node(node)
-						.parent(null)
-						.parentName(null)
-						.fabric(root.isFabric())
-						.fabricCreateArguments(root.getFabricCreateArguments())
-						// The same as node
-						.commands(new ArrayList<>(root.getCommands()))
-						.bundles(new ArrayList<>(root.getBundles()))
-						.profiles(new ArrayList<>(root.getProfiles()))
-						.jvmOpts(root.getJvmOpts())
-						.jvmMemOpts(root.getJvmMemOpts())
-						.directory(root.getWorkingDirectory());
-			} else {
-				container = new RootContainer();
+			Node node = null;
+			if (root.getNode() != null) {
+				node = Node.builder()
+						.host(root.getNode().getHost())
+						.port(root.getNode().getPort())
+						.username(root.getNode().getUsername())
+						.password(root.getNode().getPassword())
+						.build();
 			}
+
+			// fuse executor is set when the container is being created
+			this.container = new RootContainer()
+					.name(root.getName())
+					.user(root.getUser())
+					.password(root.getPassword())
+					.root(true)
+					// We need to create a new instance of the node for the cloning case, otherwise all clones
+					// would have the same object instance
+					.node(node)
+					.parent(null)
+					.parentName(null)
+					.fabric(root.isFabric())
+					.fabricCreateArguments(root.getFabricCreateArguments())
+					// The same as node
+					.commands(new ArrayList<>(root.getCommands()))
+					.bundles(new ArrayList<>(root.getBundles()))
+					.profiles(new ArrayList<>(root.getProfiles()))
+					.jvmOpts(root.getJvmOpts())
+					.jvmMemOpts(root.getJvmMemOpts())
+					.directory(root.getWorkingDirectory());
 		}
 
 		/**
@@ -298,9 +304,11 @@ public class RootContainer extends Container {
 		/**
 		 * Setter.
 		 *
-		 * @param user user
+		 * @param user username
+		 * @deprecated if you want to change this, use addUser in RootContainer.builder()
 		 * @return this
 		 */
+		@Deprecated
 		public RootBuilder user(String user) {
 			container.setUser(user);
 			return this;
@@ -310,10 +318,27 @@ public class RootContainer extends Container {
 		 * Setter.
 		 *
 		 * @param password password
+		 * @deprecated if you want to change this, use addUser in RootContainer.builder()
 		 * @return this
 		 */
+		@Deprecated
 		public RootBuilder password(String password) {
 			container.setPassword(password);
+			return this;
+		}
+
+		/**
+		 * Adds the user to the container and uses his credentials as login ssh credentials.
+		 * @param user username
+		 * @param pass password
+		 * @param roles comma-separated roles
+		 * @return this
+		 */
+		public RootBuilder addUser(String user, String pass, String roles) {
+			container.setUser(user);
+			container.setPassword(pass);
+			((RootContainer) container).setUsersMod(putProperty("etc/users.properties", user, pass + "," + roles));
+			// We need to pass it to ModifierExecutor later when we will have the IP
 			return this;
 		}
 

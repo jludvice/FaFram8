@@ -98,7 +98,7 @@ public final class JvmOptsModifier extends Modifier {
 	public void remoteExecute() {
 		final String filePath = ModifierExecutor.getContainer().getFusePath() + File.separator + "bin" + File.separator + "setenv";
 
-		final String response = super.getExecutor().executeCommand("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
+		final String response = super.getExecutor().executeCommandSilently("printf \" \nexport JAVA_OPTS=\\\"-Xms\\$JAVA_MIN_MEM -Xmx\\$JAVA_MAX_MEM "
 				+ "-XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava.security.egd=file:/dev/./urandom" + additionalJvmOpts + "\\\" \" >> " + filePath);
 		if (!response.isEmpty()) {
 			log.error("Setting property on remote host failed. Response should be empty but was: {}.", response);

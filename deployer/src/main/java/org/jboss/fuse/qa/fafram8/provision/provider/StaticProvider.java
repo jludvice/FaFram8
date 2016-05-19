@@ -56,7 +56,7 @@ public class StaticProvider implements ProvisionProvider {
 				log.debug("Killing Fuse process on node: ", executor);
 				try {
 					executor.connect();
-					executor.executeCommand("pkill -9 -f karaf.base");
+					executor.executeCommandSilently("pkill -9 -f karaf.base");
 				} catch (Exception e) {
 					throw new FaframException("Exception when killing Fuse on provides nodes (StaticProvider):", e);
 				}
@@ -117,7 +117,7 @@ public class StaticProvider implements ProvisionProvider {
 				executor.connect();
 
 				final String directory = ("".equals(SystemProperty.getWorkingDirectory()))
-						? executor.executeCommand("pwd") : SystemProperty.getWorkingDirectory();
+						? executor.executeCommandSilently("pwd") : SystemProperty.getWorkingDirectory();
 
 				// Path to copied iptables file on remote nodes
 				remoteFilePath =

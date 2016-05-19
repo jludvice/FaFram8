@@ -47,6 +47,8 @@ public class LocalCreateEnsembleTest {
 	public void teardown() {
 		if (fafram != null) {
 			root.executeCommand("ensemble-remove child1 child2");
+			child1.waitForProvisioning();
+			child2.waitForProvisioning();
 			fafram.tearDown();
 		}
 	}

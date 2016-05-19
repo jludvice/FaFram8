@@ -1,7 +1,6 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
-import org.apache.commons.lang3.StringUtils;
-
+import org.jboss.fuse.qa.fafram8.cluster.resolver.Resolver;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
@@ -90,6 +89,10 @@ public class ChildContainer extends Container {
 			arguments.append(jvmOpts.toString());
 		}
 
+		if (super.getCreateOptions() != null && !super.getCreateOptions().isEmpty()) {
+			arguments.append(" ").append(super.getCreateOptions());
+		}
+
 		log.info("Creating container " + this);
 
 		super.getParent().getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
@@ -100,17 +103,21 @@ public class ChildContainer extends Container {
 		// Set node object
 		super.setNode(super.getParent().getNode());
 		// Create a new executor
-		final Executor executor = super.createExecutor();
-		final String port = StringUtils.substringAfterLast(super.getParent().getExecutor().executeCommandSilently(
-				"zk:get /fabric/registry/containers/config/" + super.getName() + "/ssh").trim(), ":");
-		executor.getClient().setPort(Integer.parseInt(port));
-		executor.connect();
-		super.setExecutor(executor);
+		try {
+			final Executor executor = super.createExecutor();
+			final String port = super.getParent().getExecutor().executeCommandSilently("zk:get /fabric/registry/ports/containers/"
+					+ super.getName() + "/org.apache.karaf.shell/sshPort").trim();
+			executor.getClient().setPort(Integer.parseInt(port));
+			executor.connect();
+			super.setExecutor(executor);
+		} catch (Exception ex) {
+			log.warn("Couldn't create executor / couldn't parse ssh port, child.executeCommand() won't work!");
+		}
 		// Set the fuse path
 		try {
 			super.setFusePath(super.getExecutor().executeCommandSilently("shell:info | grep \"Karaf base\"").trim().replaceAll(" +", " ").split(" ")[1]);
 		} catch (Exception ex) {
-			log.warn("Setting fuse path failed, it won't be available", ex);
+			log.warn("Setting fuse path failed, it won't be available");
 		}
 	}
 
@@ -288,6 +295,28 @@ public class ChildContainer extends Container {
 		 */
 		public ChildBuilder jvmOpts(String... jvmOpts) {
 			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 *
+		 * @param resolver one of resolver enum
+		 * @return this
+		 */
+		public ChildBuilder resolver(Resolver resolver) {
+			container.setCreateOptions(container.getCreateOptions() + " --resolver " + resolver + " ");
+			return this;
+		}
+
+		/**
+		 * Setter for additional create options that does not have special method.
+		 *
+		 * @param options options string
+		 * @return this
+		 */
+		public ChildBuilder options(String options) {
+			container.setCreateOptions(container.getCreateOptions() + options + " ");
 			return this;
 		}
 

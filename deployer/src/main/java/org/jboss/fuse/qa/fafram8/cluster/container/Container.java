@@ -108,6 +108,10 @@ public abstract class Container implements Comparable<Container> {
 
 	@Getter
 	@Setter
+	private String createOptions = "";
+
+	@Getter
+	@Setter
 	private String workingDirectory = "";
 
 	// Full path to unzipped product directory for root container

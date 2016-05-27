@@ -1,7 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.addJvmOptsAndRandomSource;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.addJvmOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootName;
 
@@ -113,7 +113,7 @@ public class RootContainer extends Container {
 		}
 
 		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
-				setRootName(this, super.getNode().getHost()), addJvmOptsAndRandomSource(super.getJvmOpts()));
+				setRootName(this, super.getNode().getHost()), addJvmOpts(super.getJvmOpts()));
 
 		if (!super.isOnlyConnect()) {
 			nodeManager.clean();

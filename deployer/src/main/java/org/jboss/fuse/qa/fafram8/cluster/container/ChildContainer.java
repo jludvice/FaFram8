@@ -158,12 +158,7 @@ public class ChildContainer extends Container {
 
 	@Override
 	public List<String> executeCommands(String... commands) {
-		final String prefix = "container-connect " + super.getName();
-		final String[] prefixedCommands = new String[commands.length];
-		for (int i = 0; i < commands.length; i++) {
-			prefixedCommands[i] = prefix + " " + commands[i];
-		}
-		return super.getExecutor().executeCommands(prefixedCommands);
+		return super.getExecutor().executeCommands(commands);
 	}
 
 	@Override

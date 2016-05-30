@@ -44,7 +44,7 @@ public final class JvmOptsModifier extends Modifier {
 	 * @param jvmOptsForRoot additional jvm-opts for random modifier
 	 * @return random modifier instance
 	 */
-	public static JvmOptsModifier addJvmOptsAndRandomSource(List<String> jvmOptsForRoot) {
+	public static JvmOptsModifier addJvmOpts(List<String> jvmOptsForRoot) {
 		final StringBuilder builder = new StringBuilder("");
 		for (String opt : jvmOptsForRoot) {
 			builder.append(" " + opt);
@@ -57,7 +57,7 @@ public final class JvmOptsModifier extends Modifier {
 	 *
 	 * @return random modifier instance
 	 */
-	public static JvmOptsModifier addJvmOptsAndRandomSource() {
+	public static JvmOptsModifier addJvmOpts() {
 		return new JvmOptsModifier();
 	}
 
@@ -80,8 +80,8 @@ public final class JvmOptsModifier extends Modifier {
 			String content = IOUtils.toString(fis);
 
 			// Default java opts from karaf + randomness location
-			content += "\nexport JAVA_OPTS=\"-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass -Djava"
-					+ ".security.egd=file:/dev/./urandom " + additionalJvmOpts + "\"\n";
+			content += "\nexport JAVA_OPTS=\"-Xms$JAVA_MIN_MEM -Xmx$JAVA_MAX_MEM -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass "
+					+ additionalJvmOpts + "\"\n";
 			final FileOutputStream fos = new FileOutputStream(filePath, false);
 			IOUtils.write(content, fos);
 

@@ -7,6 +7,8 @@ import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
 
+import com.google.common.collect.Lists;
+
 import javax.annotation.Nonnull;
 
 import java.util.ArrayList;
@@ -100,7 +102,7 @@ public abstract class Container implements Comparable<Container> {
 
 	@Getter
 	@Setter
-	private List<String> jvmOpts = new ArrayList<>();
+	private List<String> jvmOpts = Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom");
 
 	@Getter
 	@Setter

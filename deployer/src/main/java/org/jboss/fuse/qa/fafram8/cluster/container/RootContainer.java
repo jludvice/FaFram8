@@ -1,6 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
 import static org.jboss.fuse.qa.fafram8.modifier.impl.AccessRightsModifier.setExecutable;
+import static org.jboss.fuse.qa.fafram8.modifier.impl.JavaHomeModifier.setJavaHome;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmOptsModifier.addJvmOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.putProperty;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.RootNameModifier.setRootName;
@@ -106,6 +107,10 @@ public class RootContainer extends Container {
 			usersMod.setHost(super.getNode().getHost());
 			ModifierExecutor.addModifiers(usersMod);
 			usersMod = null;
+		}
+
+		if (!SystemProperty.getJavaHome().isEmpty()) {
+			ModifierExecutor.addModifiers(setJavaHome(SystemProperty.getJavaHome()));
 		}
 
 		if (!super.getJvmMemOpts().isEmpty()) {

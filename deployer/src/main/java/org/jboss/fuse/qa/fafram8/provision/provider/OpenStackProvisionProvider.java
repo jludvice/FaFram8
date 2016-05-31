@@ -19,8 +19,6 @@ import org.openstack4j.model.compute.Server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +40,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 	// Authenticated OpenStackClient instance
 	@Getter
-	private static OpenStackClient client = null;
+	private OpenStackClient client = null;
 
 	private static final String OFFLINE_IPTABLES_FILE = "iptables-no-internet";
 
@@ -51,8 +49,7 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	public OpenStackProvisionProvider() {
 		if (client == null) {
 			if (SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) == null) {
-				final DateFormat df = new SimpleDateFormat("HHmmddMMyyyy");
-				SystemProperty.set(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8." + df.format(new Date()));
+				SystemProperty.set(FaframConstant.OPENSTACK_NAME_PREFIX, "fafram8." + new Date().getTime());
 			}
 
 			client = OpenStackClient.builder()

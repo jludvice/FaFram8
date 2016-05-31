@@ -2,7 +2,6 @@ package org.jboss.fuse.qa.fafram8.resource;
 
 import static org.jboss.fuse.qa.fafram8.modifier.impl.ArchiveModifier.registerArchiver;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.FileModifier.moveFile;
-import static org.jboss.fuse.qa.fafram8.modifier.impl.JavaHomeModifier.setJavaHome;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setDefaultJvmMemOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier.setJvmMemOpts;
 import static org.jboss.fuse.qa.fafram8.modifier.impl.PropertyModifier.extendProperty;

@@ -575,7 +575,6 @@ public class Fafram extends ExternalResource {
 	 */
 	public Fafram jdk(String javaHomePath) {
 		SystemProperty.set(FaframConstant.JAVA_HOME, javaHomePath);
-		ModifierExecutor.addModifiers(setJavaHome(SystemProperty.getJavaHome()));
 
 		return this;
 	}

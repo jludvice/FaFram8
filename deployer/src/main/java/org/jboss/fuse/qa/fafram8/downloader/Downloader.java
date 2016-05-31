@@ -145,6 +145,9 @@ public final class Downloader {
 			case "http":
 				log.info(executor.executeCommand("curl -L -s -o " + nodeManager.getFolder()
 						+ SEP + "fuse.zip " + SystemProperty.getFuseZip()));
+				if (!executor.executeCommandSilently("file -i " + nodeManager.getFolder() + SEP + "fuse.zip").contains("application/zip")) {
+					throw new FaframException("Something went wrong when downloading, downloaded file isn't a zip file!");
+				}
 				location = executor.executeCommandSilently("ls -d -1 " + nodeManager.getFolder() + SEP + "*");
 				break;
 			case "scp":

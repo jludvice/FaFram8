@@ -319,7 +319,7 @@ public class ContainerManager {
 	 */
 	private static void createRootIfNecessary() {
 		if (ContainerManager.getContainerList().isEmpty()) {
-			final Container c = RootContainer.builder().defaultRoot().commands(getCommands().toArray(new String[getCommands().size()])).build();
+			final Container c = RootContainer.builder().defaultRoot().build();
 			log.info("Creating default root container");
 			ContainerManager.getContainerList().add(c);
 		}

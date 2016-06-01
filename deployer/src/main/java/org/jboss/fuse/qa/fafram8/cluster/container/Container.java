@@ -102,7 +102,8 @@ public abstract class Container implements Comparable<Container> {
 
 	@Getter
 	@Setter
-	private List<String> jvmOpts = Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom");
+	private List<String> jvmOpts = (System.getProperty("os.name").startsWith("Windows")) ? new ArrayList<String>()
+			: Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom");
 
 	@Getter
 	@Setter

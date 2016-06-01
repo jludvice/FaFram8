@@ -278,6 +278,16 @@ _deployer/src/main/resources/fafram.properties_ where all supported values are d
 you can place your own fafram.properties file in your test resources (you don't necessary need to overwrite all the properties). This file is
 then merged with our properties file (with your changes on top of the default values) and the final configuration is created and used.
 
+### Wait for anything
+
+If you need to wait for some url to return HTTP Status 200, any specific result of ssh command or whatever else,
+you can use method `fafram.waitFor(Callable<Response<T>> callable, long secondsTimeout)` to do so.
+You just write class (may be anonymous) implementing `Callable<Response<T>>` where `T` is data you expect - eg. `HttpEntity` or `String`.
+
+Fafram will execute `call` method of your class every 3 seconds until you
+`return Response.success(T data)` or you `return Response.timeout()` and time goes out.
+
+
 ### Tests
 
 Tests can be found in the respective directory in the module directories. Tests are skipped by default and this behavior can be overriden

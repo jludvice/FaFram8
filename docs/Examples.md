@@ -54,7 +54,7 @@ node and set the actual IP to the node object. In this template container we spe
 both containers will be created with profile _gateway-mq_ and after spawning there will be command _profile-create template_ executed.
 
 Next we define the real containers. As you can see, you can use the existing container instance in the _builder()_ method and all attributes will
-be reused in the new containers. 
+be reused in the new containers.
 
 *NOTE*: These attributes will not be overriden! The new attributes will be appended to the existing ones, so in this example the container _root2_
 will have two profiles: gateway-mq (inherited from template) and gateway-http.
@@ -84,3 +84,37 @@ port, as it takes the default port from the system property host.port (defaults 
 
 *REMEMBER*: You always need to specify the parent of child and ssh containers. There are two ways of doing this: _.parentName(String name)_ method
 for the cases when you have just the parent's name, or _parent(Container c)_ when you already have the object representation of root container.
+
+### Wait for URL to return HTTP status 200
+
+```java
+@Rule
+Fafram fafram = new Fafram();
+
+final HttpClient client = new DefaultHttpClient();
+final HttpGet request = new HttpGet("http://localhost:8181/whatever");
+
+Callable<Response<HttpEntity>> c = new Callable<Response<HttpEntity>>() {
+    @Override
+    public Response<HttpEntity> call() throws Exception {
+      // val comes from project lombok / automagically figure out type
+      val result = client.execute(request);
+      log.info("http status line: {}", result.getStatusLine());
+      if (200 == result.getStatusLine().getStatusCode()) {
+        return Response.success(result.getEntity());
+      }
+      // apache http client requires to consume response data
+      EntityUtils.consume(result.getEntity());
+      return Response.timeOut();
+    }
+};
+final long secondsTimeout = 120;
+Response<HttpEntity> response = fafram.waitFor(c, secondsTimeout);
+
+if (!response.getSuccess()) {
+  fail("Deployed war didn't respond '200' in 120 s.");
+}
+val responseString = IOUtils.toString(response.getData().getContent());
+System.out.println("response: " + responseString);
+
+```

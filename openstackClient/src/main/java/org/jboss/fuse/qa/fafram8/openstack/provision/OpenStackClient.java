@@ -109,6 +109,9 @@ public final class OpenStackClient {
 	private static final String OS4_PROPERTIES = "OS4.properties";
 	private static final String OS7_PROPERTIES = "OS7.properties";
 
+	private static final int CORES_PER_INSTANCE = 2;
+	private static final int MEMORY_PER_INSTANCE = 4096;
+
 	@java.beans.ConstructorProperties({"url", "user", "password", "tenant", "image", "namePrefix", "flavor", "keypair", "networks", "floatingIpPool", "addressType", "osClient"})
 	OpenStackClient(String url, String user, String password, String tenant, String image, String namePrefix, String flavor, String keypair, String networks, String floatingIpPool, String addressType) {
 		this.url = url;
@@ -331,6 +334,7 @@ public final class OpenStackClient {
 	 * @return spawned server
 	 */
 	public Server spawnNewServer(String serverName, String imageID) {
+		this.waitForResources(1);
 		log.info("Spawning new server: " + this.namePrefix + "-" + serverName);
 		final ServerCreate server = osClient.compute().servers().serverBuilder().image(imageID)
 				.name(this.namePrefix + "-" + serverName)
@@ -361,6 +365,50 @@ public final class OpenStackClient {
 	 */
 	public void deleteServer(String serverName) {
 		osClient.compute().servers().delete(getServerByName(serverName).getId());
+	}
+
+	/**
+	 * Get the free cores on OS.
+	 * @return free cores
+	 */
+	public int getFreeCores() {
+		final int max = osClient.compute().quotaSets().limits().getAbsolute().getMaxTotalCores();
+		final int current = osClient.compute().quotaSets().limits().getAbsolute().getTotalCoresUsed();
+		return max - current;
+	}
+
+	/**
+	 * Get the free memory on OS.
+	 * @return free memory
+	 */
+	public int getFreeMemory() {
+		final int max = osClient.compute().quotaSets().limits().getAbsolute().getMaxTotalRAMSize();
+		final int current = osClient.compute().quotaSets().limits().getAbsolute().getTotalRAMUsed();
+		return max - current;
+	}
+
+	/**
+	 * Waits for the OS resources until the requested amount is free.
+	 * @param instanceCount instance count
+	 */
+	public void waitForResources(int instanceCount) {
+		final long sleepPeriod = 30000L;
+		log.info("Waiting for OS resources");
+		while (true) {
+			final int freeCores = getFreeCores();
+			final int freeMemory = getFreeMemory();
+			log.trace(String.format("CPU needed: %s, CPU free: %s | Mem needed: %s, Mem free: %s",
+					(CORES_PER_INSTANCE * instanceCount), freeCores, (MEMORY_PER_INSTANCE * instanceCount), freeMemory));
+			if (freeCores >= (CORES_PER_INSTANCE * instanceCount) && freeMemory >= (MEMORY_PER_INSTANCE * instanceCount)) {
+				break;
+			}
+			try {
+				Thread.sleep(sleepPeriod);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 	/**

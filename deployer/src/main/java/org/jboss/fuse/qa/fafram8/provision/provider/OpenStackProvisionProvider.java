@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
+import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
+import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.exception.EmptyContainerListException;
 import org.jboss.fuse.qa.fafram8.exception.FaframException;
@@ -46,6 +48,9 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 
 	private String ipTablesFilePath;
 
+	/**
+	 * Constructor.
+	 */
 	public OpenStackProvisionProvider() {
 		if (client == null) {
 			if (SystemProperty.getExternalProperty(FaframConstant.OPENSTACK_NAME_PREFIX) == null) {
@@ -92,11 +97,16 @@ public class OpenStackProvisionProvider implements ProvisionProvider {
 	 */
 	@Override
 	public void createServerPool(List<Container> containerList) {
-		log.info("Spawning OpenStack infrastructure.");
 		final List<String> containerNames = new ArrayList<>();
 		for (Container container : containerList) {
 			containerNames.add(container.getName());
 		}
+		int instancesCount = 0;
+		for (Container c : containerList) {
+			instancesCount += ((c instanceof RootContainer || c instanceof SshContainer) ? 1 : 0);
+		}
+		client.waitForResources(instancesCount);
+		log.info("Spawning OpenStack infrastructure.");
 		try {
 			client.spawnServersByNames(containerNames);
 		} catch (ExecutionException | InterruptedException e) {

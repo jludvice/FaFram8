@@ -183,7 +183,8 @@ public class SystemProperty {
 	 */
 	public static String getFuseVersion() {
 		// First try to parse the fuse version from the zip (with standard naming)
-		if (getFuseZip() != null && (getFuseZip().contains("jboss-fuse-full") || getFuseZip().contains("jboss-a-mq"))) {
+		if (getFuseZip() != null && (getFuseZip().contains("jboss-fuse-full") || getFuseZip().contains("jboss-a-mq")
+				|| getFuseZip().contains("jboss-fuse-karaf"))) {
 			final String fileName = StringUtils.substringAfterLast(getFuseZip(), "/");
 			final Pattern regex = Pattern.compile("[0-9]\\.[0-9]\\.[0-9]\\.redhat\\-[0-9][0-9][0-9]");
 			final Matcher matcher = regex.matcher(fileName);

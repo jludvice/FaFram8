@@ -25,7 +25,7 @@ public class FuseSSHClient extends SSHClient {
 			log.info("Executing command: " + command);
 		}
 		final int retriesCount = 2;
-		final long commandRetryTimeout = 5000L;
+		final long commandRetryTimeout = 1000 * Long.parseLong(System.getProperty("command.retry.timeout", "5"));
 		try {
 			// If we should retry the command
 			boolean retry;
@@ -51,7 +51,7 @@ public class FuseSSHClient extends SSHClient {
 				returnString = convertStreamToString(in);
 				if (returnString.contains("not found")) {
 					if (!suppressLog) {
-						log.debug("Retrying command in " + commandRetryTimeout + " miliseconds");
+						log.debug("Retrying command in " + (commandRetryTimeout / 1000) + " seconds");
 					}
 					retry = true;
 					retries++;

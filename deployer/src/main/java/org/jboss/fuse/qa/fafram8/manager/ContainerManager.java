@@ -11,6 +11,8 @@ import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.invoker.MavenPomInvoker;
 import org.jboss.fuse.qa.fafram8.patcher.Patcher;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.util.Option;
+import org.jboss.fuse.qa.fafram8.util.OptionUtils;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -187,11 +189,10 @@ public class ContainerManager {
 			return;
 		}
 
-		final String fabricArguments = c.getFabricCreateArguments();
 		// Construct the fabric create arguments from fabric property and profiles
-		String fabricString = c.getFabricCreateArguments();
+		String fabricString = OptionUtils.getString(c.getOptions(), Option.FABRIC_CREATE);
 
-		for (String profile : c.getProfiles()) {
+		for (String profile : OptionUtils.get(c.getOptions(), Option.PROFILE)) {
 			fabricString += " --profile " + profile;
 		}
 
@@ -214,10 +215,8 @@ public class ContainerManager {
 	 * @param c container to execute on
 	 */
 	public static void executeStartupCommands(Container c) {
-		if (c.getCommands() != null && !c.getCommands().isEmpty()) {
-			for (String command : c.getCommands()) {
-				c.executeCommand(command);
-			}
+		for (String command : OptionUtils.get(c.getOptions(), Option.COMMANDS)) {
+			c.executeCommand(command);
 		}
 
 		// Execute additional commands provided by system property
@@ -238,8 +237,8 @@ public class ContainerManager {
 	 * @param c container to execute on
 	 */
 	public static void uploadBundles(Container c) {
-		if (c.getBundles() != null && !c.getBundles().isEmpty()) {
-			for (String bundle : c.getBundles()) {
+		if (c.getOptions().get(Option.BUNDLES) != null) {
+			for (String bundle : OptionUtils.get(c.getOptions(), Option.BUNDLES)) {
 				uploadBundle(c, bundle);
 			}
 		}
@@ -252,11 +251,9 @@ public class ContainerManager {
 	 * @param projectPath path to pom.xml of the project that should be uploaded to root container
 	 */
 	public static void uploadBundle(Container container, String projectPath) {
-		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(container.getExecutor().executeCommandSilently(
-				"fabric:info | grep upload"), ":"), "://").trim();
+		final String mavenProxy = StringUtils.substringAfter(StringUtils.substringAfter(container.getExecutor().executeCommandSilently("fabric:info | grep upload"), ":"), "://").trim();
 
-		final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath,
-				"http://" + container.getUser() + ":" + container.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", container.getNode().getHost()));
+		final MavenPomInvoker bundleInstaller = new MavenPomInvoker(projectPath, "http://" + container.getUser() + ":" + container.getPassword() + "@" + mavenProxy.replaceAll("(.+)(?=:8181)", container.getNode().getHost()));
 		try {
 			bundleInstaller.installFile();
 		} catch (URISyntaxException | MavenInvocationException e) {
@@ -298,8 +295,8 @@ public class ContainerManager {
 		// Set the bundles and commands to the first root found
 		for (Container c : containerList) {
 			if (c instanceof RootContainer) {
-				c.getCommands().addAll(ContainerManager.getCommands());
-				c.getBundles().addAll(ContainerManager.getBundles());
+				OptionUtils.get(c.getOptions(), Option.COMMANDS).addAll(ContainerManager.getCommands());
+				OptionUtils.get(c.getOptions(), Option.BUNDLES).addAll(ContainerManager.getBundles());
 				break;
 			}
 		}
@@ -350,15 +347,13 @@ public class ContainerManager {
 		// We need to check if the are using old or new patching mechanism
 		if (StringUtils.containsAny(SystemProperty.getFuseVersion(), "6.1", "6.2.redhat")) {
 			for (String s : Patcher.getPatches()) {
-				c.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p "
-						+ SystemProperty.getFusePassword() + " --version " + version + " " + s);
+				c.executeCommand("patch-apply -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() + " --version " + version + " " + s);
 			}
 		} else {
 			// 6.2.1 onwards
 			for (String s : Patcher.getPatches()) {
 				final String patchName = getPatchName(c.executeCommand("patch:add " + s));
-				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p "
-						+ SystemProperty.getFusePassword() + " --upload --version " + version + " " + patchName);
+				c.executeCommand("patch:fabric-install -u " + SystemProperty.getFuseUser() + " -p " + SystemProperty.getFusePassword() + " --upload --version " + version + " " + patchName);
 			}
 		}
 
@@ -398,14 +393,14 @@ public class ContainerManager {
 
 		for (Broker b : brokers) {
 			//add all necessary command into list
-			root.getCommands().addAll(b.getCreateCommands());
+			OptionUtils.get(root.getOptions(), Option.COMMANDS).addAll(b.getCreateCommands());
 			// assign profiles to all commands
 			for (String containerName : b.getContainers()) {
 				final Container c = getContainer(containerName);
 				if (c == null) {
 					throw new FaframException("Container " + containerName + " not found!");
 				}
-				c.getProfiles().add(b.getProfileName());
+				OptionUtils.get(c.getOptions(), Option.PROFILE).add(b.getProfileName());
 			}
 		}
 	}
@@ -433,7 +428,7 @@ public class ContainerManager {
 				if (c == null) {
 					throw new FaframException("Container " + containerName + " not found!");
 				}
-				c.getProfiles().add(b.getProfileName());
+				OptionUtils.get(c.getOptions(), Option.PROFILE).add(b.getProfileName());
 				//wait for provision
 				c.waitForProvisioning();
 			}

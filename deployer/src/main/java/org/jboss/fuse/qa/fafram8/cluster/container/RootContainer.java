@@ -17,10 +17,13 @@ import org.jboss.fuse.qa.fafram8.modifier.ModifierExecutor;
 import org.jboss.fuse.qa.fafram8.modifier.impl.JvmMemoryModifier;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.util.Option;
+import org.jboss.fuse.qa.fafram8.util.OptionUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -43,6 +46,8 @@ public class RootContainer extends Container {
 	 * Constructor.
 	 */
 	protected RootContainer() {
+		super();
+		super.setRoot(true);
 	}
 
 	/**
@@ -61,7 +66,7 @@ public class RootContainer extends Container {
 	 * @return builder instance
 	 */
 	public static RootBuilder builder() {
-		return new RootBuilder(new RootContainer());
+		return new RootBuilder(null);
 	}
 
 	/**
@@ -91,9 +96,11 @@ public class RootContainer extends Container {
 			super.getNode().getExecutor().connect();
 			nodeManager = new RemoteNodeManager(super.getNode().getExecutor(), super.getExecutor());
 
-			// Set workign directory for root container if it was set on root container object
+			// Set working directory for root container if it was set on root container object
 			// It will be either empty string of file system path
-			((RemoteNodeManager) nodeManager).setWorkingDirectory(super.getWorkingDirectory());
+			if (!OptionUtils.getString(super.getOptions(), Option.WORKING_DIRECTORY).isEmpty()) {
+				((RemoteNodeManager) nodeManager).setWorkingDirectory(OptionUtils.getString(super.getOptions(), Option.WORKING_DIRECTORY));
+			}
 		}
 
 		ModifierExecutor.setContainer(this);
@@ -113,12 +120,12 @@ public class RootContainer extends Container {
 			ModifierExecutor.addModifiers(setJavaHome(SystemProperty.getJavaHome()));
 		}
 
-		if (!super.getJvmMemOpts().isEmpty()) {
-			ModifierExecutor.addModifiers(JvmMemoryModifier.setJvmMemOpts(super.getJvmMemOpts()));
+		if (!OptionUtils.get(getOptions(), Option.JVM_MEM_OPTS).isEmpty()) {
+			ModifierExecutor.addModifiers(JvmMemoryModifier.setJvmMemOpts(OptionUtils.get(getOptions(), Option.JVM_MEM_OPTS)));
 		}
 
 		ModifierExecutor.addModifiers(setExecutable("bin/karaf", "bin/start", "bin/stop", "bin/client", "bin/fuse"),
-				setRootName(this, super.getNode().getHost()), addJvmOpts(super.getJvmOpts()));
+				setRootName(this, super.getNode().getHost()), addJvmOpts(OptionUtils.get(getOptions(), Option.JVM_OPTS)));
 
 		if (!super.isOnlyConnect()) {
 			nodeManager.clean();
@@ -263,36 +270,42 @@ public class RootContainer extends Container {
 		 * @param root container that will be copied
 		 */
 		public RootBuilder(Container root) {
-			Node node = null;
-			if (root.getNode() != null) {
-				node = Node.builder()
-						.host(root.getNode().getHost())
-						.port(root.getNode().getPort())
-						.username(root.getNode().getUsername())
-						.password(root.getNode().getPassword())
-						.build();
-			}
+			if (root == null) {
+				container = new RootContainer();
+			} else {
+				Node node = null;
+				if (root.getNode() != null) {
+					node = Node.builder()
+							.host(root.getNode().getHost())
+							.port(root.getNode().getPort())
+							.username(root.getNode().getUsername())
+							.password(root.getNode().getPassword())
+							.build();
+				}
 
-			// fuse executor is set when the container is being created
-			this.container = new RootContainer()
-					.name(root.getName())
-					.user(root.getUser())
-					.password(root.getPassword())
-					.root(true)
-					// We need to create a new instance of the node for the cloning case, otherwise all clones
-					// would have the same object instance
-					.node(node)
-					.parent(null)
-					.parentName(null)
-					.fabric(root.isFabric())
-					.fabricCreateArguments(root.getFabricCreateArguments())
-					// The same as node
-					.commands(new ArrayList<>(root.getCommands()))
-					.bundles(new ArrayList<>(root.getBundles()))
-					.profiles(new ArrayList<>(root.getProfiles()))
-					.jvmOpts(root.getJvmOpts())
-					.jvmMemOpts(root.getJvmMemOpts())
-					.directory(root.getWorkingDirectory());
+				final Map<Option, List<String>> opts = new HashMap<>();
+				for (Map.Entry<Option, List<String>> optionListEntry : root.getOptions().entrySet()) {
+					// We need to copy the lists aswell
+					final List<String> copy = new ArrayList<>();
+					copy.addAll(optionListEntry.getValue());
+					opts.put(optionListEntry.getKey(), copy);
+				}
+
+				// fuse executor is set when the container is being created
+				this.container = new RootContainer()
+						.name(root.getName())
+						.user(root.getUser())
+						.password(root.getPassword())
+						.root(true)
+						// We need to create a new instance of the node for the cloning case, otherwise all clones
+						// would share the same object instance
+						.node(node)
+						.parent(null)
+						.parentName(null)
+						.fabric(root.isFabric())
+						// The same as node
+						.options(opts);
+			}
 		}
 
 		/**
@@ -419,7 +432,6 @@ public class RootContainer extends Container {
 		 */
 		public RootBuilder withFabric() {
 			container.setFabric(true);
-			container.setFabricCreateArguments("");
 
 			return this;
 		}
@@ -432,7 +444,7 @@ public class RootContainer extends Container {
 		 */
 		public RootBuilder withFabric(String args) {
 			container.setFabric(true);
-			container.setFabricCreateArguments(args);
+			OptionUtils.set(container.getOptions(), Option.FABRIC_CREATE, args);
 
 			return this;
 		}
@@ -444,7 +456,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder commands(String... commands) {
-			container.getCommands().addAll(Arrays.asList(commands));
+			OptionUtils.set(container.getOptions(), Option.COMMANDS, commands);
 			return this;
 		}
 
@@ -455,18 +467,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder bundles(String... bundles) {
-			container.getBundles().addAll(Arrays.asList(bundles));
-			return this;
-		}
-
-		/**
-		 * Setter.
-		 *
-		 * @param profiles profiles array
-		 * @return this
-		 */
-		public RootBuilder profiles(String... profiles) {
-			container.getProfiles().addAll(Arrays.asList(profiles));
+			OptionUtils.set(container.getOptions(), Option.BUNDLES, bundles);
 			return this;
 		}
 
@@ -480,10 +481,8 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder jvmMemoryOpts(String xms, String xmx, String permMem, String maxPermMem) {
-			container.getJvmMemOpts().add("JAVA_MIN_MEM=" + xms);
-			container.getJvmMemOpts().add("JAVA_MAX_MEM=" + xmx);
-			container.getJvmMemOpts().add("JAVA_PERM_MEM=" + permMem);
-			container.getJvmMemOpts().add("JAVA_MAX_PERM_MEM=" + maxPermMem);
+			OptionUtils.set(container.getOptions(), Option.JVM_MEM_OPTS, "JAVA_MIN_MEM=" + xms, "JAVA_MAX_MEM=" + xmx,
+					"JAVA_PERM_MEM=" + permMem, "JAVA_MAX_PERM_MEM=" + maxPermMem);
 			return this;
 		}
 
@@ -494,7 +493,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder jvmOpts(String... jvmOpts) {
-			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
+			OptionUtils.set(container.getOptions(), Option.JVM_OPTS, jvmOpts);
 			return this;
 		}
 
@@ -507,7 +506,7 @@ public class RootContainer extends Container {
 			// Check if we should add the fabric attributes
 			if (SystemProperty.isFabric() && !container.isFabric()) {
 				container.setFabric(true);
-				container.setFabricCreateArguments(SystemProperty.getFabric());
+				OptionUtils.set(container.getOptions(), Option.FABRIC_CREATE, SystemProperty.getFabric());
 			}
 			// Create node with default properties but without the host - it will be set later in ContainerManager configure roots
 			// because in this moment we don't know if we use local or openstack or anything else
@@ -526,7 +525,7 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder directory(String workingDirectory) {
-			container.setWorkingDirectory(workingDirectory);
+			OptionUtils.set(container.getOptions(), Option.WORKING_DIRECTORY, workingDirectory);
 			return this;
 		}
 
@@ -556,6 +555,17 @@ public class RootContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 *
+		 * @param profiles profiles array
+		 * @return this
+		 */
+		public RootBuilder profiles(String... profiles) {
+			OptionUtils.set(container.getOptions(), Option.PROFILE, profiles);
+			return this;
+		}
+
+		/**
 		 * Builds the container.
 		 *
 		 * @return rootcontainer instance
@@ -564,11 +574,11 @@ public class RootContainer extends Container {
 			// Add zookeeper commands because child/ssh container.stop() need them
 			if (container.isFabric()) {
 				final String zkCommand = "fabric:profile-edit --feature fabric-zookeeper-commands/0.0.0 default";
-				if (!container.getCommands().contains(zkCommand)) {
-					container.getCommands().add(zkCommand);
+				if (!OptionUtils.get(container.getOptions(), Option.COMMANDS).contains(zkCommand)) {
+					container.getOptions().get(Option.COMMANDS).add(zkCommand);
 				}
 				if (!SystemProperty.useDefaultRepositories()) {
-					container.getCommands().add("fabric:profile-edit --pid io.fabric8.agent/org.ops4j.pax.url.mvn.repositories='file:${runtime.home}/"
+					container.getOptions().get(Option.COMMANDS).add("fabric:profile-edit --pid io.fabric8.agent/org.ops4j.pax.url.mvn.repositories='file:${runtime.home}/"
 							+ "${karaf.default.repository}@snapshots@id=karaf-default, file:${runtime.data}/maven/upload@snapshots@id=fabric-upload' "
 							+ "default");
 				}

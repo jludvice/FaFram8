@@ -5,10 +5,14 @@ import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.util.Option;
+import org.jboss.fuse.qa.fafram8.util.OptionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +45,7 @@ public class ChildContainer extends Container {
 	 * @return builder instance
 	 */
 	public static ChildBuilder builder() {
-		return new ChildBuilder(new ChildContainer());
+		return new ChildBuilder(null);
 	}
 
 	/**
@@ -70,33 +74,11 @@ public class ChildContainer extends Container {
 			return;
 		}
 
-		final StringBuilder arguments = new StringBuilder("");
-
-		for (String profile : super.getProfiles()) {
-			arguments.append(" --profile ").append(profile);
-		}
-
-		if (super.getVersion() != null) {
-			arguments.append(" --version ").append(super.getVersion());
-		}
-
-		if (!super.getJvmOpts().isEmpty()) {
-			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
-			for (String rule : super.getJvmOpts()) {
-				jvmOpts.append(" ").append(rule);
-			}
-			jvmOpts.append("\"");
-			arguments.append(jvmOpts.toString());
-		}
-
-		if (super.getCreateOptions() != null && !super.getCreateOptions().isEmpty()) {
-			arguments.append(" ").append(super.getCreateOptions());
-		}
-
 		log.info("Creating container " + this);
 
-		super.getParent().getExecutor().executeCommand(String.format("container-create-child%s --jmx-user %s --jmx-password %s %s %s", arguments.toString(),
-				super.getUser(), super.getPassword(), super.getParent().getName(), super.getName()));
+		super.getParent().getExecutor().executeCommand(String.format("container-create-child %s --jmx-user %s --jmx-password %s %s %s",
+				OptionUtils.getCommand(super.getOptions()), super.getUser(), super.getPassword(),
+				super.getParent().getName(), super.getName()));
 		super.setCreated(true);
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
@@ -202,16 +184,20 @@ public class ChildContainer extends Container {
 			if (copy == null) {
 				this.container = new ChildContainer();
 			} else {
+				final Map<Option, List<String>> opts = new HashMap<>();
+				for (Map.Entry<Option, List<String>> optionListEntry : copy.getOptions().entrySet()) {
+					// We need to copy the lists aswell
+					final List<String> listCopy = new ArrayList<>();
+					listCopy.addAll(optionListEntry.getValue());
+					opts.put(optionListEntry.getKey(), listCopy);
+				}
 				this.container = new ChildContainer()
 						.name(copy.getName())
 						.user(copy.getUser())
 						.password(copy.getPassword())
 						.parent(copy.getParent())
 						.parentName(copy.getParentName())
-						.profiles(new ArrayList<>(copy.getProfiles()))
-						.commands(new ArrayList<>(copy.getCommands()))
-						.version(copy.getVersion())
-						.jvmOpts(copy.getJvmOpts())
+						.options(opts)
 						.node(null);
 			}
 		}
@@ -256,7 +242,7 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder profiles(String... profiles) {
-			container.getProfiles().addAll(Arrays.asList(profiles));
+			OptionUtils.set(container.getOptions(), Option.PROFILE, profiles);
 			return this;
 		}
 
@@ -267,7 +253,7 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder commands(String... commands) {
-			container.getCommands().addAll(Arrays.asList(commands));
+			OptionUtils.get(container.getOptions(), Option.COMMANDS).addAll(Arrays.asList(commands));
 			return this;
 		}
 
@@ -278,7 +264,7 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder version(String version) {
-			container.setVersion(version);
+			OptionUtils.set(container.getOptions(), Option.VERSION, version);
 			return this;
 		}
 
@@ -289,7 +275,7 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder jvmOpts(String... jvmOpts) {
-			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
+			OptionUtils.set(container.getOptions(), Option.JVM_OPTS, jvmOpts);
 			return this;
 		}
 
@@ -300,18 +286,22 @@ public class ChildContainer extends Container {
 		 * @return this
 		 */
 		public ChildBuilder resolver(Resolver resolver) {
-			container.setCreateOptions(container.getCreateOptions() + " --resolver " + resolver + " ");
+			OptionUtils.set(container.getOptions(), Option.RESOLVER, resolver.toString());
 			return this;
 		}
 
 		/**
 		 * Setter for additional create options that does not have special method.
 		 *
+		 * @deprecated Use other setters, they should be complete.
 		 * @param options options string
 		 * @return this
 		 */
+		@Deprecated
 		public ChildBuilder options(String options) {
-			container.setCreateOptions(container.getCreateOptions() + options + " ");
+			final List<String> old = OptionUtils.get(container.getOptions(), Option.OTHER);
+			old.add(options);
+			container.getOptions().put(Option.OTHER, old);
 			return this;
 		}
 

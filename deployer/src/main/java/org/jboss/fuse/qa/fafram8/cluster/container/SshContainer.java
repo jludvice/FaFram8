@@ -6,11 +6,14 @@ import org.jboss.fuse.qa.fafram8.exception.FaframException;
 import org.jboss.fuse.qa.fafram8.executor.Executor;
 import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
+import org.jboss.fuse.qa.fafram8.util.Option;
+import org.jboss.fuse.qa.fafram8.util.OptionUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,25 +79,23 @@ public class SshContainer extends Container {
 			clean();
 		}
 
-		// Get String containing all properties of container
-		String properties = setAndFormatProperties();
-
-		// Find out if system property or parameter on container of working directory was set
-		if (!("".equals(super.getWorkingDirectory())) || !("".equals(SystemProperty.getWorkingDirectory()))) {
-			// Decide if working directory was set on ssh and if not set the system property as default
-			final String path = "".equals(super.getWorkingDirectory()) ? SystemProperty.getWorkingDirectory() : super.getWorkingDirectory();
-			log.debug("Working directory was set. Setting working directory \"{}\" for container \"{}\".", path, super.getName());
-			properties += " --path " + path;
+		if (!SystemProperty.getJavaHome().isEmpty()) {
+			OptionUtils.set(super.getOptions(), Option.ENV, "JAVA_HOME=" + SystemProperty.getJavaHome());
 		}
 
-		if (super.getCreateOptions() != null && !super.getCreateOptions().isEmpty()) {
-			properties += " " + super.getCreateOptions();
+		// Find out if system property or parameter on container of working directory was set
+		final String workDir = OptionUtils.getString(super.getOptions(), Option.WORKING_DIRECTORY);
+		if (!("".equals(workDir)) || !("".equals(SystemProperty.getWorkingDirectory()))) {
+			// Decide if working directory was set on ssh and if not set the system property as default
+			final String path = "".equals(workDir) ? SystemProperty.getWorkingDirectory() : workDir;
+			OptionUtils.set(super.getOptions(), Option.PATH, path);
+			log.debug("Working directory was set. Setting working directory \"{}\" for container \"{}\".", path, super.getName());
 		}
 
 		log.info("Creating container " + this);
 
-		getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s%s %s",
-				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), properties, super.getName()));
+		getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s %s %s",
+				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), OptionUtils.getCommand(super.getOptions()), super.getName()));
 		super.setCreated(true);
 		getExecutor().waitForProvisioning(this);
 		super.setExecutor(super.createExecutor());
@@ -182,52 +183,16 @@ public class SshContainer extends Container {
 	}
 
 	/**
-	 * Creates string containing all container's properties correctly formatted for Fuse command.
-	 *
-	 * @return formatted string containing container's properties
-	 */
-	private String setAndFormatProperties() {
-		final StringBuilder arguments = new StringBuilder("");
-		if (!super.getJvmOpts().isEmpty()) {
-			final StringBuilder jvmOpts = new StringBuilder(" --jvm-opts \"");
-			for (String rule : super.getJvmOpts()) {
-				jvmOpts.append(" ").append(rule);
-			}
-			jvmOpts.append("\"");
-			arguments.append(jvmOpts.toString());
-		}
-
-		if (!super.getEnvs().isEmpty()) {
-			for (String rule : super.getEnvs()) {
-				arguments.append(" --env ").append(rule);
-			}
-		}
-
-		if (!SystemProperty.getJavaHome().isEmpty()) {
-			arguments.append(" --env JAVA_HOME=").append(SystemProperty.getJavaHome());
-		}
-
-		for (String profile : super.getProfiles()) {
-			arguments.append(" --profile ").append(profile);
-		}
-
-		if (super.getVersion() != null) {
-			arguments.append(" --version ").append(super.getVersion());
-		}
-
-		return arguments.toString();
-	}
-
-	/**
 	 * Delete SSH container folder from static node.
 	 */
 	private void clean() {
 		log.info("Deleting container folder on " + super.getNode().getHost());
 
 		final String path;
-		if (!("".equals(super.getWorkingDirectory())) || !("".equals(SystemProperty.getWorkingDirectory()))) {
+		final String workDir = OptionUtils.getString(super.getOptions(), Option.WORKING_DIRECTORY);
+		if (!("".equals(workDir)) || !("".equals(SystemProperty.getWorkingDirectory()))) {
 			// Decide if working directory was set on ssh and if not set the system property as default
-			path = "".equals(super.getWorkingDirectory()) ? SystemProperty.getWorkingDirectory() : super.getWorkingDirectory();
+			path = "".equals(workDir) ? SystemProperty.getWorkingDirectory() : workDir;
 		} else {
 			path = "containers";
 		}
@@ -250,6 +215,13 @@ public class SshContainer extends Container {
 		 */
 		public SshBuilder(Container copy) {
 			if (copy != null) {
+				final Map<Option, List<String>> opts = new HashMap<>();
+				for (Map.Entry<Option, List<String>> optionListEntry : copy.getOptions().entrySet()) {
+					// We need to copy the lists aswell
+					final List<String> listCopy = new ArrayList<>();
+					listCopy.addAll(optionListEntry.getValue());
+					opts.put(optionListEntry.getKey(), listCopy);
+				}
 				this.container = new SshContainer()
 						.name(copy.getName())
 						.user(copy.getUser())
@@ -265,12 +237,7 @@ public class SshContainer extends Container {
 								.password(copy.getNode().getPassword())
 								.build())
 						// Same as node
-						.commands(new ArrayList<>(copy.getCommands()))
-						.profiles(new ArrayList<>(copy.getProfiles()))
-						.version(copy.getVersion())
-						.jvmOpts(copy.getJvmOpts())
-						.env(copy.getEnvs())
-						.directory(copy.getWorkingDirectory());
+						.options(opts);
 			} else {
 				this.container = new SshContainer();
 				// Set the empty node
@@ -405,7 +372,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder profiles(String... profiles) {
-			container.getProfiles().addAll(Arrays.asList(profiles));
+			OptionUtils.set(container.getOptions(), Option.PROFILE, profiles);
 			return this;
 		}
 
@@ -416,7 +383,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder commands(String... commands) {
-			container.getCommands().addAll(Arrays.asList(commands));
+			OptionUtils.set(container.getOptions(), Option.COMMANDS, commands);
 			return this;
 		}
 
@@ -427,7 +394,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder version(String version) {
-			container.setVersion(version);
+			OptionUtils.set(container.getOptions(), Option.VERSION, version);
 			return this;
 		}
 
@@ -438,7 +405,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder env(String... envs) {
-			container.getEnvs().addAll(Arrays.asList(envs));
+			OptionUtils.set(container.getOptions(), Option.ENV, envs);
 			return this;
 		}
 
@@ -449,7 +416,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder jvmOpts(String... jvmOpts) {
-			container.getJvmOpts().addAll(Arrays.asList(jvmOpts));
+			OptionUtils.set(container.getOptions(), Option.JVM_OPTS, jvmOpts);
 			return this;
 		}
 
@@ -460,7 +427,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder directory(String workingDirectory) {
-			container.setWorkingDirectory(workingDirectory);
+			OptionUtils.set(container.getOptions(), Option.WORKING_DIRECTORY, workingDirectory);
 			return this;
 		}
 
@@ -471,7 +438,7 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder resolver(Resolver resolver) {
-			container.setCreateOptions(container.getCreateOptions() + " --resolver " + resolver + " ");
+			OptionUtils.set(container.getOptions(), Option.RESOLVER, resolver.toString());
 			return this;
 		}
 
@@ -482,7 +449,9 @@ public class SshContainer extends Container {
 		 * @return this
 		 */
 		public SshBuilder options(String options) {
-			container.setCreateOptions(container.getCreateOptions() + options + " ");
+			final List<String> old = OptionUtils.get(container.getOptions(), Option.OTHER);
+			old.add(options);
+			container.getOptions().put(Option.OTHER, old);
 			return this;
 		}
 

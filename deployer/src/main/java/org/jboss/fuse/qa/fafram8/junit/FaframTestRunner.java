@@ -35,7 +35,11 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 	 */
 	public FaframTestRunner(Class<?> klass) throws InitializationError {
 		super(klass);
-		jiraClient = createClient();
+		try {
+			jiraClient = createClient();
+		} catch (JiraException e) {
+			log.warn("Couldn't create Jira client because of: " + e);
+		}
 		statusLine = new StringBuilder();
 	}
 
@@ -98,7 +102,12 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 	 * @return true if the test should be run, false otherwise
 	 */
 	private boolean handleJira(FrameworkMethod method, RunNotifier notifier, String jiraValue) {
-		Issue issue;
+		if (jiraClient == null) {
+			// If the jira client couldn't be initialized
+			return true;
+		}
+
+		final Issue issue;
 		try {
 			issue = jiraClient.getIssue(jiraValue);
 		} catch (Exception e) {
@@ -129,7 +138,7 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 	 *
 	 * @return jira client instance
 	 */
-	private JiraClient createClient() {
+	private JiraClient createClient() throws JiraException {
 		if (SystemProperty.getExternalProperty(FaframConstant.JIRA_USER) == null
 				|| SystemProperty.getExternalProperty(FaframConstant.JIRA_PASSWORD) == null) {
 			return new JiraClient(SystemProperty.getExternalProperty(FaframConstant.JIRA_URL));

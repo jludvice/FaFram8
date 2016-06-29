@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jboss.fuse.qa.fafram8.property.FaframConstant;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.rcarz.jiraclient.BasicCredentials;
 import net.rcarz.jiraclient.Issue;
 import net.rcarz.jiraclient.JiraClient;
-import net.rcarz.jiraclient.JiraException;
 import net.rcarz.jiraclient.Version;
 
 /**
@@ -103,10 +101,9 @@ public class FaframTestRunner extends BlockJUnit4ClassRunner {
 		Issue issue;
 		try {
 			issue = jiraClient.getIssue(jiraValue);
-		} catch (JiraException e) {
-			log.error("Jira Exception caught: " + e.getLocalizedMessage());
-			notifier.fireTestFailure(new Failure(describeChild(method), e));
-			return false;
+		} catch (Exception e) {
+			log.warn("Running test, ignoring jira exception: " + e.getLocalizedMessage());
+			return true;
 		}
 
 		if (!((StringUtils.equalsIgnoreCase(issue.getStatus().toString(), "resolved")

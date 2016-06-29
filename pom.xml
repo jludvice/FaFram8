@@ -236,6 +236,13 @@
 			<id>jboss-soa-qa-maven-repository</id>
 			<url>http://dl.bintray.com/jboss-soa-qa/maven/</url>
 		</repository>
+		<repository>
+			<id>fusewin-fuseqe-snapshots</id>
+			<url>http://fusewin.tpb.lab.eng.brq.redhat.com:8081/nexus/content/repositories/fuse-qe-snapshots/</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<pluginRepositories>

@@ -76,9 +76,16 @@ public class ChildContainer extends Container {
 
 		log.info("Creating container " + this);
 
+		String jmxUser = super.getUser();
+		String jmxPass = super.getPassword();
+		if (super.getOptions().containsKey(Option.JMX_USER)) {
+			jmxUser = super.getOptions().get(Option.JMX_USER).get(0);
+		}
+		if (super.getOptions().containsKey(Option.JMX_PASSWORD)) {
+			jmxPass = super.getOptions().get(Option.JMX_PASSWORD).get(0);
+		}
 		super.getParent().getExecutor().executeCommand(String.format("container-create-child %s --jmx-user %s --jmx-password %s %s %s",
-				OptionUtils.getCommand(super.getOptions()), super.getUser(), super.getPassword(),
-				super.getParent().getName(), super.getName()));
+				OptionUtils.getCommand(super.getOptions()), jmxUser, jmxPass, super.getParent().getName(), super.getName()));
 		super.setCreated(true);
 		super.getParent().getExecutor().waitForProvisioning(this);
 		super.setOnline(true);
@@ -287,6 +294,66 @@ public class ChildContainer extends Container {
 		 */
 		public ChildBuilder resolver(Resolver resolver) {
 			OptionUtils.set(container.getOptions(), Option.RESOLVER, resolver.toString());
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param jmxUser jmx user
+		 * @return this
+		 */
+		public ChildBuilder jmxUser(String jmxUser) {
+			OptionUtils.set(container.getOptions(), Option.JMX_USER, jmxUser);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param jmxPassword jmx password
+		 * @return this
+		 */
+		public ChildBuilder jmxPassword(String jmxPassword) {
+			OptionUtils.set(container.getOptions(), Option.JMX_PASSWORD, jmxPassword);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param zkPass zookeeper password
+		 * @return this
+		 */
+		public ChildBuilder zookeeperPassword(String zkPass) {
+			OptionUtils.set(container.getOptions(), Option.ZOOKEEPER_PASSWORD, zkPass);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param manualIp manual ip
+		 * @return this
+		 */
+		public ChildBuilder manualIp(String manualIp) {
+			OptionUtils.set(container.getOptions(), Option.MANUAL_IP, manualIp);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param addr bind address
+		 * @return this
+		 */
+		public ChildBuilder bindAddress(String addr) {
+			OptionUtils.set(container.getOptions(), Option.BIND_ADDRESS, addr);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param datastore datastore option
+		 * @return this
+		 */
+		public ChildBuilder datastore(String... datastore) {
+			OptionUtils.set(container.getOptions(), Option.DATASTORE_OPTION, datastore);
 			return this;
 		}
 

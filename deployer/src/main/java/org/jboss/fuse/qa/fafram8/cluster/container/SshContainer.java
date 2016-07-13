@@ -443,11 +443,151 @@ public class SshContainer extends Container {
 		}
 
 		/**
+		 * Setter.
+		 * @param zkPass zookeeper password
+		 * @return this
+		 */
+		public SshBuilder zookeeperPassword(String zkPass) {
+			OptionUtils.set(container.getOptions(), Option.ZOOKEEPER_PASSWORD, zkPass);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param manualIp manual ip
+		 * @return this
+		 */
+		public SshBuilder manualIp(String manualIp) {
+			OptionUtils.set(container.getOptions(), Option.MANUAL_IP, manualIp);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param addr bind address
+		 * @return this
+		 */
+		public SshBuilder bindAddress(String addr) {
+			OptionUtils.set(container.getOptions(), Option.BIND_ADDRESS, addr);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param datastore datastore options
+		 * @return this
+		 */
+		public SshBuilder datastore(String... datastore) {
+			OptionUtils.set(container.getOptions(), Option.DATASTORE_OPTION, datastore);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param passPhrase pass phrase
+		 * @return this
+		 */
+		public SshBuilder passPhrase(String passPhrase) {
+			OptionUtils.set(container.getOptions(), Option.PASS_PHRASE, passPhrase);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param port ssh port
+		 * @return this
+		 */
+		public SshBuilder port(int port) {
+			OptionUtils.set(container.getOptions(), Option.PORT, String.valueOf(port));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param privateKey private key path
+		 * @return this
+		 */
+		public SshBuilder privateKey(String privateKey) {
+			OptionUtils.set(container.getOptions(), Option.PRIVATE_KEY, privateKey);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param minPort min port
+		 * @return this
+		 */
+		public SshBuilder minPort(int minPort) {
+			OptionUtils.set(container.getOptions(), Option.MIN_PORT, String.valueOf(minPort));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param repos fallback repos
+		 * @return this
+		 */
+		public SshBuilder fallbackRepos(String... repos) {
+			OptionUtils.set(container.getOptions(), Option.FALLBACK_REPOS, repos);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param uri proxy uri
+		 * @return this
+		 */
+		public SshBuilder proxyUri(String uri) {
+			OptionUtils.set(container.getOptions(), Option.PROXY_URI, uri);
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param port max port
+		 * @return this
+		 */
+		public SshBuilder maxPort(int port) {
+			OptionUtils.set(container.getOptions(), Option.MAX_PORT, String.valueOf(port));
+			return this;
+		}
+
+		/**
+		 * Setter.
+		 * @param retries ssh retries
+		 * @return this
+		 */
+		public SshBuilder sshRetries(int retries) {
+			OptionUtils.set(container.getOptions(), Option.SSH_RETRIES, String.valueOf(retries));
+			return this;
+		}
+
+		/**
+		 * Sets the "--with-admin-access" flag.
+		 * @return this
+		 */
+		public SshBuilder withAdminAccess() {
+			OptionUtils.set(container.getOptions(), Option.WITH_ADMIN_ACCESS, "");
+			return this;
+		}
+
+		/**
+		 * Sets the "--disable-distribution-upload" flag.
+		 * @return this
+		 */
+		public SshBuilder disableDistributionUpload() {
+			OptionUtils.set(container.getOptions(), Option.DISABLE_DISTRIBUTION_UPLOAD, "");
+			return this;
+		}
+
+		/**
 		 * Setter for additional create options that does not have special method.
 		 *
+		 * @deprecated Use other setters, they should be complete.
 		 * @param options options string
 		 * @return this
 		 */
+		@Deprecated
 		public SshBuilder options(String options) {
 			final List<String> old = OptionUtils.get(container.getOptions(), Option.OTHER);
 			old.add(options);

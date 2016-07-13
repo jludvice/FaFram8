@@ -13,7 +13,6 @@ import org.junit.Test;
  * Created by mmelko on 17/03/16.
  */
 public class ContainerBuildersTest {
-
 	@Test
 	public void testChildContainerBuilder() {
 		Container template = ChildContainer.builder()

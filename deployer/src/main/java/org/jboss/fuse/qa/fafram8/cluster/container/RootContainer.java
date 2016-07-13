@@ -151,6 +151,7 @@ public class RootContainer extends Container {
 			}
 		} else {
 			super.getExecutor().connect();
+			super.getNode().getExecutor().connect();
 		}
 	}
 

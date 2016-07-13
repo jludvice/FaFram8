@@ -328,7 +328,7 @@ public class RootContainer extends Container {
 		 */
 		@Deprecated
 		public RootBuilder user(String user) {
-			container.setUser(user);
+			OptionUtils.set(container.getOptions(), Option.USER, user);
 			return this;
 		}
 
@@ -341,7 +341,7 @@ public class RootContainer extends Container {
 		 */
 		@Deprecated
 		public RootBuilder password(String password) {
-			container.setPassword(password);
+			OptionUtils.set(container.getOptions(), Option.PASSWORD, password);
 			return this;
 		}
 
@@ -353,8 +353,8 @@ public class RootContainer extends Container {
 		 * @return this
 		 */
 		public RootBuilder addUser(String user, String pass, String roles) {
-			container.setUser(user);
-			container.setPassword(pass);
+			OptionUtils.set(container.getOptions(), Option.USER, user);
+			OptionUtils.set(container.getOptions(), Option.PASSWORD, pass);
 			((RootContainer) container).setUsersMod(putProperty("etc/users.properties", user, pass + "," + roles));
 			// We need to pass it to ModifierExecutor later when we will have the IP
 			return this;
@@ -513,8 +513,8 @@ public class RootContainer extends Container {
 			// Port, user and pass are automatically set in Node object from system properties
 			container.setNode(Node.builder().build());
 			container.setName(SystemProperty.getDefaultRootName());
-			container.setUser(SystemProperty.getFuseUser());
-			container.setPassword(SystemProperty.getFusePassword());
+			OptionUtils.set(container.getOptions(), Option.USER, SystemProperty.getFuseUser());
+			OptionUtils.set(container.getOptions(), Option.PASSWORD, SystemProperty.getFusePassword());
 			return this;
 		}
 

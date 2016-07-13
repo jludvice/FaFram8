@@ -454,7 +454,7 @@ public abstract class Container implements Comparable<Container> {
 		map.put(Option.USER, Lists.newArrayList(SystemProperty.getFuseUser()));
 		map.put(Option.PASSWORD, Lists.newArrayList(SystemProperty.getFusePassword()));
 
-		if (System.getProperty("os.name").startsWith("Windows")) {
+		if (!System.getProperty("os.name").startsWith("Windows")) {
 			map.put(Option.JVM_OPTS, Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom"));
 		}
 

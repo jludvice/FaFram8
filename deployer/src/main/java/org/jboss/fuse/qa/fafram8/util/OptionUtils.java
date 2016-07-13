@@ -42,8 +42,8 @@ public final class OptionUtils {
 	private static List<String> trim(Option option, String... values) {
 		final List<String> ret = new ArrayList<>();
 		for (String value : values) {
-			if (value.contains(option.toString())) {
-
+			// For example if it contains \"--env \", this will be trimed out as the switch will be automatically added
+			if (value.contains(option.toString() + " ")) {
 				ret.add(value.replace(option.toString(), "").trim());
 			} else {
 				ret.add(value);
@@ -81,12 +81,19 @@ public final class OptionUtils {
 			switch (entry.getKey()) {
 				case PROFILE:
 				case ENV:
+				case DATASTORE_OPTION:
+				case FALLBACK_REPOS:
 					// You need to include the switch over and over again for each value
 					for (String s : entry.getValue()) {
 						builder.append(entry.getKey()).append(" \"").append(s).append("\" ");
 					}
 					break;
 				default:
+					// Special usecase for just flag without values
+					if (entry.getValue().size() == 1 && entry.getValue().get(0).isEmpty()) {
+						builder.append(entry.getKey()).append(" ");
+						continue;
+					}
 					// One switch for all values
 					builder.append(entry.getKey()).append(" \"");
 					for (String s : entry.getValue()) {

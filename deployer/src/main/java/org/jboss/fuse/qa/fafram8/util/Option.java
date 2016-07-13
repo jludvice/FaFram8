@@ -188,7 +188,7 @@ public enum Option {
 			return "working-dir";
 		}
 	},
-	// For backward compatibility to use with Builder.opts
+	// For backwards compatibility to use with Builder.opts
 	OTHER(false) {
 		@Override
 		public String toString() {

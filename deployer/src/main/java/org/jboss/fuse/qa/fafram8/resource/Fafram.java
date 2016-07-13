@@ -151,9 +151,8 @@ public class Fafram extends ExternalResource {
 			throw new FaframException(ex);
 		}
 
-		provisionProvider.releaseResources();
-		provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 		if (!SystemProperty.isKeepOsResources()) {
+			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 			provisionProvider.releaseResources();
 		}
 

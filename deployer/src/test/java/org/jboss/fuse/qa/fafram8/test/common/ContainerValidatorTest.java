@@ -5,6 +5,7 @@ import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
 import org.jboss.fuse.qa.fafram8.exception.ValidatorException;
+import org.jboss.fuse.qa.fafram8.property.FaframProvider;
 import org.jboss.fuse.qa.fafram8.resource.Fafram;
 
 import org.junit.Test;
@@ -17,16 +18,9 @@ public class ContainerValidatorTest {
 	private Fafram fafram;
 
 	@Test(expected = ValidatorException.class)
-	public void rootNoNodeTest() {
-		fafram = new Fafram();
-		fafram.containers(RootContainer.builder().name("noNode").build());
-		fafram.setup();
-	}
-
-	@Test(expected = ValidatorException.class)
 	public void rootNoNameTest() {
 		fafram = new Fafram();
-		fafram.containers(RootContainer.builder().build());
+		fafram.containers(RootContainer.builder().node(Node.builder().build()).build());
 		fafram.setup();
 	}
 
@@ -71,6 +65,12 @@ public class ContainerValidatorTest {
 	public void containersWithoutFabricTest() {
 		fafram = new Fafram();
 		fafram.containers(ChildContainer.builder().build());
+		fafram.setup();
+	}
+
+	@Test(expected = ValidatorException.class)
+	public void defaultRemoteContainerMissingZipTest() {
+		fafram = new Fafram().provider(FaframProvider.OPENSTACK);
 		fafram.setup();
 	}
 }

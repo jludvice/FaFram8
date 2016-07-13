@@ -98,8 +98,8 @@ public class Fafram extends ExternalResource {
 			SystemProperty.checkKeepAllProperty();
 			printLogo();
 			initConfiguration();
-			Validator.validate();
 			ContainerManager.configureRoots();
+			Validator.validate();
 			ContainerManager.initBrokers();
 			prepareNodes(ContainerManager.getContainerList());
 			setDefaultModifiers();

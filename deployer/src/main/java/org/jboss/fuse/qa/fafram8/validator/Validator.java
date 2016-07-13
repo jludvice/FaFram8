@@ -152,9 +152,7 @@ public final class Validator {
 	private static void validateNullZip(String host) {
 		final String zipFile = SystemProperty.getFuseZip();
 
-		// Validator is called after the machine is provisioned, so the host property should be set
-		// If we are on remote but not specifying zip
-		if (!"localhost".equals(host) && zipFile == null) {
+		if ((!"localhost".equals(host) || !SystemProperty.getProvider().toLowerCase().contains("static")) && zipFile == null) {
 			throw new ValidatorException(FaframConstant.FUSE_ZIP + " property is not set on remote!");
 		}
 

@@ -6,13 +6,16 @@ import org.jboss.fuse.qa.fafram8.manager.ContainerManager;
 import org.jboss.fuse.qa.fafram8.property.SystemProperty;
 import org.jboss.fuse.qa.fafram8.ssh.FuseSSHClient;
 import org.jboss.fuse.qa.fafram8.ssh.SSHClient;
+import org.jboss.fuse.qa.fafram8.util.Option;
+import org.jboss.fuse.qa.fafram8.util.OptionUtils;
 
 import com.google.common.collect.Lists;
 
 import javax.annotation.Nonnull;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -31,14 +34,6 @@ public abstract class Container implements Comparable<Container> {
 	@Getter
 	@Setter
 	private String name;
-
-	@Getter
-	@Setter
-	private String user = SystemProperty.getFuseUser();
-
-	@Getter
-	@Setter
-	private String password = SystemProperty.getFusePassword();
 
 	@Getter
 	@Setter
@@ -74,48 +69,11 @@ public abstract class Container implements Comparable<Container> {
 
 	@Getter
 	@Setter
-	private List<String> commands = new ArrayList<>();
-
-	@Getter
-	@Setter
-	private List<String> bundles = new ArrayList<>();
-
-	@Getter
-	@Setter
-	private List<String> profiles = new ArrayList<>();
-
-	@Getter
-	@Setter
 	private boolean fabric;
 
 	@Getter
 	@Setter
-	private String fabricCreateArguments = "";
-
-	@Getter
-	@Setter
-	private String version;
-
-	@Getter
-	@Setter
-	private List<String> envs = new ArrayList<>();
-
-	@Getter
-	@Setter
-	private List<String> jvmOpts = (System.getProperty("os.name").startsWith("Windows")) ? new ArrayList<String>()
-			: Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom");
-
-	@Getter
-	@Setter
-	private List<String> jvmMemOpts = new ArrayList<>();
-
-	@Getter
-	@Setter
-	private String createOptions = "";
-
-	@Getter
-	@Setter
-	private String workingDirectory = "";
+	private Map<Option, List<String>> options = getInitialOptionsMap();
 
 	// Full path to unzipped product directory for root container
 	@Getter
@@ -146,12 +104,14 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Restarts a container.
+	 *
 	 * @param force force flag
 	 */
 	public abstract void restart(boolean force);
 
 	/**
 	 * Starts a container.
+	 *
 	 * @param force force flag
 	 */
 	public abstract void start(boolean force);
@@ -175,9 +135,11 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Waits for the successful provisioning for a given amount of time.
+	 *
 	 * @param time time in seconds
 	 */
 	public abstract void waitForProvisioning(int time);
+
 	/**
 	 * Waits for defined provision status.
 	 *
@@ -187,6 +149,7 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Waits for the defined provision status for a given amount of time.
+	 *
 	 * @param status provision status
 	 * @param time time in seconds
 	 */
@@ -202,6 +165,7 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Executes multiple commands in node shell.
+	 *
 	 * @param commands commands array to execute
 	 * @return list of commands responses
 	 */
@@ -219,6 +183,7 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Executes a command in node shell.
+	 *
 	 * @param command command to execute
 	 * @return command response
 	 */
@@ -248,17 +213,38 @@ public abstract class Container implements Comparable<Container> {
 	}
 
 	/**
+	 * Getter.
+	 * @return user
+	 */
+	public String getUser() {
+		return OptionUtils.getString(this.getOptions(), Option.USER);
+	}
+
+	/**
+	 * Getter.
+	 * @return password
+	 */
+	public String getPassword() {
+		return OptionUtils.getString(this.getOptions(), Option.PASSWORD);
+	}
+
+	/**
 	 * Creates the executor from the specified attributes. It is used in builder and in OpenstackProvisionProvider.
 	 *
 	 * @return executor instance
 	 */
 	public Executor createExecutor() {
-		final SSHClient fuseClient = new FuseSSHClient()
-				.host(this.getNode().getHost())
-				.port(this.getFuseSshPort())
-				.username(this.getUser())
-				.password(this.getPassword());
+		final SSHClient fuseClient = new FuseSSHClient().host(this.getNode().getHost()).port(this.getFuseSshPort()).username(this.getUser()).password(this.getPassword());
 		return new Executor(fuseClient);
+	}
+
+	/**
+	 * Getter.
+	 *
+	 * @return profiles list
+	 */
+	public List<String> getProfiles() {
+		return OptionUtils.get(this.getOptions(), Option.PROFILE);
 	}
 
 	/**
@@ -279,7 +265,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container user(String user) {
-		this.user = user;
+		OptionUtils.set(this.getOptions(), Option.USER, user);
 		return this;
 	}
 
@@ -290,7 +276,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container password(String password) {
-		this.password = password;
+		OptionUtils.set(this.getOptions(), Option.PASSWORD, password);
 		return this;
 	}
 
@@ -334,7 +320,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container commands(List<String> commands) {
-		this.commands = commands;
+		OptionUtils.set(getOptions(), Option.COMMANDS, commands.toArray(new String[commands.size()]));
 		return this;
 	}
 
@@ -345,7 +331,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container bundles(List<String> bundles) {
-		this.bundles = bundles;
+		OptionUtils.set(getOptions(), Option.BUNDLES, bundles.toArray(new String[bundles.size()]));
 		return this;
 	}
 
@@ -367,7 +353,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container profiles(List<String> profiles) {
-		this.profiles = profiles;
+		OptionUtils.set(getOptions(), Option.PROFILE, profiles.toArray(new String[profiles.size()]));
 		return this;
 	}
 
@@ -389,7 +375,18 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container fabricCreateArguments(String fabricCreateArguments) {
-		this.fabricCreateArguments = fabricCreateArguments;
+		OptionUtils.set(getOptions(), Option.FABRIC_CREATE, fabricCreateArguments);
+		return this;
+	}
+
+	/**
+	 * Setter.
+	 *
+	 * @param map options map
+	 * @return this
+	 */
+	public Container options(Map<Option, List<String>> map) {
+		this.options = map;
 		return this;
 	}
 
@@ -400,7 +397,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container version(String version) {
-		this.version = version;
+		OptionUtils.set(getOptions(), Option.VERSION, version);
 		return this;
 	}
 
@@ -411,7 +408,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container env(List<String> envs) {
-		this.envs = envs;
+		OptionUtils.set(getOptions(), Option.ENV, envs.toArray(new String[envs.size()]));
 		return this;
 	}
 
@@ -422,7 +419,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container jvmOpts(List<String> jvmOpts) {
-		this.jvmOpts = jvmOpts;
+		OptionUtils.set(getOptions(), Option.JVM_OPTS, jvmOpts.toArray(new String[jvmOpts.size()]));
 		return this;
 	}
 
@@ -433,7 +430,7 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container jvmMemOpts(List<String> jvmMemOpts) {
-		this.jvmMemOpts = jvmMemOpts;
+		OptionUtils.set(getOptions(), Option.JVM_MEM_OPTS, jvmMemOpts.toArray(new String[jvmMemOpts.size()]));
 		return this;
 	}
 
@@ -444,8 +441,24 @@ public abstract class Container implements Comparable<Container> {
 	 * @return this
 	 */
 	public Container directory(String workingDirectory) {
-		this.workingDirectory = workingDirectory;
+		OptionUtils.set(getOptions(), Option.WORKING_DIRECTORY, workingDirectory);
 		return this;
+	}
+
+	/**
+	 * Gets the initialized options map.
+	 * @return initialized options map
+	 */
+	private Map<Option, List<String>> getInitialOptionsMap() {
+		final Map<Option, List<String>> map = new HashMap<>();
+		map.put(Option.USER, Lists.newArrayList(SystemProperty.getFuseUser()));
+		map.put(Option.PASSWORD, Lists.newArrayList(SystemProperty.getFusePassword()));
+
+		if (!System.getProperty("os.name").startsWith("Windows")) {
+			map.put(Option.JVM_OPTS, Lists.newArrayList("-Djava.security.egd=file:/dev/./urandom"));
+		}
+
+		return map;
 	}
 
 	@Override
@@ -455,14 +468,14 @@ public abstract class Container implements Comparable<Container> {
 
 	/**
 	 * Gets the parent count of container.
+	 *
 	 * @return parent count
 	 */
 	public int getParentCount() {
 		Container c = this;
 		int count = 0;
 		do {
-			final Container currentParent = c.getParent() == null ? (c.getParentName() == null ? null
-					: ContainerManager.getContainer(c.getParentName())) : c.getParent();
+			final Container currentParent = c.getParent() == null ? (c.getParentName() == null ? null : ContainerManager.getContainer(c.getParentName())) : c.getParent();
 			if (currentParent == null) {
 				break;
 			}

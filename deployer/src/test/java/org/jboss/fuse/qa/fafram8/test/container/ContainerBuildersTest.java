@@ -4,6 +4,7 @@ import org.jboss.fuse.qa.fafram8.cluster.container.ChildContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.Container;
 import org.jboss.fuse.qa.fafram8.cluster.container.RootContainer;
 import org.jboss.fuse.qa.fafram8.cluster.container.SshContainer;
+import org.jboss.fuse.qa.fafram8.util.Option;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,7 +13,6 @@ import org.junit.Test;
  * Created by mmelko on 17/03/16.
  */
 public class ContainerBuildersTest {
-
 	@Test
 	public void testChildContainerBuilder() {
 		Container template = ChildContainer.builder()
@@ -78,8 +78,6 @@ public class ContainerBuildersTest {
 		Assert.assertFalse(root2.getProfiles().contains("gateway-http"));
 
 		Assert.assertEquals(template.getProfiles().size(), root2.getProfiles().size());
-		for(String s: root.getCommands())
-		System.out.println(s);
-		Assert.assertEquals(2,root.getCommands().size());
+		Assert.assertEquals(2,root.getOptions().get(Option.COMMANDS).size());
 	}
 }

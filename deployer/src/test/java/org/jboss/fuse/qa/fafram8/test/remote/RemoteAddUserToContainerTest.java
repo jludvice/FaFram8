@@ -18,7 +18,7 @@ import org.junit.Test;
  * Created by avano on 18.5.16.
  */
 public class RemoteAddUserToContainerTest {
-	private Container root1 = RootContainer.builder().defaultRoot().name("adduserroot1").addUser("myuser", "myuser", "admin").build();
+	private Container root1 = RootContainer.builder().defaultRoot().name("adduserroot1").addUser("myuser", "mypass", "admin").build();
 	private Container root2 = RootContainer.builder().defaultRoot().name("adduserroot2").build();
 
 	@Rule
@@ -26,10 +26,10 @@ public class RemoteAddUserToContainerTest {
 
 	@Test
 	public void addUserTest() {
-		assertTrue(root1.executeNodeCommand("cat " + root1.getFusePath() + "/etc/users.properties").contains("myuser=myuser,admin"));
+		assertTrue(root1.executeNodeCommand("cat " + root1.getFusePath() + "/etc/users.properties").contains("myuser=mypass,admin"));
 		assertEquals("User", "myuser", root1.getExecutor().getClient().getUsername());
-		assertEquals("Password", "myuser", root1.getExecutor().getClient().getPassword());
-		assertFalse(root2.executeNodeCommand("cat " + root2.getFusePath() + "/etc/users.properties").contains("myuser=myuser,admin"));
+		assertEquals("Password", "mypass", root1.getExecutor().getClient().getPassword());
+		assertFalse(root2.executeNodeCommand("cat " + root2.getFusePath() + "/etc/users.properties").contains("myuser=mypass,admin"));
 		assertNotEquals("User", "myuser", root2.getExecutor().getClient().getUsername());
 		assertNotEquals("Password", "myuser", root2.getExecutor().getClient().getPassword());
 	}

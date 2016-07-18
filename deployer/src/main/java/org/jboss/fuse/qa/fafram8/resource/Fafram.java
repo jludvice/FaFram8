@@ -98,8 +98,8 @@ public class Fafram extends ExternalResource {
 			SystemProperty.checkKeepAllProperty();
 			printLogo();
 			initConfiguration();
-			Validator.validate();
 			ContainerManager.configureRoots();
+			Validator.validate();
 			ContainerManager.initBrokers();
 			prepareNodes(ContainerManager.getContainerList());
 			setDefaultModifiers();
@@ -151,9 +151,8 @@ public class Fafram extends ExternalResource {
 			throw new FaframException(ex);
 		}
 
-		provisionProvider.releaseResources();
-		provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 		if (!SystemProperty.isKeepOsResources()) {
+			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 			provisionProvider.releaseResources();
 		}
 

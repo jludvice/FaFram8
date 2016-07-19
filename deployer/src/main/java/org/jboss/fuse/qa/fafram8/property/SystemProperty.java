@@ -533,9 +533,8 @@ public class SystemProperty {
 	 * Checks if keepAll property is set if it is then it sets keepOsResources and keepContainers properties to true.
 	 */
 	public static void checkKeepAllProperty() {
-		final Boolean keep = System.getProperty(FaframConstant.KEEP_ALL) != null
-				&& Boolean.parseBoolean(System.getProperty(FaframConstant.KEEP_ALL));
-		if (keep) {
+		// Only check if the property is set
+		if (System.getProperty(FaframConstant.KEEP_ALL) != null) {
 			forceSet(FaframConstant.KEEP_CONTAINERS, "true");
 			forceSet(FaframConstant.KEEP_OS_RESOURCES, "true");
 		}

@@ -107,8 +107,10 @@ public class Fafram extends ExternalResource {
 			Deployer.deploy();
 			ContainerManager.createEnsemble();
 		} catch (Exception ex) {
-			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
-			provisionProvider.releaseResources();
+			if (!SystemProperty.isKeepOsResources()) {
+				provisionProvider.cleanIpTables(ContainerManager.getContainerList());
+				provisionProvider.releaseResources();
+			}
 			Deployer.destroy(true);
 			ContainerManager.clearAllLists();
 			SystemProperty.clearAllProperties();
@@ -140,10 +142,11 @@ public class Fafram extends ExternalResource {
 			Deployer.destroy(false);
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			provisionProvider.cleanIpTables(ContainerManager.getContainerList());
 
-			provisionProvider.releaseResources();
-
+			if (!SystemProperty.isKeepOsResources()) {
+				provisionProvider.cleanIpTables(ContainerManager.getContainerList());
+				provisionProvider.releaseResources();
+			}
 			SystemProperty.clearAllProperties();
 			ModifierExecutor.clearAllModifiers();
 			ContainerManager.clearAllLists();

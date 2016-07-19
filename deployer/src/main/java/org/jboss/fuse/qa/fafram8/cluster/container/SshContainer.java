@@ -94,6 +94,9 @@ public class SshContainer extends Container {
 
 		log.info("Creating container " + this);
 
+		// Recreate the executor because the values could be changed in the process
+		super.getNode().setExecutor(super.getNode().createExecutor());
+
 		getExecutor().executeCommand(String.format("container-create-ssh --user %s --password %s --host %s %s %s",
 				super.getNode().getUsername(), super.getNode().getPassword(), super.getNode().getHost(), OptionUtils.getCommand(super.getOptions()), super.getName()));
 		super.setCreated(true);

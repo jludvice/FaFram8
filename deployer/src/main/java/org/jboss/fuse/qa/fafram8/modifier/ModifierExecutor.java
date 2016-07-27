@@ -19,10 +19,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ModifierExecutor {
-	private static ModifierExecutor instance = null;
-	private static Set<Modifier> modifiers = null;
-	private static Set<Modifier> postModifiers = null;
-	private static Set<Modifier> customModifiers = null;
+	private static ModifierExecutor instance = new ModifierExecutor();
+	private static Set<Modifier> modifiers = new LinkedHashSet<>();
+	private static Set<Modifier> postModifiers = new LinkedHashSet<>();
+	private static Set<Modifier> customModifiers = new LinkedHashSet<>();
 
 	@Setter
 	@Getter
@@ -40,13 +40,6 @@ public class ModifierExecutor {
 	 * @return instance
 	 */
 	public static ModifierExecutor getInstance() {
-		if (instance == null) {
-			instance = new ModifierExecutor();
-			modifiers = new LinkedHashSet<>();
-			postModifiers = new LinkedHashSet<>();
-			customModifiers = new LinkedHashSet<>();
-		}
-
 		return instance;
 	}
 

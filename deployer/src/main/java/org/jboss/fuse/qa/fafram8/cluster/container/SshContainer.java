@@ -1,5 +1,7 @@
 package org.jboss.fuse.qa.fafram8.cluster.container;
 
+import org.apache.commons.lang3.StringUtils;
+
 import org.jboss.fuse.qa.fafram8.cluster.node.Node;
 import org.jboss.fuse.qa.fafram8.cluster.resolver.Resolver;
 import org.jboss.fuse.qa.fafram8.deployer.ContainerSummoner;
@@ -84,6 +86,7 @@ public class SshContainer extends Container implements ThreadContainer {
 		if (SystemProperty.suppressStart()) {
 			return;
 		}
+		log.info("Creating container " + this);
 
 		// If using static provider then clean
 		if (ProviderSingleton.INSTANCE.isStaticProvider() && !SystemProperty.isWithoutPublicIp()) {
@@ -121,7 +124,6 @@ public class SshContainer extends Container implements ThreadContainer {
 			log.debug("Working directory was set. Setting working directory \"{}\" for container \"{}\".", path, super.getName());
 		}
 
-		log.info("Creating container " + this);
 		if (!executor.isConnected()) {
 			log.trace("Connecting executor " + executor + " before creating ssh container");
 			executor.connect();
